@@ -7,8 +7,8 @@ Contraction Hierarchies (with bidirectional version of Dijkstra's algorithm) for
 
 - [About](#about)
 - [Installation](#usage)
-    - [Old](#old%20way)
-    - [New](#new%20way)
+    - [Old](#old-way)
+    - [New](#new-way)
 - [Usage](#usage)
 - [Support](#support)
 - [ToDo](#todo)
