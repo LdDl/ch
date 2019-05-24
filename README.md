@@ -1,3 +1,5 @@
+[![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/LdDl/ch)
+
 # ch
 Contraction Hierarchies (with bidirectional version of Dijkstra's algorithm) for computing shortest path in graph
 
