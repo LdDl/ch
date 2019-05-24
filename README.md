@@ -7,11 +7,13 @@ Contraction Hierarchies (with bidirectional version of Dijkstra's algorithm) for
 
 - [About](#about)
 - [Installation](#usage)
+    - [Old](#old%20way)
+    - [New](#new%20way)
 - [Usage](#usage)
 - [Support](#support)
 - [ToDo](#todo)
 - [Thanks](#thanks)
-- [Theory](#thanks)
+- [Theory](#theory)
 
 ## About
 This package provides implemented next techniques and algorithms:
@@ -21,10 +23,27 @@ This package provides implemented next techniques and algorithms:
 
 ## Installation
 
-Simple:
+### Old way
 ```go
 go get github.com/LdDl/ch
 ```
+
+
+### New way
+In your project folder execute next command:
+```go
+go mod init mod
+```
+Then import library into your code:
+```go
+go build
+```
+You will see next output:
+```shell
+go: finding github.com/LdDl/ch v1.0.0
+go: downloading github.com/LdDl/ch v1.0.0
+```
+And then you are good to go 
 
 ## Usage
 
