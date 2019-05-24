@@ -36,6 +36,10 @@ go mod init mod
 ```
 Then import library into your code:
 ```go
+import "github.com/LdDl/ch"
+```
+and build
+```go
 go build
 ```
 You will see next output:
