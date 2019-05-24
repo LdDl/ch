@@ -43,10 +43,15 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 
 ## Theory
 [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
+
 [Bidirectional search](https://en.wikipedia.org/wiki/Bidirectional_search)
+
 [Bidirectional Dijkstra's algorithm's stop condition](http://www.cs.princeton.edu/courses/archive/spr06/cos423/Handouts/EPP%20shortest%20path%20algorithms.pdf)
+
 [Contraction hierarchies](https://en.wikipedia.org/wiki/Contraction_hierarchies)
+
 [Video Lectures](https://ad-wiki.informatik.uni-freiburg.de/teaching/EfficientRoutePlanningSS2012)
+
 
 ## Thanks
 Thanks to [this](https://github.com/navjindervirdee/Advanced-Shortest-Paths-Algorithms) Java implementation of mentioned algorithms
