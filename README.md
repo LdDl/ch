@@ -7,6 +7,7 @@ Contraction Hierarchies (with bidirectional version of Dijkstra's algorithm) for
 - [Installation](#usage)
 - [Usage](#usage)
 - [Support](#support)
+- [ToDo](#todo)
 - [Thanks](#thanks)
 - [Theory](#thanks)
 
@@ -40,6 +41,12 @@ I hope it's pretty clear, but here is little explanation:
 ## Support
 
 If you have troubles or questions please [open an issue](https://github.com/LdDl/ch/issues/new).
+
+## ToDo
+
+    *Import file of specific format
+    *Export file of specific format
+    *Thoughts and discussions about OSM graph and extensions
 
 ## Theory
 [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
