@@ -3,16 +3,9 @@ package ch
 import (
 	"container/heap"
 	"container/list"
+	"log"
 	"math"
 )
-
-// checkID Checks if both source's and target's contraction ID are not equal
-func (graph *Graph) checkID(source, target int) bool {
-	if graph.Vertices[source].distance.contractID != graph.Vertices[target].distance.contractID || graph.Vertices[source].distance.sourceID != graph.Vertices[target].distance.sourceID {
-		return true
-	}
-	return false
-}
 
 // relaxEdgesBiForward Edge relaxation in a forward propagation
 func (graph *Graph) relaxEdgesBiForward(vertex *simpleNode, forwQ *forwardPropagationHeap, prev map[int]int, queryDist []float64, prevReverse []float64) {
@@ -71,7 +64,7 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 
 	source = graph.mapping[source]
 	target = graph.mapping[target]
-
+	log.Println(source, target)
 	prev := make(map[int]int)
 	prevReverse := make(map[int]int)
 
@@ -148,6 +141,7 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 	if estimate == math.MaxFloat64 {
 		return -1.0, nil
 	}
+	log.Println("iters:", iter)
 	return estimate, graph.ComputePath(middleID, prev, prevReverse)
 }
 

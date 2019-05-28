@@ -2,6 +2,14 @@ package ch
 
 import "container/heap"
 
+// checkID Checks if both source's and target's contraction ID are not equal
+func (graph *Graph) checkID(source, target int) bool {
+	if graph.Vertices[source].distance.contractID != graph.Vertices[target].distance.contractID || graph.Vertices[source].distance.sourceID != graph.Vertices[target].distance.sourceID {
+		return true
+	}
+	return false
+}
+
 // relaxEdges Edge relaxation
 func (graph *Graph) relaxEdges(vertex, contractID, sourceID int) {
 	vertexList := graph.Vertices[vertex].outEdges
