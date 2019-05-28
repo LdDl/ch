@@ -21,8 +21,6 @@ func TestExport(t *testing.T) {
 	err := g.ExportToFile("export_bench.csv")
 	if err != nil {
 		t.Error(err)
-	} else {
-		t.Error("good")
 	}
 }
 
