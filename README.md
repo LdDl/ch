@@ -51,7 +51,7 @@ And then you are good to go
 
 ## Usage
 
-Please see this [benchmark](github.com/LdDl/ch/blob/master/bidirectional_ch_test.go#L13)
+Please see this [benchmark](bidirectional_ch_test.go#L44)
 
 I hope it's pretty clear, but here is little explanation:
 ```go
