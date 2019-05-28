@@ -50,6 +50,40 @@ func (graph *Graph) CreateVertex(label int) {
 	}
 }
 
+// AddVertex Adds vertex with provided internal ID
+//
+// labelExternal User's definied ID of vertex
+// labelInternal internal ID of vertex
+//
+func (graph *Graph) AddVertex(labelExternal, labelInternal int) {
+	v := &Vertex{
+		Label:        labelExternal,
+		delNeighbors: 0,
+		distance:     NewDistance(),
+		processed:    NewProcessed(),
+		contracted:   true,
+		vertexNum:    labelInternal,
+	}
+	if graph.mapping == nil {
+		graph.mapping = make(map[int]int)
+	}
+	if graph.contracts == nil {
+		graph.contracts = make(map[int]map[int]int)
+	}
+
+	if _, ok := graph.mapping[labelExternal]; !ok {
+		graph.mapping[labelExternal] = labelInternal
+		if labelInternal < len(graph.Vertices) {
+			graph.Vertices[labelInternal] = v
+		} else {
+			diff := labelInternal - len(graph.Vertices) + 1
+			empty := make([]*Vertex, diff)
+			graph.Vertices = append(graph.Vertices, empty...)
+			graph.Vertices[labelInternal] = v
+		}
+	}
+}
+
 // AddEdge Adds new add between two vertices
 //
 // from User's definied ID of first vertex of edge
@@ -78,7 +112,6 @@ func (graph *Graph) computeImportance() {
 		graph.Vertices[i].importance = graph.Vertices[i].edgeDiff*14 + graph.Vertices[i].shortcutCover*25 + graph.Vertices[i].delNeighbors*10
 		heap.Push(graph.pqImportance, graph.Vertices[i])
 	}
-
 }
 
 // PrepareContracts Compute contraction hierarchies
