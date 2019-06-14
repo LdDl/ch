@@ -61,12 +61,12 @@ func (graph *Graph) relaxEdgesBiBackward(vertex *simpleNode, backwQ *backwardPro
 //
 func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 
-	source = graph.mapping[source]
-	target = graph.mapping[target]
-
 	if source == target {
 		return 0, []int{source}
 	}
+
+	source = graph.mapping[source]
+	target = graph.mapping[target]
 
 	prev := make(map[int]int)
 	prevReverse := make(map[int]int)
