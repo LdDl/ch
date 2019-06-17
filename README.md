@@ -69,10 +69,10 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 
 ## ToDo
 
-* Import file of specific format
-* Export file of specific format
+* ~~Import file of specific format~~ **Done as CSV**
+* ~~Export file of specific format~~ **Done as CSV**
 * Thoughts and discussions about OSM graph and extensions
-* Map matcher as another project
+* Map matcher as another project **WIP**
 
 ## Theory
 [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
