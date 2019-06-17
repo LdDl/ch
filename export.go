@@ -25,7 +25,7 @@ func (graph *Graph) ExportToFile(fname string) error {
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 	writer.Comma = ';'
-	err = writer.Write([]string{"from_vertex_id", "to_vertex_id", "from_vertex_internal_id", "to_vertex_internal_id", "edge_weight", "is_contract"})
+	err = writer.Write([]string{"from_vertex_id", "to_vertex_id", "from_vertex_internal_id", "to_vertex_internal_id", "edge_weight", "contract_id", "contract_internal_id"})
 	if err != nil {
 		return err
 	}
