@@ -12,24 +12,24 @@ import (
 
 func TestShortestPath(t *testing.T) {
 	g := Graph{}
-	graphFromCSV(&g, "benchmark_graph.csv")
+	graphFromCSV(&g, "pgrouting_osm.csv")
 	log.Println("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	log.Println("TestShortestPath is starting...")
 	u := 144031
 	v := 452090
 	ans, path := g.ShortestPath(u, v)
-	if len(path) != 1966 {
-		t.Errorf("Num of vertices in path should be 1966, but got %d", len(path))
+	if len(path) != 199 {
+		t.Errorf("Num of vertices in path should be 199, but got %d", len(path))
 	}
-	if ans != 329520.4412391192 {
-		t.Errorf("Length of path should be 329520.4412391192, but got %f", ans)
+	if ans != 19815.1930182987 {
+		t.Errorf("Length of path should be 19815.1930182987, but got %f", ans)
 	}
 }
 
 func BenchmarkShortestPath(b *testing.B) {
 	g := Graph{}
-	graphFromCSV(&g, "benchmark_graph.csv")
+	graphFromCSV(&g, "pgrouting_osm.csv")
 	log.Println("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	log.Println("BenchmarkShortestPath is starting...")
@@ -44,7 +44,7 @@ func BenchmarkShortestPath(b *testing.B) {
 
 func BenchmarkPrepareContracts(b *testing.B) {
 	g := Graph{}
-	graphFromCSV(&g, "benchmark_graph.csv")
+	graphFromCSV(&g, "pgrouting_osm.csv")
 	b.ResetTimer()
 	g.PrepareContracts()
 }
