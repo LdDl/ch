@@ -3,6 +3,7 @@ package ch
 import (
 	"container/heap"
 	"container/list"
+	"log"
 	"math"
 )
 
@@ -65,8 +66,15 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 		return 0, []int{source}
 	}
 
-	source = graph.mapping[source]
-	target = graph.mapping[target]
+	ok := true
+	if source, ok = graph.mapping[source]; !ok {
+		log.Println("No such source")
+		return -1.0, nil
+	}
+	if target, ok = graph.mapping[target]; !ok {
+		log.Println("No such target")
+		return -1.0, nil
+	}
 
 	prev := make(map[int]int)
 	prevReverse := make(map[int]int)
