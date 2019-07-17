@@ -69,12 +69,12 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 
 	if source, ok = graph.mapping[source]; !ok {
 		log.Println("No such source")
+		return -1.0, nil
 	}
 	if target, ok = graph.mapping[target]; !ok {
 		log.Println("No such target")
+		return -1.0, nil
 	}
-
-	log.Println(source, target)
 
 	prev := make(map[int]int)
 	prevReverse := make(map[int]int)

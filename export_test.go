@@ -25,13 +25,13 @@ func TestImportedFileShortestPath(t *testing.T) {
 		t.Error(err)
 	}
 	log.Println("TestImportedFileShortestPath is starting...")
-	u := 144031
-	v := 452090
+	u := 69618
+	v := 5924
 	ans, path := g.ShortestPath(u, v)
-	if len(path) != 199 {
-		t.Errorf("Num of vertices in path should be 1966, but got %d", len(path))
+	if len(path) != 160 {
+		t.Errorf("Num of vertices in path should be 164, but got %d", len(path))
 	}
-	if ans != 19815.1930182987 {
-		t.Errorf("Length of path should be 19815.1930182987, but got %f", ans)
+	if ans != 19135.6581215226 {
+		t.Errorf("Length of path should be 19135.6581215226, but got %f", ans)
 	}
 }
