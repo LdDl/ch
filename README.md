@@ -30,14 +30,21 @@ go get github.com/LdDl/ch
 ```
 
 
-### New way
-In your project folder execute next command:
+### New way 
+In your project folder execute next command (assuming you have GO111MODULE=on):
 ```go
 go mod init mod
 ```
 Then import library into your code:
 ```go
+package main
+
 import "github.com/LdDl/ch"
+
+func main() {
+	x := ch.Graph{}
+	_ = x
+}
 ```
 and build
 ```go
