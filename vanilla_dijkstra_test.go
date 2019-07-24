@@ -8,7 +8,7 @@ import (
 
 func TestVanillaShortestPath(t *testing.T) {
 	g := Graph{}
-	graphFromCSV(&g, "pgrouting_osm.csv")
+	graphFromCSV(&g, "data/pgrouting_osm.csv")
 	// log.Println("Please wait until contraction hierarchy is prepared")
 	// g.PrepareContracts()
 	log.Println("TestShortestPath is starting...")

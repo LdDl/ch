@@ -12,7 +12,7 @@ import (
 
 func TestShortestPath(t *testing.T) {
 	g := Graph{}
-	graphFromCSV(&g, "pgrouting_osm.csv")
+	graphFromCSV(&g, "data/pgrouting_osm.csv")
 	log.Println("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	log.Println("TestShortestPath is starting...")
@@ -29,7 +29,7 @@ func TestShortestPath(t *testing.T) {
 
 func BenchmarkShortestPath(b *testing.B) {
 	g := Graph{}
-	graphFromCSV(&g, "pgrouting_osm.csv")
+	graphFromCSV(&g, "data/pgrouting_osm.csv")
 	log.Println("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	log.Println("BenchmarkShortestPath is starting...")
