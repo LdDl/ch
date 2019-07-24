@@ -53,7 +53,7 @@ func (graph *Graph) relaxEdgesBiBackward(vertex *simpleNode, backwQ *backwardPro
 	}
 }
 
-// ShortestPath Computes and returns shortest path and it's cost
+// ShortestPath Computes and returns shortest path and it's cost (extended Dijkstra's algorithm)
 //
 // If there are some errors then function returns '-1.0' as cost and nil as shortest path
 //
@@ -65,8 +65,8 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 	if source == target {
 		return 0, []int{source}
 	}
-
 	ok := true
+
 	if source, ok = graph.mapping[source]; !ok {
 		log.Println("No such source")
 		return -1.0, nil
