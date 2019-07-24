@@ -57,7 +57,7 @@ Please see this [benchmark](bidirectional_ch_test.go#L44)
 I hope it's pretty clear, but here is little explanation:
 ```go
     g := Graph{} // Prepare variable for storing graph
-    graphFromCSV(&g, "benchmark_graph.csv") // Import CSV-file file into programm
+    graphFromCSV(&g, "pgrouting_osm.csv") // Import CSV-file file into programm
     g.PrepareContracts() // Compute contraction hierarchies
     u := 144031 // Define source vertex
     v := 452090 // Define target vertex
