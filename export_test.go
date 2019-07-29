@@ -32,11 +32,19 @@ func TestRestriction(t *testing.T) {
 		graph.AddEdge(vertices[i].from, vertices[i].to, vertices[i].weight)
 	}
 
+	// restrictions := make(map[int]map[int]int)
+	// restrictions[0] = make(map[int]int)
+	// restrictions[0][4] = 1
+	// restrictions[1] = make(map[int]int)
+	// restrictions[1][6] = 4
+
 	restrictions := make(map[int]map[int]int)
+	restrictions[0] = make(map[int]int)
+	restrictions[0][1] = 4
 	restrictions[1] = make(map[int]int)
-	restrictions[1][5] = 2
-	restrictions[2] = make(map[int]int)
-	restrictions[2][7] = 5
+	restrictions[1][4] = 6
+
+	graph.restrictions = restrictions
 
 	// hard coded
 	// if _, ok := graph.contracts[0]; !ok {

@@ -53,11 +53,13 @@ func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 
 	estimate := math.MaxFloat64
 
+	prevNodeID := -1
 	for forwQ.Len() != 0 {
 		if forwQ.Len() != 0 {
 			vertex1 := heap.Pop(forwQ).(simpleNode)
 			if vertex1.queryDist <= estimate {
-				graph.vanillaRelaxEdge(&vertex1, forwQ, prev, queryDist, revDistance)
+				graph.vanillaRelaxEdge(&vertex1, prevNodeID, forwQ, prev, queryDist, revDistance)
+				prevNodeID = vertex1.id
 			}
 			if vertex1.queryDist < estimate {
 				estimate = vertex1.queryDist + vertex1.revDistance
@@ -96,12 +98,25 @@ func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 }
 
 // vanillaRelaxEdge Edge relaxation
-func (graph *Graph) vanillaRelaxEdge(vertex *simpleNode, forwQ *forwardPropagationHeap, prev map[int]int, distances []float64, prevReverse []float64) {
+func (graph *Graph) vanillaRelaxEdge(vertex *simpleNode, prevNodeID int, forwQ *forwardPropagationHeap, prev map[int]int, distances []float64, prevReverse []float64) {
+	restrictions := make(map[int]int)
+	ok := false
+	viaRestrictionID := -1
+
+	if restrictions, ok = graph.restrictions[prevNodeID]; ok {
+		if viaRestrictionID, ok = restrictions[vertex.id]; ok {
+			// Skip
+		}
+	}
+
 	vertexList := graph.Vertices[vertex.id].outEdges
 	costList := graph.Vertices[vertex.id].outECost
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i]
 		cost := costList[i]
+		if temp == viaRestrictionID {
+			cost = math.MaxFloat64
+		}
 		alt := distances[vertex.id] + cost
 		if distances[temp] > alt {
 			distances[temp] = alt
