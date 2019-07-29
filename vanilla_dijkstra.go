@@ -92,7 +92,7 @@ func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 		usersLabelsPath[e] = graph.Vertices[path[e]].Label //append(path, graph.Vertices[e.Value.(int)].Label)
 	}
 
-	return estimate, path
+	return estimate, usersLabelsPath
 }
 
 // vanillaRelaxEdge Edge relaxation
