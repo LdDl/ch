@@ -21,7 +21,8 @@ type Graph struct {
 	Vertices     []*Vertex
 	nodeOrdering []int
 
-	contracts map[int]map[int]int
+	contracts    map[int]map[int]int
+	restrictions map[int]map[int]int
 }
 
 // CreateVertex Creates new vertex and assign internal ID to it
