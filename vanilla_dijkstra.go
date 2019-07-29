@@ -87,6 +87,11 @@ func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 	copy(temp[1:], path)
 	path = temp
 
+	usersLabelsPath := make([]int, len(path))
+	for e := 0; e < len(usersLabelsPath); e++ {
+		usersLabelsPath[e] = graph.Vertices[path[e]].Label //append(path, graph.Vertices[e.Value.(int)].Label)
+	}
+
 	return estimate, path
 }
 
