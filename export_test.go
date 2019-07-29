@@ -1,10 +1,8 @@
 package ch
 
 import (
-	"container/heap"
 	"fmt"
 	"log"
-	"math"
 	"testing"
 )
 
@@ -34,36 +32,43 @@ func TestRestriction(t *testing.T) {
 		graph.AddEdge(vertices[i].from, vertices[i].to, vertices[i].weight)
 	}
 
-	// Искуственный контракт
-	if _, ok := graph.contracts[0]; !ok {
-		graph.contracts[0] = make(map[int]int)
-		graph.contracts[0][4] = 1
-	}
-	graph.contracts[0][4] = 1
+	restrictions := make(map[int]map[int]int)
+	restrictions[1] = make(map[int]int)
+	restrictions[1][5] = 2
+	restrictions[2] = make(map[int]int)
+	restrictions[2][7] = 5
 
-	graph.Vertices[0].outEdges = append(graph.Vertices[0].outEdges, 4)
-	graph.Vertices[0].outECost = append(graph.Vertices[0].outECost, math.MaxFloat64)
-	graph.Vertices[4].inEdges = append(graph.Vertices[4].inEdges, 0)
-	graph.Vertices[4].inECost = append(graph.Vertices[4].inECost, math.MaxFloat64)
+	// hard coded
+	// if _, ok := graph.contracts[0]; !ok {
+	// 	graph.contracts[0] = make(map[int]int)
+	// 	graph.contracts[0][4] = 1
+	// }
+	// graph.contracts[0][4] = 1
 
-	graph.computeImportance()
-	var extractNum int
-	for graph.pqImportance.Len() != 0 {
-		vertex := heap.Pop(graph.pqImportance).(*Vertex)
-		vertex.computeImportance()
-		if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().(*Vertex).importance {
-			graph.pqImportance.Push(vertex)
-			continue
-		}
-		graph.Vertices[vertex.vertexNum].orderPos = extractNum
-		extractNum = extractNum + 1
-	}
-	graph.PrepareContracts()
+	// graph.Vertices[0].outEdges = append(graph.Vertices[0].outEdges, 4)
+	// graph.Vertices[0].outECost = append(graph.Vertices[0].outECost, math.MaxFloat64)
+	// graph.Vertices[4].inEdges = append(graph.Vertices[4].inEdges, 0)
+	// graph.Vertices[4].inECost = append(graph.Vertices[4].inECost, math.MaxFloat64)
+
+	// graph.computeImportance()
+	// var extractNum int
+	// for graph.pqImportance.Len() != 0 {
+	// 	vertex := heap.Pop(graph.pqImportance).(*Vertex)
+	// 	vertex.computeImportance()
+	// 	if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().(*Vertex).importance {
+	// 		graph.pqImportance.Push(vertex)
+	// 		continue
+	// 	}
+	// 	graph.Vertices[vertex.vertexNum].orderPos = extractNum
+	// 	extractNum = extractNum + 1
+	// }
+	// graph.PrepareContracts()
+
 	cost, path := graph.VanillaShortestPath(1, 5)
 	fmt.Println(cost, path)
 
-	cost1, path1 := graph.ShortestPath(1, 5)
-	fmt.Println(cost1, path1)
+	// cost1, path1 := graph.ShortestPath(1, 5)
+	// fmt.Println(cost1, path1)
 
 	t.Error("done")
 }
