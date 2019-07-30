@@ -1,0 +1,143 @@
+// VanillaShortestPath Computes and returns shortest path and it's cost (vanilla Dijkstra's algorithm)
+//
+// If there are some errors then function returns '-1.0' as cost and nil as shortest path
+//
+// source User's definied ID of source vertex
+// target User's definied ID of target vertex
+//
+func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
+
+	if source == target {
+		return 0, []int{source}
+	}
+	ok := true
+
+	if source, ok = graph.mapping[source]; !ok {
+		log.Println("No such source")
+		return -1.0, nil
+	}
+	if target, ok = graph.mapping[target]; !ok {
+		log.Println("No such target")
+		return -1.0, nil
+	}
+
+	prev := make(map[int]int)
+
+	queryDist := make([]float64, len(graph.Vertices), len(graph.Vertices))
+	revDistance := make([]float64, len(graph.Vertices), len(graph.Vertices))
+
+	for i := range queryDist {
+		queryDist[i] = math.MaxFloat64
+		revDistance[i] = math.MaxFloat64
+	}
+	queryDist[source] = 0
+	revDistance[target] = 0
+
+	forwQ := &forwardPropagationHeap{}
+	heap.Init(forwQ)
+
+	heapSource := simpleNode{
+		id:          source,
+		queryDist:   0,
+		revDistance: math.MaxFloat64,
+	}
+	heap.Push(forwQ, heapSource)
+
+	estimate := math.MaxFloat64
+
+	prevNodeID := -1
+	for forwQ.Len() != 0 {
+		if forwQ.Len() != 0 {
+			vertex1 := heap.Pop(forwQ).(simpleNode)
+			if vertex1.queryDist <= estimate {
+				graph.vanillaRelaxEdge(&vertex1, prevNodeID, forwQ, prev, queryDist, revDistance)
+				prevNodeID = vertex1.id
+			}
+			if vertex1.queryDist < estimate {
+				estimate = vertex1.queryDist + vertex1.revDistance
+			}
+		}
+	}
+
+	if estimate == math.MaxFloat64 {
+		return -1.0, nil
+	}
+
+	// Compute path
+	var path []int
+	u := target
+	for {
+		if _, ok := prev[u]; !ok {
+			break
+		}
+		temp := make([]int, len(path)+1)
+		temp[0] = u
+		copy(temp[1:], path)
+		path = temp
+		u = prev[u]
+	}
+	temp := make([]int, len(path)+1)
+	temp[0] = source
+	copy(temp[1:], path)
+	path = temp
+
+	usersLabelsPath := make([]int, len(path))
+	for e := 0; e < len(usersLabelsPath); e++ {
+		usersLabelsPath[e] = graph.Vertices[path[e]].Label //append(path, graph.Vertices[e.Value.(int)].Label)
+	}
+
+	return estimate, usersLabelsPath
+}
+
+// vanillaRelaxEdge Edge relaxation
+func (graph *Graph) vanillaRelaxEdge(vertex *simpleNode, prevNodeID int, forwQ *forwardPropagationHeap, prev map[int]int, distances []float64, prevReverse []float64) {
+	restrictions := make(map[int]int)
+	ok := false
+	// viaRestrictionID := -1
+
+	if restrictions, ok = graph.restrictions[prevNodeID]; ok {
+		// 	fmt.Println("prev node, to, map", prevNodeID, vertex.id, restrictions)
+		// 	if viaRestrictionID, ok = restrictions[vertex.id]; ok {
+		// 		log.Println("res", restrictions[vertex.id])
+		// 	}
+	}
+	fmt.Println("Iter")
+	vertexList := graph.Vertices[vertex.id].outEdges
+	costList := graph.Vertices[vertex.id].outECost
+	fmt.Println("\tprev Node", prevNodeID)
+	fmt.Println("\tcur node", vertex.id)
+	fmt.Println("\tres", restrictions[vertex.id])
+	// for i := 0; i < 100; i++ {
+	// 	fmt.Println(restrictions)
+	// }
+	fmt.Println("\tSearch", vertexList)
+	for i := 0; i < len(vertexList); i++ {
+		temp := vertexList[i]
+		cost := costList[i]
+		if temp == restrictions[vertex.id] {
+			// continue
+		}
+		// fmt.Println("neighbor", temp, viaRestrictionID, restrictions[vertex.id])
+		// if viaRestrictionID, ok = restrictions[temp]; ok {
+		// 	log.Println("here", viaRestrictionID, temp)
+		// }
+		// if temp == viaRestrictionID {
+		// 	cost = math.MaxFloat64
+		// }
+		alt := distances[vertex.id] + cost
+		// if temp == viaRestrictionID {
+		// 	alt = math.MaxFloat64
+		// }
+		if distances[temp] > alt {
+			distances[temp] = alt
+			prev[temp] = vertex.id
+			node := simpleNode{
+				id:          temp,
+				queryDist:   alt,
+				revDistance: prevReverse[temp],
+			}
+			log.Println("wow", temp, distances[temp], alt, prevReverse[temp])
+			heap.Push(forwQ, node)
+		}
+	}
+}

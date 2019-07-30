@@ -14,14 +14,14 @@ type V struct {
 
 func TestRestriction(t *testing.T) {
 	vertices := []V{
-		V{1, 2, 1.0},
-		V{2, 3, 1.0},
-		V{3, 4, 1.0},
-		V{4, 5, 1.0},
-		V{5, 6, 1.0},
-		V{5, 7, 1.0},
-		V{2, 5, 1.0},
-		V{8, 2, 1.0},
+		V{from: 1, to: 2, weight: 1.0},
+		V{from: 2, to: 3, weight: 3.0},
+		V{from: 3, to: 4, weight: 1.0},
+		V{from: 4, to: 5, weight: 1.0},
+		V{from: 5, to: 6, weight: 1.0},
+		V{from: 5, to: 7, weight: 1.0},
+		V{from: 2, to: 5, weight: 1.0},
+		V{from: 8, to: 2, weight: 1.0},
 	}
 
 	graph := Graph{}
@@ -44,6 +44,7 @@ func TestRestriction(t *testing.T) {
 	restrictions[1] = make(map[int]int)
 	restrictions[1][4] = 6
 
+	// fmt.Println(restrictions)
 	graph.restrictions = restrictions
 
 	// hard coded
@@ -73,6 +74,9 @@ func TestRestriction(t *testing.T) {
 	// graph.PrepareContracts()
 
 	cost, path := graph.VanillaShortestPath(1, 5)
+	fmt.Println(cost, path)
+
+	cost, path = graph.VanillaShortestPath(2, 7)
 	fmt.Println(cost, path)
 
 	// cost1, path1 := graph.ShortestPath(1, 5)
