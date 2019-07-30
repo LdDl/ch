@@ -2,6 +2,7 @@ package ch
 
 import (
 	"container/heap"
+	"log"
 )
 
 // Graph Graph object
@@ -85,7 +86,7 @@ func (graph *Graph) AddVertex(labelExternal, labelInternal int) {
 	}
 }
 
-// AddEdge Adds new add between two vertices
+// AddEdge Adds new edge between two vertices
 //
 // from User's definied ID of first vertex of edge
 // to User's definied ID of last vertex of edge
@@ -101,6 +102,32 @@ func (graph *Graph) AddEdge(from, to int, weight float64) {
 
 	graph.Vertices[to].inEdges = append(graph.Vertices[to].inEdges, from)
 	graph.Vertices[to].inECost = append(graph.Vertices[to].inECost, weight)
+}
+
+// AddTurnRestriction Adds new turn restriction between two vertices via some other vertex
+//
+// from User's definied ID of source vertex
+// via User's definied ID of prohibited vertex (between source and target)
+// to User's definied ID of target vertex
+//
+func (graph *Graph) AddTurnRestriction(from, via, to int) {
+
+	from = graph.mapping[from]
+	via = graph.mapping[via]
+	to = graph.mapping[to]
+
+	if graph.restrictions == nil {
+		graph.restrictions = make(map[int]map[int]int)
+	}
+
+	if _, ok := graph.restrictions[from]; !ok {
+		graph.restrictions[from] = make(map[int]int)
+		if _, ok := graph.restrictions[from][via]; ok {
+			log.Printf("Warning: Please notice, library supports only one 'from-via' relation currenlty. From %d Via %d\n", from, via)
+		}
+		graph.restrictions[from][via] = to
+	}
+
 }
 
 // computeImportance Compute vertices' importance

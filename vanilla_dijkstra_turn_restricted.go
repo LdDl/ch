@@ -6,7 +6,7 @@ import (
 	"math"
 )
 
-// VanillaShortestPath Computes and returns shortest path and it's cost (vanilla Dijkstra's algorithm)
+// VanillaTurnRestrictedShortestPath Computes and returns turns restricted shortest path and it's cost (vanilla Dijkstra's algorithm)
 //
 // If there are some errors then function returns '-1.0' as cost and nil as shortest path
 //
@@ -14,7 +14,7 @@ import (
 // target User's definied ID of target vertex
 //
 // https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
-func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
+func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int) (float64, []int) {
 
 	if source == target {
 		return 0, []int{source}
@@ -39,6 +39,7 @@ func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 
 	// prev[v] ← UNDEFINED
 	prev := make(map[int]int, len(graph.Vertices))
+	// st := time.Now()
 	// for each vertex v in Graph:
 	for i := range graph.Vertices {
 		// if v ≠ source:
@@ -51,10 +52,20 @@ func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 	}
 	Q.add_with_priority(graph.Vertices[source].vertexNum, distance[graph.Vertices[source].vertexNum])
 	heap.Init(Q)
+	prevNodeID := -1
 	// while Q is not empty:
 	for Q.Len() != 0 {
 		// u ← Q.extract_min()
 		u := heap.Pop(Q).(minheapNode)
+		restrictions := make(map[int]int)
+		ok := false
+		destinationRestrictionID := -1
+		if restrictions, ok = graph.restrictions[prevNodeID]; ok {
+			// found some restrictions
+			if destinationRestrictionID, ok = restrictions[u.id]; ok {
+				// extract vidID from restriction
+			}
+		}
 
 		// if u == target:
 		if u.id == target {
@@ -68,6 +79,11 @@ func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 		// for each neighbor v of u:
 		for v := range vertexList {
 			neighbor := vertexList[v]
+			if neighbor == destinationRestrictionID {
+				// If there is a turn restriction
+				distance[u.id] = math.MaxFloat64
+				continue
+			}
 			cost := costList[v]
 			// alt ← dist[u] + length(u, v)
 			alt := distance[u.id] + cost
@@ -82,6 +98,8 @@ func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 				Q.add_with_priority(neighbor, alt)
 			}
 		}
+
+		prevNodeID = u.id
 		// heap.Init(Q)
 	}
 
@@ -115,6 +133,5 @@ func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 		usersLabelsPath[e] = graph.Vertices[path[e]].Label
 	}
 
-	// return path, prev
 	return distance[target], usersLabelsPath
 }
