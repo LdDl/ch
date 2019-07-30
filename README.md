@@ -2,7 +2,9 @@
 [![Build Status](https://travis-ci.com/LdDl/ch.svg?branch=master)](https://travis-ci.com/LdDl/ch)
 
 # ch - Contraction Hierarchies
-Contraction Hierarchies (with bidirectional version of Dijkstra's algorithm) for computing shortest path in graph
+Contraction Hierarchies (with bidirectional version of Dijkstra's algorithm) for computing shortest path in graph.
+
+This library provides classic implementation of Dijkstra's algorithm and turn restrictions extension also.
 
 ## Table of Contents
 
