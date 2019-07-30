@@ -13,6 +13,7 @@ import (
 // source User's definied ID of source vertex
 // target User's definied ID of target vertex
 //
+// https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
 func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 
 	if source == target {
@@ -29,61 +30,117 @@ func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 		return -1.0, nil
 	}
 
-	prev := make(map[int]int)
+	// create vertex set Q
+	Q := &minheapSTD{}
 
-	queryDist := make([]float64, len(graph.Vertices), len(graph.Vertices))
-	revDistance := make([]float64, len(graph.Vertices), len(graph.Vertices))
+	// dist[source] ← 0
+	distance := make(map[int]float64, len(graph.Vertices))
+	distance[source] = 0
 
-	for i := range queryDist {
-		queryDist[i] = math.MaxFloat64
-		revDistance[i] = math.MaxFloat64
+	// prev[v] ← UNDEFINED
+	prev := make(map[int]int, len(graph.Vertices))
+	// st := time.Now()
+	// for each vertex v in Graph:
+	for i := range graph.Vertices {
+		// if v ≠ source:
+		if graph.Vertices[i].vertexNum != source {
+			// dist[v] = INFINITY
+			distance[graph.Vertices[i].vertexNum] = math.MaxFloat64
+		}
+		// prev[v] ← UNDEFINED
+		// nothing here
 	}
-	queryDist[source] = 0
-	revDistance[target] = 0
-
-	forwQ := &forwardPropagationHeap{}
-	heap.Init(forwQ)
-
-	heapSource := simpleNode{
-		id:          source,
-		queryDist:   0,
-		revDistance: math.MaxFloat64,
-	}
-	heap.Push(forwQ, heapSource)
-
-	estimate := math.MaxFloat64
-
+	Q.add_with_priority(graph.Vertices[source].vertexNum, distance[graph.Vertices[source].vertexNum])
+	// lograph.Println("Simple: elapsed for init:", time.Since(st))
+	heap.Init(Q)
 	prevNodeID := -1
-	for forwQ.Len() != 0 {
-		if forwQ.Len() != 0 {
-			vertex1 := heap.Pop(forwQ).(simpleNode)
-			if vertex1.queryDist <= estimate {
-				graph.vanillaRelaxEdge(&vertex1, prevNodeID, forwQ, prev, queryDist, revDistance)
-				prevNodeID = vertex1.id
-			}
-			if vertex1.queryDist < estimate {
-				estimate = vertex1.queryDist + vertex1.revDistance
+	// while Q is not empty:
+	for Q.Len() != 0 {
+		// fmt.Println("Iteration")
+		// u ← Q.extract_min()
+		u := heap.Pop(Q).(minheapNode)
+		// fmt.Println("\t Current vertex", u.id)
+		restrictions := make(map[int]int)
+		ok := false
+		viaRestrictionID := -1
+		if restrictions, ok = graph.restrictions[prevNodeID]; ok {
+			// fmt.Println("restrictions met", restrictions, u.id)
+			if viaRestrictionID, ok = restrictions[u.id]; ok {
+				// fmt.Println("restriction id", viaRestrictionID)
 			}
 		}
-	}
 
-	if estimate == math.MaxFloat64 {
-		return -1.0, nil
-	}
+		// popcounter++
+		// if u == target:
+		if u.id == target {
+			// break
+			// log.Println("====================>>>break")
+			break
+		}
 
-	// Compute path
+		vertexList := graph.Vertices[u.id].outEdges
+		costList := graph.Vertices[u.id].outECost
+
+		// fmt.Println("\t vertex list", vertexList)
+		// fmt.Println("\t vertex costs", costList)
+
+		// for each neighbor v of u:
+
+		for v := range vertexList {
+			neighbor := vertexList[v]
+			if neighbor == viaRestrictionID {
+				// distance[neighbor] = math.MaxFloat64
+				distance[u.id] = math.MaxFloat64
+				// log.Println("con", prevNodeID, neighbor, u.id, distance[u.id])
+				continue
+			}
+			cost := costList[v]
+			// alt ← dist[u] + length(u, v)
+			alt := distance[u.id] + cost
+			// fmt.Println("\t\tneightbor", v, neighbor)
+			// fmt.Println("\t\t\tcost to v", cost)
+			// fmt.Println("\t\t\tdistance to u", distance[u.id])
+			// fmt.Println("\t\t\tdistance to neighbor", neighbor, distance[neighbor])
+			// fmt.Println("\t\t\talt", alt)
+			// if alt < dist[v]
+			if distance[neighbor] > alt {
+				// dist[v] ← alt
+				distance[neighbor] = alt
+				// prev[v] ← u
+				prev[neighbor] = u.id
+				// Q.decrease_priority(v, alt)
+				// Q.decrease_priority(v, alt)
+				// fmt.Println("\t\t\tAdded!", neighbor, alt)
+				Q.add_with_priority(neighbor, alt)
+			}
+		}
+
+		prevNodeID = u.id
+		// heap.Init(Q)
+	}
+	// lograph.Println("Simple: elapsed for run:", time.Since(st))
+	// lograph.Println("iterations to get path", iters, popcounter)
+
+	// path = []
 	var path []int
+	// u = target
 	u := target
+
+	// while prev[u] is defined:
 	for {
 		if _, ok := prev[u]; !ok {
 			break
 		}
+		// path.push_front(u)
 		temp := make([]int, len(path)+1)
 		temp[0] = u
 		copy(temp[1:], path)
 		path = temp
+
+		// u = prev[u]
 		u = prev[u]
 	}
+
 	temp := make([]int, len(path)+1)
 	temp[0] = source
 	copy(temp[1:], path)
@@ -94,39 +151,6 @@ func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 		usersLabelsPath[e] = graph.Vertices[path[e]].Label //append(path, graph.Vertices[e.Value.(int)].Label)
 	}
 
-	return estimate, usersLabelsPath
-}
-
-// vanillaRelaxEdge Edge relaxation
-func (graph *Graph) vanillaRelaxEdge(vertex *simpleNode, prevNodeID int, forwQ *forwardPropagationHeap, prev map[int]int, distances []float64, prevReverse []float64) {
-	restrictions := make(map[int]int)
-	ok := false
-	viaRestrictionID := -1
-
-	if restrictions, ok = graph.restrictions[prevNodeID]; ok {
-		if viaRestrictionID, ok = restrictions[vertex.id]; ok {
-			// Skip
-		}
-	}
-
-	vertexList := graph.Vertices[vertex.id].outEdges
-	costList := graph.Vertices[vertex.id].outECost
-	for i := 0; i < len(vertexList); i++ {
-		temp := vertexList[i]
-		cost := costList[i]
-		if temp == viaRestrictionID {
-			cost = math.MaxFloat64
-		}
-		alt := distances[vertex.id] + cost
-		if distances[temp] > alt {
-			distances[temp] = alt
-			prev[temp] = vertex.id
-			node := simpleNode{
-				id:          temp,
-				queryDist:   alt,
-				revDistance: prevReverse[temp],
-			}
-			heap.Push(forwQ, node)
-		}
-	}
+	// return path, prev
+	return distance[target], usersLabelsPath
 }
