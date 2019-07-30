@@ -123,7 +123,7 @@ func (graph *Graph) AddTurnRestriction(from, via, to int) {
 	if _, ok := graph.restrictions[from]; !ok {
 		graph.restrictions[from] = make(map[int]int)
 		if _, ok := graph.restrictions[from][via]; ok {
-			log.Printf("Warning: Please notice, library supports only one 'from-via' relation currenlty. From %d Via %d\n", from, via)
+			log.Printf("Warning: Please notice, library supports only one 'from-via' relation currently. From %d Via %d\n", from, via)
 		}
 		graph.restrictions[from][via] = to
 	}

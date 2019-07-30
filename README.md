@@ -79,7 +79,9 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 
 * ~~Import file of specific format~~ **Done as CSV**
 * ~~Export file of specific format~~ **Done as CSV**
-* Thoughts and discussions about OSM graph and extensions
+* Turn Restricted Shortest Path extension for CH-algorithm
+* Turn restrictions import (probably as CSV again)
+* Thoughts and discussions about OSM graph and extensions **Need some ideas about parsing and preparing**
 * Map matcher as another project **WIP**
 
 ## Theory
