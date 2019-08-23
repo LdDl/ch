@@ -79,6 +79,12 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int) (float
 		// for each neighbor v of u:
 		for v := range vertexList {
 			neighbor := vertexList[v]
+			if v1, ok_1 := graph.contracts[u.id]; ok_1 {
+				if _, ok_2 := v1[neighbor]; ok_2 {
+					// Ignore contract
+					continue
+				}
+			}
 			if neighbor == destinationRestrictionID {
 				// If there is a turn restriction
 				distance[u.id] = math.MaxFloat64
