@@ -127,9 +127,9 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 				graph.relaxEdgesBiForward(&vertex1, forwQ, prev, queryDist, revDistance)
 			}
 			if revProcessed[vertex1.id] {
-				if vertex1.queryDist+vertex1.revDistance < estimate {
+				if vertex1.queryDist+revDistance[vertex1.id] < estimate {
 					middleID = vertex1.id
-					estimate = vertex1.queryDist + vertex1.revDistance
+					estimate = vertex1.queryDist + revDistance[vertex1.id]
 				}
 			}
 		}
@@ -141,9 +141,9 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 				graph.relaxEdgesBiBackward(&vertex2, backwQ, prevReverse, queryDist, revDistance)
 			}
 			if forwProcessed[vertex2.id] {
-				if vertex2.revDistance+vertex2.queryDist < estimate {
+				if vertex2.revDistance+queryDist[vertex2.id] < estimate {
 					middleID = vertex2.id
-					estimate = vertex2.queryDist + vertex2.revDistance
+					estimate = vertex2.queryDist + queryDist[vertex2.id]
 				}
 			}
 		}
