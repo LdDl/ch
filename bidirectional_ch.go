@@ -7,52 +7,6 @@ import (
 	"math"
 )
 
-// relaxEdgesBiForward Edge relaxation in a forward propagation
-func (graph *Graph) relaxEdgesBiForward(vertex *simpleNode, forwQ *forwardPropagationHeap, prev map[int]int, queryDist []float64, prevReverse []float64) {
-	vertexList := graph.Vertices[vertex.id].outEdges
-	costList := graph.Vertices[vertex.id].outECost
-	for i := 0; i < len(vertexList); i++ {
-		temp := vertexList[i]
-		cost := costList[i]
-		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
-			alt := queryDist[vertex.id] + cost
-			if queryDist[temp] > alt {
-				queryDist[temp] = alt
-				prev[temp] = vertex.id
-				node := simpleNode{
-					id:          temp,
-					queryDist:   alt,
-					revDistance: prevReverse[temp],
-				}
-				heap.Push(forwQ, node)
-			}
-		}
-	}
-}
-
-// relaxEdgesBiForward Edge relaxation in a backward propagation
-func (graph *Graph) relaxEdgesBiBackward(vertex *simpleNode, backwQ *backwardPropagationHeap, prev map[int]int, queryDist []float64, prevReverse []float64) {
-	vertexList := graph.Vertices[vertex.id].inEdges
-	costList := graph.Vertices[vertex.id].inECost
-	for i := 0; i < len(vertexList); i++ {
-		temp := vertexList[i]
-		cost := costList[i]
-		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
-			alt := prevReverse[vertex.id] + cost
-			if prevReverse[temp] > alt {
-				prevReverse[temp] = alt
-				prev[temp] = vertex.id
-				node := simpleNode{
-					id:          temp,
-					queryDist:   queryDist[temp],
-					revDistance: alt,
-				}
-				heap.Push(backwQ, node)
-			}
-		}
-	}
-}
-
 // ShortestPath Computes and returns shortest path and it's cost (extended Dijkstra's algorithm)
 //
 // If there are some errors then function returns '-1.0' as cost and nil as shortest path
@@ -127,23 +81,23 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 				graph.relaxEdgesBiForward(&vertex1, forwQ, prev, queryDist, revDistance)
 			}
 			if revProcessed[vertex1.id] {
-				if vertex1.queryDist+vertex1.revDistance < estimate {
+				if vertex1.queryDist+revDistance[vertex1.id] < estimate {
 					middleID = vertex1.id
-					estimate = vertex1.queryDist + vertex1.revDistance
+					estimate = vertex1.queryDist + revDistance[vertex1.id]
 				}
 			}
 		}
 
 		if backwQ.Len() != 0 {
 			vertex2 := heap.Pop(backwQ).(simpleNode)
-			if vertex2.queryDist <= estimate {
+			if vertex2.revDistance <= estimate {
 				revProcessed[vertex2.id] = true
 				graph.relaxEdgesBiBackward(&vertex2, backwQ, prevReverse, queryDist, revDistance)
 			}
 			if forwProcessed[vertex2.id] {
-				if vertex2.revDistance+vertex2.queryDist < estimate {
+				if vertex2.revDistance+queryDist[vertex2.id] < estimate {
 					middleID = vertex2.id
-					estimate = vertex2.queryDist + vertex2.revDistance
+					estimate = vertex2.queryDist + queryDist[vertex2.id]
 				}
 			}
 		}
@@ -152,7 +106,6 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 	if estimate == math.MaxFloat64 {
 		return -1.0, nil
 	}
-	// log.Println("iters:", iter)
 	return estimate, graph.ComputePath(middleID, prev, prevReverse)
 }
 
