@@ -9,8 +9,8 @@ func TestVanillaShortestPath(t *testing.T) {
 	g := Graph{}
 	graphFromCSV(&g, "data/pgrouting_osm.csv")
 	log.Println("TestShortestPath is starting...")
-	u := 9295
-	v := 31918
+	u := 69618
+	v := 5924
 
 	ans, path := g.VanillaShortestPath(u, v)
 	if len(path) != 160 {
