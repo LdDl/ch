@@ -1,7 +1,6 @@
 package ch
 
 import (
-	"fmt"
 	"log"
 	"testing"
 )
@@ -10,13 +9,9 @@ func TestVanillaShortestPath(t *testing.T) {
 	g := Graph{}
 	graphFromCSV(&g, "data/pgrouting_osm.csv")
 	log.Println("TestShortestPath is starting...")
-	// u := 69618
-	// v := 5924
-	u := 126826
-	v := 5485
+	u := 69618
+	v := 5924
 	ans, path := g.VanillaShortestPath(u, v)
-	// 126826 127332 126739 126597 65282 125469 125734 127709 125604 125727 124763 18483 30052 18750 10843 28676 12050 26004 115934 112349 112996 3509 5485
-	fmt.Println(path)
 	if len(path) != 160 {
 		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
 	}
