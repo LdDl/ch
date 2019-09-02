@@ -12,15 +12,14 @@ func (graph *Graph) relaxEdgesBiForward(vertex *simpleNode, forwQ *forwardPropag
 		temp := vertexList[i]
 		cost := costList[i]
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
-			//if(graph[vertex].distance.forwqueryId != graph[temp].distance.forwqueryId || graph[temp].distance.queryDist > graph[vertex].distance.queryDist + cost){
 			alt := queryDist[vertex.id] + cost
 			if queryDist[temp] > alt {
 				queryDist[temp] = alt
 				prev[temp] = vertex.id
 				node := simpleNode{
-					id:          temp,
-					queryDist:   alt,
-					revDistance: prevReverse[temp],
+					id:        temp,
+					queryDist: alt,
+					// revDistance: prevReverse[temp],
 				}
 				heap.Push(forwQ, node)
 			}
@@ -43,7 +42,7 @@ func (graph *Graph) relaxEdgesBiBackward(vertex *simpleNode, backwQ *backwardPro
 				node := simpleNode{
 					id:          temp,
 					revDistance: alt,
-					queryDist:   queryDist[temp],
+					// queryDist:   queryDist[temp],
 				}
 				heap.Push(backwQ, node)
 			}

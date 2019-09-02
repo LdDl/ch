@@ -3,6 +3,7 @@ package ch
 import (
 	"container/heap"
 	"container/list"
+	"fmt"
 	"log"
 	"math"
 )
@@ -38,6 +39,8 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 
 	forwProcessed := make([]bool, len(graph.Vertices), len(graph.Vertices))
 	revProcessed := make([]bool, len(graph.Vertices), len(graph.Vertices))
+	forwProcessed[source] = true
+	revProcessed[target] = true
 
 	for i := range queryDist {
 		queryDist[i] = math.MaxFloat64
@@ -76,10 +79,11 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 		iter++
 		if forwQ.Len() != 0 {
 			vertex1 := heap.Pop(forwQ).(simpleNode)
+			forwProcessed[vertex1.id] = true
 			if vertex1.queryDist <= estimate {
-				forwProcessed[vertex1.id] = true
 				graph.relaxEdgesBiForward(&vertex1, forwQ, prev, queryDist, revDistance)
 			}
+			fmt.Println("Feed", graph.Vertices[vertex1.id].Label)
 			if revProcessed[vertex1.id] {
 				if vertex1.queryDist+revDistance[vertex1.id] < estimate {
 					middleID = vertex1.id
@@ -90,10 +94,13 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 
 		if backwQ.Len() != 0 {
 			vertex2 := heap.Pop(backwQ).(simpleNode)
+			revProcessed[vertex2.id] = true
+
 			if vertex2.revDistance <= estimate {
-				revProcessed[vertex2.id] = true
 				graph.relaxEdgesBiBackward(&vertex2, backwQ, prevReverse, queryDist, revDistance)
 			}
+			fmt.Println("Back", graph.Vertices[vertex2.id].Label)
+
 			if forwProcessed[vertex2.id] {
 				if vertex2.revDistance+queryDist[vertex2.id] < estimate {
 					middleID = vertex2.id
