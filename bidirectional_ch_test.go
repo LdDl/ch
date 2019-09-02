@@ -3,7 +3,6 @@ package ch
 import (
 	"bufio"
 	"encoding/csv"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -17,15 +16,10 @@ func TestShortestPath(t *testing.T) {
 	log.Println("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	log.Println("TestShortestPath is starting...")
-	// u := 69618
-	// v := 5924
-	u := 126826
-	v := 5485
+	u := 69618
+	v := 5924
 
 	ans, path := g.ShortestPath(u, v)
-	fmt.Println(path)
-	// 126826 127332 126739 126597 65282 125469 125734 127709 125604 125727 124763 18483 30052 18750 10843 28676 12050 26004 115934 112349 112996 3509 5485
-	// 126826 127332 126739 126597 65282 125469 125734 127709 125604 125727 124763 18483 30052 18750 10843 28676 12050 26004 115934 112349 112996 3509 892 19008 17938 10029 26965 27744 20729 1237 18594 7000 2582 26857 11607 28943 11767 27697 12097 15992 12097 27697 11767 28943 11607 26857 2582 7000 18594 1237 20729 27744 26965 10029 17938 19008 892 3509 5485
 	if len(path) != 160 {
 		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
 	}
