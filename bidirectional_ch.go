@@ -100,7 +100,11 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 			if forwProcessed[vertex2.id] {
 				if vertex2.revDistance+queryDist[vertex2.id] < estimate {
 					middleID = vertex2.id
+<<<<<<< HEAD
 					estimate = vertex2.revDistance + queryDist[vertex2.id]
+=======
+					estimate = vertex2.queryDist + queryDist[vertex2.id]
+>>>>>>> b48b455e94f61038bf53b0221dd0111e949677b2
 				}
 			}
 		}
