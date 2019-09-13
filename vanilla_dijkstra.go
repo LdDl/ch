@@ -91,6 +91,9 @@ func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 		// heap.Init(Q)
 	}
 
+	if distance[target] == math.MaxFloat64 {
+		return -1, []int{}
+	}
 	// path = []
 	var path []int
 	// u = target
