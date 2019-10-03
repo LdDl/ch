@@ -13,7 +13,7 @@ This library provides classic implementation of Dijkstra's algorithm and turn re
     - [Old](#old-way)
     - [New](#new-way)
 - [Usage](#usage)
-- [Benchmark] (#benchmark)
+- [Benchmark](#benchmark)
 - [Support](#support)
 - [ToDo](#todo)
 - [Thanks](#thanks)
