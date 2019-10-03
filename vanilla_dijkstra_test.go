@@ -1,14 +1,13 @@
 package ch
 
 import (
-	"log"
 	"testing"
 )
 
 func TestVanillaShortestPath(t *testing.T) {
 	g := Graph{}
 	graphFromCSV(&g, "data/pgrouting_osm.csv")
-	log.Println("TestShortestPath is starting...")
+	t.Log("TestShortestPath is starting...")
 	u := 69618
 	v := 5924
 	ans, path := g.VanillaShortestPath(u, v)
@@ -18,7 +17,7 @@ func TestVanillaShortestPath(t *testing.T) {
 	if Round(ans, 0.00005) != Round(19135.6581215226, 0.00005) {
 		t.Errorf("Length of path should be 19135.6581215226, but got %f", ans)
 	}
-	log.Println("TestVanillaShortestPath is Ok!")
+	t.Log("TestVanillaShortestPath is Ok!")
 }
 
 func Round(x, unit float64) float64 {

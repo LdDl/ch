@@ -13,6 +13,7 @@ This library provides classic implementation of Dijkstra's algorithm and turn re
     - [Old](#old-way)
     - [New](#new-way)
 - [Usage](#usage)
+- [Benchmark] (#benchmark)
 - [Support](#support)
 - [ToDo](#todo)
 - [Thanks](#thanks)
@@ -61,7 +62,7 @@ And then you are good to go
 
 ## Usage
 
-Please see this [benchmark](bidirectional_ch_test.go#L44)
+Please see this [benchmark](bidirectional_ch_test.go#L59)
 
 I hope it's pretty clear, but here is little explanation:
 ```go
@@ -73,6 +74,37 @@ I hope it's pretty clear, but here is little explanation:
     ans, path := g.ShortestPath(u, v) // Get shortest path and it's cost between source and target vertex
 ```
 
+## Benchmark
+
+My PC is:
+
+    Processor: Intel(R) Core(TM) i9-7900X CPU @ 3.30GHz x 10
+    Memory: 46.8GiB
+    Linux Kernel: 4.15.0-20-generic
+    OS: Linux Mint 19.1 Cinnamon
+
+I have used graph with ~187k vertices for benchmark.
+
+```bash
+goos: linux
+goarch: amd64
+pkg: github.com/LdDl/ch
+BenchmarkShortestPath/CH_shortest_path/1/vertices-187853-20         	     500	   2801587 ns/op	 3532241 B/op	    2225 allocs/op
+BenchmarkShortestPath/CH_shortest_path/2/vertices-187853-20         	    1000	   2639499 ns/op	 3532225 B/op	    2225 allocs/op
+BenchmarkShortestPath/CH_shortest_path/4/vertices-187853-20         	    1000	   2730468 ns/op	 3532239 B/op	    2225 allocs/op
+BenchmarkShortestPath/CH_shortest_path/8/vertices-187853-20         	     500	   2887250 ns/op	 3532254 B/op	    2225 allocs/op
+BenchmarkShortestPath/CH_shortest_path/16/vertices-187853-20        	     500	   2292956 ns/op	 3532251 B/op	    2225 allocs/op
+BenchmarkShortestPath/CH_shortest_path/32/vertices-187853-20        	     500	   2837590 ns/op	 3532247 B/op	    2225 allocs/op
+BenchmarkShortestPath/CH_shortest_path/64/vertices-187853-20        	     500	   2649959 ns/op	 3532233 B/op	    2225 allocs/op
+BenchmarkShortestPath/CH_shortest_path/128/vertices-187853-20       	     500	   2790797 ns/op	 3532215 B/op	    2225 allocs/op
+BenchmarkShortestPath/CH_shortest_path/256/vertices-187853-20       	     500	   2640733 ns/op	 3532231 B/op	    2225 allocs/op
+BenchmarkShortestPath/CH_shortest_path/512/vertices-187853-20       	     500	   2381726 ns/op	 3532224 B/op	    2225 allocs/op
+BenchmarkShortestPath/CH_shortest_path/1024/vertices-187853-20      	     500	   2810581 ns/op	 3532223 B/op	    2225 allocs/op
+BenchmarkShortestPath/CH_shortest_path/2048/vertices-187853-20      	     500	   2770308 ns/op	 3532203 B/op	    2225 allocs/op
+BenchmarkShortestPath/CH_shortest_path/4096/vertices-187853-20      	     500	   2592263 ns/op	 3532234 B/op	    2225 allocs/op
+PASS
+ok  	github.com/LdDl/ch	34.153s
+```
 ## Support
 
 If you have troubles or questions please [open an issue](https://github.com/LdDl/ch/issues/new).

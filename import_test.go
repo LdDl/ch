@@ -1,7 +1,6 @@
 package ch
 
 import (
-	"log"
 	"testing"
 )
 
@@ -10,7 +9,7 @@ func TestImportedFileShortestPath(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	log.Println("TestImportedFileShortestPath is starting...")
+	t.Log("TestImportedFileShortestPath is starting...")
 	u := 69618
 	v := 5924
 
@@ -21,5 +20,5 @@ func TestImportedFileShortestPath(t *testing.T) {
 	if Round(ans, 0.00005) != Round(19135.6581215226, 0.00005) {
 		t.Errorf("Length of path should be 19135.6581215226, but got %f", ans)
 	}
-	log.Println("TestImportedFileShortestPath is Ok!")
+	t.Log("TestImportedFileShortestPath is Ok!")
 }
