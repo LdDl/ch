@@ -1,7 +1,6 @@
 package ch
 
 import (
-	"log"
 	"testing"
 )
 
@@ -85,5 +84,5 @@ func TestVanillaTurnRestrictedShortestPath(t *testing.T) {
 		t.Errorf("Run 3: length of path should be 7, but got %f", ans)
 	}
 
-	log.Println("TestVanillaTurnRestrictedShortestPath is Ok!")
+	t.Log("TestVanillaTurnRestrictedShortestPath is Ok!")
 }
