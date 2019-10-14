@@ -117,6 +117,8 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 * Turn restrictions import (probably as CSV again)
 * Thoughts and discussions about OSM graph and extensions **Need some ideas about parsing and preparing**
 * Map matcher as another project **WIP**
+* Bring interfaces{} **WIP**
+* Bring OSM parser **WIP**
 
 ## Theory
 [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
