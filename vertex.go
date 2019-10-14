@@ -17,7 +17,6 @@ type Vertex struct {
 	orderPos      int
 	contracted    bool
 	distance      *Distance
-	processed     *Processed
 	edgeDiff      int
 	delNeighbors  int
 	shortcutCover int
@@ -33,7 +32,6 @@ func MakeVertex(label int) *Vertex {
 		Label:        label,
 		delNeighbors: 0,
 		distance:     NewDistance(),
-		processed:    NewProcessed(),
 		contracted:   false,
 	}
 }
@@ -43,18 +41,9 @@ func NewVertex(vertexNum int) *Vertex {
 		vertexNum:    vertexNum,
 		delNeighbors: 0,
 		distance:     NewDistance(),
-		processed:    NewProcessed(),
 		contracted:   false,
 	}
 }
-
-// func (vertex *Vertex) GetOut() map[int]float64 {
-// 	return vertex.out
-// }
-
-// func (vertex *Vertex) GetIn() map[int]float64 {
-// 	return vertex.in
-// }
 
 func (vertex *Vertex) computeImportance() {
 	vertex.edgeDiff = len(vertex.inEdges)*len(vertex.outEdges) - len(vertex.inEdges) - len(vertex.outEdges)
@@ -78,13 +67,4 @@ func NewDistance() *Distance {
 		revDistance: math.MaxFloat64,
 		queryDist:   math.MaxFloat64,
 	}
-}
-
-type Processed struct {
-	forwProcessed bool
-	revProcessed  bool
-}
-
-func NewProcessed() *Processed {
-	return &Processed{}
 }
