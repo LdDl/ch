@@ -9,11 +9,14 @@ import (
 )
 
 // ImportFromFile Imports graph from file of CSV-format
-//
-// Header of CSV-file:
-// from_vertex_id;to_vertex_id;from_vertex_internal_id;to_vertex_internal_id;edge_weight;contract_id;contract_internal_id
-// int;int;int;int;float64;-1 (no contract) else external ID of contracted vertex; -1 (no contract) else internal ID of contracted vertex
-//
+// Header of main CSV-file:
+// 		from_vertex_id - int64, ID of source vertex
+// 		to_vertex_id - int64, ID of arget vertex
+// 		f_internal - int64, Internal ID of source vertex
+// 		t_internal - int64, Internal ID of target vertex
+// 		weight - float64, Weight of an edge
+// 		via_vertex_id - int64, ID of vertex through which the contraction exists (-1 if no contraction)
+// 		v_internal - int64, Internal ID of vertex through which the contraction exists (-1 if no contraction)
 func ImportFromFile(fname string) (*Graph, error) {
 	file, err := os.Open(fname)
 	if err != nil {
@@ -69,8 +72,6 @@ func ImportFromFile(fname string) (*Graph, error) {
 
 		graph.AddVertex(sourceExternal, sourceInternal)
 		graph.AddVertex(targetExternal, targetInternal)
-
-		// log.Println(sourceExternal, targetExternal, sourceInternal, targetInternal, weight)
 
 		graph.AddEdge(sourceExternal, targetExternal, weight)
 

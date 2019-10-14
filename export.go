@@ -15,7 +15,6 @@ import (
 // 		weight - float64, Weight of an edge
 // 		via_vertex_id - int64, ID of vertex through which the contraction exists (-1 if no contraction)
 // 		v_internal - int64, Internal ID of vertex through which the contraction exists (-1 if no contraction)
-//		optional - string, Optional field for custom attributes (tags, geometry and etc.)
 func (graph *Graph) ExportToFile(fname string) error {
 
 	file, err := os.Create(fname)
