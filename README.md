@@ -119,6 +119,8 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 * Map matcher as another project **WIP**
 * Bring interfaces{} **WIP**
 * Bring OSM parser **WIP**
+* OneTwoMany function (contraction hierarchies) **WIP**
+* ManyToMany function (contraction hierarchies)
 
 ## Theory
 [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
