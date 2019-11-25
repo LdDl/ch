@@ -1,6 +1,8 @@
 package ch
 
 import (
+	"fmt"
+	"math"
 	"testing"
 )
 
@@ -26,4 +28,48 @@ func TestOneToManyShortestPath(t *testing.T) {
 	}
 
 	t.Log("TestShortestPath is Ok!")
+}
+
+func BenchmarkShortestPathOneToMany(b *testing.B) {
+	g := Graph{}
+	graphFromCSV(&g, "data/pgrouting_osm.csv")
+	b.Log("Please wait until contraction hierarchy is prepared")
+	g.PrepareContracts()
+	b.Log("BenchmarkShortestPathOneToMany is starting...")
+	b.ResetTimer()
+
+	for k := 0.; k <= 12; k++ {
+		n := int(math.Pow(2, k))
+		b.Run(fmt.Sprintf("%s/%d/vertices-%d", "CH shortest path (one to many)", n, len(g.Vertices)), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				u := 106600
+				v := []int{5924, 81611, 69618, 68427, 68490}
+				ans, path := g.ShortestPathOneToMany(u, v)
+				_, _ = ans, path
+			}
+		})
+	}
+}
+
+func BenchmarkOldWayShortestPathOneToMany(b *testing.B) {
+	g := Graph{}
+	graphFromCSV(&g, "data/pgrouting_osm.csv")
+	b.Log("Please wait until contraction hierarchy is prepared")
+	g.PrepareContracts()
+	b.Log("BenchmarkOldWayShortestPathOneToMany is starting...")
+	b.ResetTimer()
+
+	for k := 0.; k <= 12; k++ {
+		n := int(math.Pow(2, k))
+		b.Run(fmt.Sprintf("%s/%d/vertices-%d", "CH shortest path (one to many)", n, len(g.Vertices)), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				u := 106600
+				v := []int{5924, 81611, 69618, 68427, 68490}
+				for vv := range v {
+					ans, path := g.ShortestPath(u, v[vv])
+					_, _ = ans, path
+				}
+			}
+		})
+	}
 }
