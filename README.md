@@ -119,7 +119,7 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 * Map matcher as another project **WIP**
 * Bring interfaces{} **WIP**
 * Bring OSM parser **WIP**
-* OneTwoMany function (contraction hierarchies) **WIP**
+* ~~OneTwoMany function (contraction hierarchies)~~ **Done, may be some bench comparisons**
 * ManyToMany function (contraction hierarchies)
 
 ## Theory
