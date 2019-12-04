@@ -9,7 +9,7 @@ This library provides classic implementation of Dijkstra's algorithm and turn re
 ## Table of Contents
 
 - [About](#about)
-- [Installation](#usage)
+- [Installation](#installation)
     - [Old](#old-way)
     - [New](#new-way)
 - [Usage](#usage)
