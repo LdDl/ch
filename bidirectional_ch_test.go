@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
+	"math/rand"
 	"os"
 	"strconv"
 	"testing"
@@ -15,9 +17,9 @@ import (
 func TestShortestPath(t *testing.T) {
 	g := Graph{}
 	graphFromCSV(&g, "data/pgrouting_osm.csv")
-	log.Println("Please wait until contraction hierarchy is prepared")
+	t.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
-	log.Println("TestShortestPath is starting...")
+	t.Log("TestShortestPath is starting...")
 	u := 69618
 	v := 5924
 
@@ -28,21 +30,50 @@ func TestShortestPath(t *testing.T) {
 	if Round(ans, 0.00005) != Round(19135.6581215226, 0.00005) {
 		t.Errorf("Length of path should be 19135.6581215226, but got %f", ans)
 	}
-	log.Println("TestShortestPath is Ok!")
+	t.Log("TestShortestPath is Ok!")
+}
+
+func TestBothVanillaAndCH(t *testing.T) {
+	g := Graph{}
+	graphFromCSV(&g, "data/pgrouting_osm.csv")
+	t.Log("Please wait until contraction hierarchy is prepared")
+	g.PrepareContracts()
+	t.Log("TestAndSHVanPath is starting...")
+
+	rand.Seed(time.Now().Unix())
+	for i := 0; i < 10; i++ {
+		rndV := g.Vertices[rand.Intn(len(g.Vertices))].Label
+		rndU := g.Vertices[rand.Intn(len(g.Vertices))].Label
+		ansCH, pathCH := g.ShortestPath(rndV, rndU)
+		ansVanilla, pathVanilla := g.VanillaShortestPath(rndV, rndU)
+		if len(pathCH) != len(pathVanilla) {
+			t.Errorf("Num of vertices in path should be %d, but got %d", len(pathVanilla), len(pathCH))
+		}
+		if Round(ansCH, 0.00005) != Round(ansVanilla, 0.00005) {
+			t.Errorf("Length of path should be %f, but got %f", ansVanilla, ansCH)
+		}
+	}
+	t.Log("TestAndSHVanPath is Ok!")
 }
 
 func BenchmarkShortestPath(b *testing.B) {
 	g := Graph{}
 	graphFromCSV(&g, "data/pgrouting_osm.csv")
-	log.Println("Please wait until contraction hierarchy is prepared")
+	b.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
-	log.Println("BenchmarkShortestPath is starting...")
+	b.Log("BenchmarkShortestPath is starting...")
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		u := 69618
-		v := 5924
-		ans, path := g.ShortestPath(u, v)
-		_, _ = ans, path
+
+	for k := 0.; k <= 12; k++ {
+		n := int(math.Pow(2, k))
+		b.Run(fmt.Sprintf("%s/%d/vertices-%d", "CH shortest path", n, len(g.Vertices)), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				u := 69618
+				v := 5924
+				ans, path := g.ShortestPath(u, v)
+				_, _ = ans, path
+			}
+		})
 	}
 }
 
