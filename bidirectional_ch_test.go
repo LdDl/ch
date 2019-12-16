@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"testing"
+	"time"
 )
 
 func TestShortestPath(t *testing.T) {
@@ -118,13 +119,26 @@ func TestShortestPath_v2(t *testing.T) {
 	log.Println("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	log.Println("TestShortestPath is starting...")
-	u := 21831
-	v := 77701
+	// u := 21831
+	// v := 77701
+	u := 69618
+	v := 5924
 
+	fmt.Println("source:", u, ", target:", v)
+
+	fmt.Println("time", "ans", "path")
+	ts := time.Now()
 	ans, path := g.VanillaShortestPath(u, v) // Верный результат, [21831 51225 65164 23323 82109 29766 77701]
-	fmt.Println(path, ans)
+	dts := ts.Sub(time.Now())
+	fmt.Println("vanila", dts, ans, path)
+	ts = time.Now()
 	ans, path = g.ShortestPath(u, v) // И близко неверный, 21831 51225 65164 23323 82109 29766 77701 (wtf???) 4651 34542 79740 89676 78394 14683 7899 34962 84862 40509 37933 35372 40605 34460 26637 29766 77701
-	fmt.Println(path, ans)
+	dts = ts.Sub(time.Now())
+	fmt.Println("bi ch ", dts, ans, path)
+	ts = time.Now()
+	ans, path = g.ShortestPathProc(u, v) // И близко неверный, 21831 51225 65164 23323 82109 29766 77701 (wtf???) 4651 34542 79740 89676 78394 14683 7899 34962 84862 40509 37933 35372 40605 34460 26637 29766 77701
+	dts = ts.Sub(time.Now())
+	fmt.Println("bi go ", dts, ans, path)
 	if len(path) != 7 {
 		t.Errorf("Num of vertices in path should be 7, but got %d", len(path))
 	}
