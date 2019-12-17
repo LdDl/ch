@@ -3,7 +3,6 @@ package ch
 import (
 	"container/heap"
 	"container/list"
-	"log"
 	"math"
 )
 
@@ -22,11 +21,9 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 	ok := true
 
 	if source, ok = graph.mapping[source]; !ok {
-		log.Println("No such source")
 		return -1.0, nil
 	}
 	if target, ok = graph.mapping[target]; !ok {
-		log.Println("No such target")
 		return -1.0, nil
 	}
 
@@ -100,7 +97,7 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 			if forwProcessed[vertex2.id] {
 				if vertex2.revDistance+queryDist[vertex2.id] < estimate {
 					middleID = vertex2.id
-					estimate = vertex2.queryDist + queryDist[vertex2.id]
+					estimate = vertex2.revDistance + queryDist[vertex2.id]
 				}
 			}
 		}

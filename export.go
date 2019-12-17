@@ -7,11 +7,14 @@ import (
 )
 
 // ExportToFile Exports graph to file of CSV-format
-//
-// Header of CSV-file:
-// from_vertex_id;to_vertex_id;from_vertex_internal_id;to_vertex_internal_id;edge_weight;contract_id;contract_internal_id
-// int;int;int;int;float64;-1 (no contract) else external ID of contracted vertex; -1 (no contract) else internal ID of contracted vertex
-//
+// Header of main CSV-file:
+// 		from_vertex_id - int64, ID of source vertex
+// 		to_vertex_id - int64, ID of arget vertex
+// 		f_internal - int64, Internal ID of source vertex
+// 		t_internal - int64, Internal ID of target vertex
+// 		weight - float64, Weight of an edge
+// 		via_vertex_id - int64, ID of vertex through which the contraction exists (-1 if no contraction)
+// 		v_internal - int64, Internal ID of vertex through which the contraction exists (-1 if no contraction)
 func (graph *Graph) ExportToFile(fname string) error {
 
 	file, err := os.Create(fname)
@@ -23,7 +26,7 @@ func (graph *Graph) ExportToFile(fname string) error {
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 	writer.Comma = ';'
-	err = writer.Write([]string{"from_vertex_id", "to_vertex_id", "from_vertex_internal_id", "to_vertex_internal_id", "edge_weight", "contract_id", "contract_internal_id"})
+	err = writer.Write([]string{"from_vertex_id", "to_vertex_id", "f_internal", "t_internal", "weight", "via_vertex_id", "v_internal"})
 	if err != nil {
 		return err
 	}

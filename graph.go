@@ -35,7 +35,6 @@ func (graph *Graph) CreateVertex(label int) {
 		Label:        label,
 		delNeighbors: 0,
 		distance:     NewDistance(),
-		processed:    NewProcessed(),
 		contracted:   false,
 	}
 	if graph.mapping == nil {
@@ -62,7 +61,6 @@ func (graph *Graph) AddVertex(labelExternal, labelInternal int) {
 		Label:        labelExternal,
 		delNeighbors: 0,
 		distance:     NewDistance(),
-		processed:    NewProcessed(),
 		contracted:   true,
 		vertexNum:    labelInternal,
 	}

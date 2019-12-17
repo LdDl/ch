@@ -1,2 +1,6 @@
 .vscode
 benchmark_graph.csv
+/osm_data
+/data/export_pgrouting.csv
+new.txt
+old.txt
