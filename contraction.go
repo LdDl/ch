@@ -5,8 +5,8 @@ import (
 )
 
 // Preprocess Computes contraction hierarchies and returns node ordering
-func (graph *Graph) Preprocess() []int {
-	nodeOrdering := make([]int, len(graph.Vertices))
+func (graph *Graph) Preprocess() []int64 {
+	nodeOrdering := make([]int64, len(graph.Vertices))
 	var extractNum int
 	var iter int
 	for graph.pqImportance.Len() != 0 {
@@ -20,7 +20,7 @@ func (graph *Graph) Preprocess() []int {
 		nodeOrdering[extractNum] = vertex.vertexNum
 		vertex.orderPos = extractNum
 		extractNum = extractNum + 1
-		graph.contractNode(vertex, extractNum-1)
+		graph.contractNode(vertex, int64(extractNum-1))
 		// fmt.Printf(
 		// 	"Contraction of vertex: %v (label %v, order %v, dist %v) | Contraction ID: %v (%v) | Done %v / %v | HeapLength: %v\n",
 		// 	vertex.vertexNum, vertex.Label, vertex.orderPos, vertex.distance.distance, vertex.distance.contractID, vertex.distance.sourceID, iter, len(graph.Vertices), graph.pqImportance.Len(),
@@ -34,7 +34,7 @@ func (graph *Graph) Preprocess() []int {
 // inEdges Incoming edges from vertex
 // outEdges Outcoming edges from vertex
 //
-func (graph *Graph) callNeighbors(inEdges, outEdges []int) {
+func (graph *Graph) callNeighbors(inEdges, outEdges []int64) {
 	for i := 0; i < len(inEdges); i++ {
 		temp := inEdges[i]
 		graph.Vertices[temp].delNeighbors++
@@ -50,7 +50,7 @@ func (graph *Graph) callNeighbors(inEdges, outEdges []int) {
 // vertex Vertex to be contracted
 // contractID ID of contraction
 //
-func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
+func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 	inEdges := vertex.inEdges
 	inECost := vertex.inECost
 	outEdges := vertex.outEdges
@@ -89,16 +89,16 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 			continue
 		}
 		incost := inECost[i]
-		graph.dijkstra(inVertex, max, contractID, i) //finds the shortest distances from the inVertex to all the outVertices.
+		graph.dijkstra(inVertex, max, contractID, int64(i)) //finds the shortest distances from the inVertex to all the outVertices.
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j]
 			outcost := outECost[j]
 			if graph.Vertices[outVertex].contracted {
 				continue
 			}
-			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != i || graph.Vertices[outVertex].distance.distance > incost+outcost {
+			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int64(i) || graph.Vertices[outVertex].distance.distance > incost+outcost {
 				if _, ok := graph.contracts[inVertex]; !ok {
-					graph.contracts[inVertex] = make(map[int]int)
+					graph.contracts[inVertex] = make(map[int64]int64)
 					graph.contracts[inVertex][outVertex] = vertex.vertexNum
 				} else {
 					graph.contracts[inVertex][outVertex] = vertex.vertexNum

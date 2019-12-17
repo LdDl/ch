@@ -20,8 +20,8 @@ func TestShortestPath(t *testing.T) {
 	t.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	t.Log("TestShortestPath is starting...")
-	u := 69618
-	v := 5924
+	u := int64(69618)
+	v := int64(5924)
 
 	ans, path := g.ShortestPath(u, v)
 	if len(path) != 160 {
@@ -68,8 +68,8 @@ func BenchmarkShortestPath(b *testing.B) {
 		n := int(math.Pow(2, k))
 		b.Run(fmt.Sprintf("%s/%d/vertices-%d", "CH shortest path", n, len(g.Vertices)), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				u := 69618
-				v := 5924
+				u := int64(69618)
+				v := int64(5924)
 				ans, path := g.ShortestPath(u, v)
 				_, _ = ans, path
 			}
@@ -106,11 +106,11 @@ func graphFromCSV(graph *Graph, fname string) {
 		if err == io.EOF {
 			break
 		}
-		source, err := strconv.Atoi(record[0])
+		source, err := strconv.ParseInt(record[0], 10, 64)
 		if err != nil {
 			log.Panicln(err)
 		}
-		target, err := strconv.Atoi(record[1])
+		target, err := strconv.ParseInt(record[1], 10, 64)
 		if err != nil {
 			log.Panicln(err)
 		}

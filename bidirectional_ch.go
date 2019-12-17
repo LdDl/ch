@@ -13,10 +13,10 @@ import (
 // source User's definied ID of source vertex
 // target User's definied ID of target vertex
 //
-func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
+func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 
 	if source == target {
-		return 0, []int{source}
+		return 0, []int64{source}
 	}
 	ok := true
 
@@ -27,8 +27,8 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 		return -1.0, nil
 	}
 
-	prev := make(map[int]int)
-	prevReverse := make(map[int]int)
+	prev := make(map[int64]int64)
+	prevReverse := make(map[int64]int64)
 
 	queryDist := make([]float64, len(graph.Vertices), len(graph.Vertices))
 	revDistance := make([]float64, len(graph.Vertices), len(graph.Vertices))
@@ -69,7 +69,7 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 
 	var iter int
 
-	var middleID int
+	var middleID int64
 
 	for forwQ.Len() != 0 || backwQ.Len() != 0 {
 		iter++
@@ -110,7 +110,7 @@ func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 }
 
 // ComputePath Returns slice of IDs (user defined) of computed path
-func (graph *Graph) ComputePath(middleID int, prevF, prevR map[int]int) []int {
+func (graph *Graph) ComputePath(middleID int64, prevF, prevR map[int64]int64) []int64 {
 	l := list.New()
 	l.PushBack(middleID)
 	u := middleID
@@ -134,16 +134,16 @@ func (graph *Graph) ComputePath(middleID int, prevF, prevR map[int]int) []int {
 	for ok {
 		ok = false
 		for e := l.Front(); e.Next() != nil; e = e.Next() {
-			if contractedNode, ok2 := graph.contracts[e.Value.(int)][e.Next().Value.(int)]; ok2 {
+			if contractedNode, ok2 := graph.contracts[e.Value.(int64)][e.Next().Value.(int64)]; ok2 {
 				ok = true
 				l.InsertAfter(contractedNode, e)
 			}
 		}
 	}
 
-	var path []int
+	var path []int64
 	for e := l.Front(); e != nil; e = e.Next() {
-		path = append(path, graph.Vertices[e.Value.(int)].Label)
+		path = append(path, graph.Vertices[e.Value.(int64)].Label)
 	}
 
 	return path

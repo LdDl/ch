@@ -173,6 +173,7 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 * Bring OSM parser **WIP**
 * ~~OneTwoMany function (contraction hierarchies)~~ **Done, ~~may be some bench comparisons~~**
 * ManyToMany function (contraction hierarchies)
+* Replace int with int64 (OSM purposes) **Done (travis will check)**
 
 ## Theory
 [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)

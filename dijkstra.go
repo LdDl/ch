@@ -3,7 +3,7 @@ package ch
 import "container/heap"
 
 // checkID Checks if both source's and target's contraction ID are not equal
-func (graph *Graph) checkID(source, target int) bool {
+func (graph *Graph) checkID(source, target int64) bool {
 	if graph.Vertices[source].distance.contractID != graph.Vertices[target].distance.contractID || graph.Vertices[source].distance.sourceID != graph.Vertices[target].distance.sourceID {
 		return true
 	}
@@ -11,7 +11,7 @@ func (graph *Graph) checkID(source, target int) bool {
 }
 
 // relaxEdges Edge relaxation
-func (graph *Graph) relaxEdges(vertex, contractID, sourceID int) {
+func (graph *Graph) relaxEdges(vertex, contractID, sourceID int64) {
 	vertexList := graph.Vertices[vertex].outEdges
 	costList := graph.Vertices[vertex].outECost
 	for i := 0; i < len(vertexList); i++ {
@@ -32,7 +32,7 @@ func (graph *Graph) relaxEdges(vertex, contractID, sourceID int) {
 }
 
 // dijkstra Internal dijkstra algorithm to compute contraction hierarchies
-func (graph *Graph) dijkstra(source int, maxcost float64, contractID, sourceID int) {
+func (graph *Graph) dijkstra(source int64, maxcost float64, contractID, sourceID int64) {
 	graph.pqComparator = &distanceHeap{}
 	heap.Init(graph.pqComparator)
 	heap.Push(graph.pqComparator, graph.Vertices[source])

@@ -3,7 +3,7 @@ package ch
 import "container/heap"
 
 type minheapNode struct {
-	id       int
+	id       int64
 	distance float64
 }
 
@@ -24,7 +24,7 @@ func (h *minheapSTD) Pop() interface{} {
 	return lastNode
 }
 
-func (h *minheapSTD) decrease_priority(id int, val float64) {
+func (h *minheapSTD) decrease_priority(id int64, val float64) {
 	for i := 0; i < len(*h); i++ {
 		if (*h)[i].id == id {
 			(*h)[i].distance = val
@@ -33,7 +33,7 @@ func (h *minheapSTD) decrease_priority(id int, val float64) {
 	}
 }
 
-func (h *minheapSTD) add_with_priority(id int, val float64) {
+func (h *minheapSTD) add_with_priority(id int64, val float64) {
 	nds := minheapNode{
 		id:       id,
 		distance: val,

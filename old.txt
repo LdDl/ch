@@ -1,18 +1,18 @@
 goos: linux
 goarch: amd64
 pkg: github.com/LdDl/ch
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1/vertices-187853-20         	     109	  10608955 ns/op	17809328 B/op	   14657 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2/vertices-187853-20         	      99	  10813368 ns/op	17809375 B/op	   14658 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4/vertices-187853-20         	     106	  10583636 ns/op	17809681 B/op	   14661 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/8/vertices-187853-20         	     100	  10500989 ns/op	17809309 B/op	   14657 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/16/vertices-187853-20        	     100	  10470206 ns/op	17809374 B/op	   14658 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/32/vertices-187853-20        	     110	  10421460 ns/op	17809346 B/op	   14657 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/64/vertices-187853-20        	     115	  10499903 ns/op	17809429 B/op	   14658 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/128/vertices-187853-20       	     111	  10735268 ns/op	17809361 B/op	   14658 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/256/vertices-187853-20       	     109	  10836504 ns/op	17809408 B/op	   14658 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/512/vertices-187853-20       	     115	  10544817 ns/op	17809316 B/op	   14657 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1024/vertices-187853-20      	      98	  10619897 ns/op	17809398 B/op	   14659 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2048/vertices-187853-20      	      99	  10772554 ns/op	17809467 B/op	   14660 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4096/vertices-187853-20      	     116	  10257450 ns/op	17809528 B/op	   14659 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1/vertices-187853-20         	      99	  11189406 ns/op	17809538 B/op	   14659 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2/vertices-187853-20         	      97	  11212175 ns/op	17809420 B/op	   14658 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4/vertices-187853-20         	      96	  11376902 ns/op	17809440 B/op	   14659 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/8/vertices-187853-20         	     102	  11069096 ns/op	17809555 B/op	   14660 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/16/vertices-187853-20        	     112	  10608154 ns/op	17809671 B/op	   14661 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/32/vertices-187853-20        	     110	  10820957 ns/op	17809369 B/op	   14657 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/64/vertices-187853-20        	     112	  10679280 ns/op	17809430 B/op	   14658 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/128/vertices-187853-20       	     100	  11159336 ns/op	17809514 B/op	   14659 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/256/vertices-187853-20       	     100	  10622020 ns/op	17809369 B/op	   14658 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/512/vertices-187853-20       	     109	  10528842 ns/op	17809476 B/op	   14659 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1024/vertices-187853-20      	     109	  10825896 ns/op	17809636 B/op	   14661 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2048/vertices-187853-20      	     111	  10255177 ns/op	17809508 B/op	   14659 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4096/vertices-187853-20      	     109	  10545949 ns/op	17809435 B/op	   14658 allocs/op
 PASS
-ok  	github.com/LdDl/ch	31.017s
+ok  	github.com/LdDl/ch	32.592s

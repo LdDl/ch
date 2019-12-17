@@ -2,6 +2,7 @@ package ch
 
 import (
 	"encoding/csv"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -41,20 +42,20 @@ func (graph *Graph) ExportToFile(fname string) error {
 			fromVertexExternal := graph.Vertices[incomingNeighbors[j]].Label
 			fromVertexInternal := incomingNeighbors[j]
 			cost := incomingCosts[j]
-			isContractExternal := -1
-			isContractInternal := -1
+			isContractExternal := int64(-1)
+			isContractInternal := int64(-1)
 			if v, ok := graph.contracts[fromVertexInternal][currentVertexInternal]; ok {
 				isContractExternal = graph.Vertices[v].Label
 				isContractInternal = v
 			}
 			err = writer.Write([]string{
-				strconv.Itoa(fromVertexExternal),
-				strconv.Itoa(currentVertexExternal),
-				strconv.Itoa(fromVertexInternal),
-				strconv.Itoa(currentVertexInternal),
+				fmt.Sprintf("%d", fromVertexExternal),
+				fmt.Sprintf("%d", currentVertexExternal),
+				fmt.Sprintf("%d", fromVertexInternal),
+				fmt.Sprintf("%d", currentVertexInternal),
 				strconv.FormatFloat(cost, 'f', -1, 64),
-				strconv.Itoa(isContractExternal),
-				strconv.Itoa(isContractInternal),
+				fmt.Sprintf("%d", isContractExternal),
+				fmt.Sprintf("%d", isContractInternal),
 			})
 			if err != nil {
 				return err
@@ -67,20 +68,20 @@ func (graph *Graph) ExportToFile(fname string) error {
 			toVertexExternal := graph.Vertices[outcomingNeighbors[j]].Label
 			toVertexInternal := outcomingNeighbors[j]
 			cost := outcomingCosts[j]
-			isContractExternal := -1
-			isContractInternal := -1
+			isContractExternal := int64(-1)
+			isContractInternal := int64(-1)
 			if v, ok := graph.contracts[currentVertexInternal][toVertexInternal]; ok {
 				isContractExternal = graph.Vertices[v].Label
 				isContractInternal = v
 			}
 			err = writer.Write([]string{
-				strconv.Itoa(currentVertexExternal),
-				strconv.Itoa(toVertexExternal),
-				strconv.Itoa(currentVertexInternal),
-				strconv.Itoa(toVertexInternal),
+				fmt.Sprintf("%d", currentVertexExternal),
+				fmt.Sprintf("%d", toVertexExternal),
+				fmt.Sprintf("%d", currentVertexInternal),
+				fmt.Sprintf("%d", toVertexInternal),
 				strconv.FormatFloat(cost, 'f', -1, 64),
-				strconv.Itoa(isContractExternal),
-				strconv.Itoa(isContractInternal),
+				fmt.Sprintf("%d", isContractExternal),
+				fmt.Sprintf("%d", isContractInternal),
 			})
 			if err != nil {
 				return err

@@ -5,8 +5,8 @@ import (
 )
 
 type V struct {
-	from   int
-	to     int
+	from   int64
+	to     int64
 	weight float64
 }
 
@@ -30,10 +30,10 @@ func TestVanillaTurnRestrictedShortestPath(t *testing.T) {
 		graph.AddEdge(vertices[i].from, vertices[i].to, vertices[i].weight)
 	}
 
-	restrictions := make(map[int]map[int]int)
-	restrictions[1] = make(map[int]int)
+	restrictions := make(map[int64]map[int64]int64)
+	restrictions[1] = make(map[int64]int64)
 	restrictions[1][2] = 5
-	restrictions[2] = make(map[int]int)
+	restrictions[2] = make(map[int64]int64)
 	restrictions[2][5] = 7
 
 	for source, turn := range restrictions {
@@ -43,7 +43,7 @@ func TestVanillaTurnRestrictedShortestPath(t *testing.T) {
 	}
 
 	ans, path := graph.VanillaTurnRestrictedShortestPath(1, 5)
-	rightPath := []int{1, 2, 3, 4, 5}
+	rightPath := []int64{1, 2, 3, 4, 5}
 	if len(path) != 5 {
 		t.Errorf("Run 1: num of vertices in path should be 5, but got %d", len(path))
 	}
@@ -57,7 +57,7 @@ func TestVanillaTurnRestrictedShortestPath(t *testing.T) {
 	}
 
 	ans, path = graph.VanillaTurnRestrictedShortestPath(2, 7)
-	rightPath = []int{2, 3, 4, 5, 7}
+	rightPath = []int64{2, 3, 4, 5, 7}
 	if len(path) != 5 {
 		t.Errorf("Run 2: num of vertices in path should be 5, but got %d", len(path))
 	}
@@ -71,7 +71,7 @@ func TestVanillaTurnRestrictedShortestPath(t *testing.T) {
 	}
 
 	ans, path = graph.VanillaTurnRestrictedShortestPath(1, 7)
-	rightPath = []int{1, 2, 3, 4, 5, 7}
+	rightPath = []int64{1, 2, 3, 4, 5, 7}
 	if len(path) != 6 {
 		t.Errorf("Run 3: num of vertices in path should be 6, but got %d", len(path))
 	}

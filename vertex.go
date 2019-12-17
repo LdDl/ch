@@ -6,12 +6,12 @@ import (
 )
 
 type Vertex struct {
-	vertexNum int
-	Label     int
+	vertexNum int64
+	Label     int64
 
-	inEdges  []int
+	inEdges  []int64
 	inECost  []float64
-	outEdges []int
+	outEdges []int64
 	outECost []float64
 
 	orderPos      int
@@ -27,7 +27,7 @@ func (v *Vertex) PrintInOut() {
 	fmt.Println(v.outEdges, v.inEdges)
 }
 
-func MakeVertex(label int) *Vertex {
+func MakeVertex(label int64) *Vertex {
 	return &Vertex{
 		Label:        label,
 		delNeighbors: 0,
@@ -36,7 +36,7 @@ func MakeVertex(label int) *Vertex {
 	}
 }
 
-func NewVertex(vertexNum int) *Vertex {
+func NewVertex(vertexNum int64) *Vertex {
 	return &Vertex{
 		vertexNum:    vertexNum,
 		delNeighbors: 0,
@@ -52,8 +52,8 @@ func (vertex *Vertex) computeImportance() {
 }
 
 type Distance struct {
-	contractID  int
-	sourceID    int
+	contractID  int64
+	sourceID    int64
 	distance    float64
 	queryDist   float64
 	revDistance float64

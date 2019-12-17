@@ -10,8 +10,8 @@ func TestImportedFileShortestPath(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log("TestImportedFileShortestPath is starting...")
-	u := 69618
-	v := 5924
+	u := int64(69618)
+	v := int64(5924)
 
 	ans, path := g.ShortestPath(u, v)
 	if len(path) != 160 {

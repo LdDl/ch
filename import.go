@@ -38,20 +38,20 @@ func ImportFromFile(fname string) (*Graph, error) {
 		if err == io.EOF {
 			break
 		}
-		sourceExternal, err := strconv.Atoi(record[0])
+		sourceExternal, err := strconv.ParseInt(record[0], 10, 64)
 		if err != nil {
 			return nil, err
 		}
-		targetExternal, err := strconv.Atoi(record[1])
+		targetExternal, err := strconv.ParseInt(record[1], 10, 64)
 		if err != nil {
 			return nil, err
 		}
 
-		sourceInternal, err := strconv.Atoi(record[2])
+		sourceInternal, err := strconv.ParseInt(record[2], 10, 64)
 		if err != nil {
 			return nil, err
 		}
-		targetInternal, err := strconv.Atoi(record[3])
+		targetInternal, err := strconv.ParseInt(record[3], 10, 64)
 		if err != nil {
 			return nil, err
 		}
@@ -65,7 +65,7 @@ func ImportFromFile(fname string) (*Graph, error) {
 		// if err != nil {
 		// 	return nil, err
 		// }
-		isContractInternal, err := strconv.Atoi(record[6])
+		isContractInternal, err := strconv.ParseInt(record[6], 10, 64)
 		if err != nil {
 			return nil, err
 		}
@@ -77,7 +77,7 @@ func ImportFromFile(fname string) (*Graph, error) {
 
 		if isContractInternal != -1 {
 			if _, ok := graph.contracts[sourceInternal]; !ok {
-				graph.contracts[sourceInternal] = make(map[int]int)
+				graph.contracts[sourceInternal] = make(map[int64]int64)
 				graph.contracts[sourceInternal][targetInternal] = isContractInternal
 			}
 			graph.contracts[sourceInternal][targetInternal] = isContractInternal
@@ -125,15 +125,15 @@ func (g *Graph) ImportRestrictionsFromFile(fname string) error {
 		if err == io.EOF {
 			break
 		}
-		sourceExternal, err := strconv.Atoi(record[0])
+		sourceExternal, err := strconv.ParseInt(record[0], 10, 64)
 		if err != nil {
 			return err
 		}
-		viaExternal, err := strconv.Atoi(record[1])
+		viaExternal, err := strconv.ParseInt(record[1], 10, 64)
 		if err != nil {
 			return err
 		}
-		targetExternal, err := strconv.Atoi(record[2])
+		targetExternal, err := strconv.ParseInt(record[2], 10, 64)
 		if err != nil {
 			return err
 		}
