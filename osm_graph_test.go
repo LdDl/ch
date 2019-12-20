@@ -1,13 +1,12 @@
 package ch
 
 import (
-	"log"
 	"testing"
 )
 
 func TestLoadOsmGraph(t *testing.T) {
-	cfg := Config{
-		Name: "highway",
+	cfg := OsmConfiguration{
+		TagName: "highway",
 		Tags: []string{
 			"motorway",
 			"primary",
@@ -23,15 +22,25 @@ func TestLoadOsmGraph(t *testing.T) {
 			"trunk_link",
 		},
 	}
-	g, err := LoadOsmGraph("data/moscow_tinao.pbf", cfg)
+	g, err := ImportFromOSMFile("data/moscow_center_reduced.osm.pbf", &cfg)
 	if err != nil {
 		t.Error(err)
 	}
-	t.Error("Please wait until contraction hierarchy is prepared")
-	// g.PrepareContracts()
-	t.Log("TestExport is starting...")
-	t.Log(len(g.contracts)) // 268420
-	t.Log(len(g.Vertices))  // 588804
+	t.Log("Please wait until contraction hierarchy is prepared")
+	g.PrepareContracts()
+	t.Log("TestLoadOsmGraph is starting...")
 
-	log.Println("TestExport is Ok!")
+	u := int64(272650046)
+	v := int64(7012442362)
+
+	correctPath := 96
+	correctAns := 2952.003039
+	ans, path := g.ShortestPath(u, v)
+	if len(path) != correctPath {
+		t.Errorf("Num of vertices in path should be %d, but got %d", correctPath, len(path))
+	}
+	if Round(ans, 0.00005) != Round(correctAns, 0.00005) {
+		t.Errorf("Length of path should be %f, but got %f", correctAns, ans)
+	}
+	t.Log("TestLoadOsmGraph is Ok!")
 }
