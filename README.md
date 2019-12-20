@@ -165,15 +165,15 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 
 * ~~Import file of specific format~~ **Done as CSV**
 * ~~Export file of specific format~~ **Done as CSV**
-* Turn Restricted Shortest Path extension for CH-algorithm
-* Turn restrictions import (probably as CSV again)
+* Turn Restricted Shortest Path extension for CH-algorithm **Propably not modify algorithm, but graph**
 * Thoughts and discussions about OSM graph and extensions **Need some ideas about parsing and preparing**
 * Map matcher as another project **WIP**
-* Bring interfaces{} **WIP**
-* Bring OSM parser **WIP**
+* Bring interfaces{} **Thoughts**
+* Bring OSM parser **WIP It exists, now need restrictions handle**
+* Bring OSM restrictions **WIP PRs are welcome**
 * ~~OneTwoMany function (contraction hierarchies)~~ **Done, ~~may be some bench comparisons~~**
-* ManyToMany function (contraction hierarchies)
-* Replace int with int64 (OSM purposes) **Done (travis will check)**
+* ManyToMany function (contraction hierarchies) **Thoughts**
+* Replace int with int64 (OSM purposes) **Done**
 
 ## Theory
 [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
