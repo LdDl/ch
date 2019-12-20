@@ -76,7 +76,7 @@ func (graph *Graph) AddVertex(labelExternal, labelInternal int64) {
 		if labelInternal < int64(len(graph.Vertices)) {
 			graph.Vertices[labelInternal] = v
 		} else {
-			diff := labelInternal - int64(len(graph.Vertices)+1)
+			diff := labelInternal - int64(len(graph.Vertices)) + 1
 			empty := make([]*Vertex, diff)
 			graph.Vertices = append(graph.Vertices, empty...)
 			graph.Vertices[labelInternal] = v
