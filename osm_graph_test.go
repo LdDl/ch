@@ -43,4 +43,5 @@ func TestLoadOsmGraph(t *testing.T) {
 		t.Errorf("Length of path should be %f, but got %f", correctAns, ans)
 	}
 	t.Log("TestLoadOsmGraph is Ok!")
+	t.Error(0)
 }
