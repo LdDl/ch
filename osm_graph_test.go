@@ -1,6 +1,7 @@
 package ch
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -43,5 +44,22 @@ func TestLoadOsmGraph(t *testing.T) {
 		t.Errorf("Length of path should be %f, but got %f", correctAns, ans)
 	}
 	t.Log("TestLoadOsmGraph is Ok!")
+	t.Error(0)
+}
+
+func TestMiddlePoint(t *testing.T) {
+	p1 := Coord{
+		Lon: 37.6417350769043,
+		Lat: 55.751849391735284,
+	}
+	p2 := Coord{
+		Lon: 37.668514251708984,
+		Lat: 55.73261980350401,
+	}
+	res := Coord{
+		Lon: 37.65512796336629,
+		Lat: 55.742235325526806,
+	}
+	fmt.Println(MiddlePoint(p1, p2) == res)
 	t.Error(0)
 }
