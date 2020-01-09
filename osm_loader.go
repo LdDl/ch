@@ -113,15 +113,20 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 							geom: []Coord{a, b},
 						}
 
+						if way.ID == 685825894 {
+							fmt.Println("Check oneway == false", 685825894, source, target, oneway, newEdgeID)
+						}
+
 						newEdgeID++
 
 						// if source == 5107446176 {
 						// 	fmt.Println("first", target)
 						// }
-						// graph.CreateVertex(source)
-						// graph.CreateVertex(target)
-						// graph.AddEdge(source, target, cost)
+
 						if oneway == false {
+							if way.ID == 685825894 {
+								fmt.Println("Check oneway == false", 685825894, target, source, oneway, newEdgeID)
+							}
 							if _, ok := newEdges[target]; !ok {
 								newEdges[target] = make(map[int64]expandedEdge)
 							}
@@ -131,7 +136,6 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 								geom: []Coord{b, a},
 							}
 							newEdgeID++
-							// graph.AddEdge(target, source, cost)
 						}
 					}
 				}
@@ -227,16 +231,29 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 	expandedGraph := make(map[int64]map[int64]expandedEdge)
 	for source := range newEdges {
+
 		for target := range newEdges[source] {
+
 			sourceExpandVertex := newEdges[source][target]
 			sourceCost := sourceExpandVertex.Cost
-
+			// if source == 250638721 && target == 6427828136 {
+			// 	fmt.Println(">>> Our client from-to", sourceExpandVertex)
+			// }
+			// if source == 6427828136 && target == 250638721 {
+			// 	fmt.Println(">>> Our client to-from", sourceExpandVertex)
+			// }
 			sourceMiddlePoint := MiddlePoint(sourceExpandVertex.geom[0], sourceExpandVertex.geom[1])
 			if targetAsSource, ok := newEdges[target]; ok {
 				for subTarget := range targetAsSource {
 					targetExpandVertex := newEdges[target][subTarget]
 					targetCost := targetExpandVertex.Cost
 					targetMiddlePoint := MiddlePoint(targetExpandVertex.geom[0], targetExpandVertex.geom[1])
+
+					// Обработка двунаправленных рёбер
+					if sourceExpandVertex.geom[0] == targetExpandVertex.geom[1] && sourceExpandVertex.geom[1] == targetExpandVertex.geom[0] {
+						continue
+					}
+
 					if _, ok := expandedGraph[sourceExpandVertex.ID]; !ok {
 						expandedGraph[sourceExpandVertex.ID] = make(map[int64]expandedEdge)
 					}
@@ -246,12 +263,19 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 					// 	fmt.Println("To edge", targetExpandVertex.geom)
 					// 	fmt.Println("New edge", sourceMiddlePoint, sourceExpandVertex.geom[1], targetMiddlePoint)
 					// }
+					// if sourceExpandVertex.ID == 25127 {
+					// 	log.Println("Shit is going on")
+					// 	fmt.Println("\t", sourceExpandVertex.ID, targetExpandVertex.ID)
+					// 	fmt.Println("\t\t", sourceExpandVertex.geom[0], sourceExpandVertex.geom[1], targetExpandVertex.geom[0], targetExpandVertex.geom[1])
+					// 	fmt.Println("\t\t", sourceExpandVertex.geom[0] == targetExpandVertex.geom[1], sourceExpandVertex.geom[1] == targetExpandVertex.geom[0])
+
+					// 	// fmt.Println("\t\t", sourceMiddlePoint, sourceExpandVertex.geom[1], targetMiddlePoint)
+					// }
 
 					expandedGraph[sourceExpandVertex.ID][targetExpandVertex.ID] = expandedEdge{
 						Cost: (sourceCost + targetCost) / 2.0,
 						geom: []Coord{sourceMiddlePoint, sourceExpandVertex.geom[1], targetMiddlePoint},
 					}
-
 				}
 			}
 		}
@@ -286,7 +310,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 				toRestVertex := to.FirstEdge.to
 				viaRestVertex := v[n].ID
 
-				if j.ID == 23178249 {
+				if j.ID == 23178249 { // ID пути в OSM
 					fromExp, toExp := newEdges[fromRestVertex][viaRestVertex].ID, newEdges[viaRestVertex][toRestVertex].ID
 					fmt.Println("gotcha", fromExp, toExp, expandedGraph[fromExp][toExp])
 					delete(expandedGraph[fromExp], toExp)
@@ -366,7 +390,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 		f.SetProperty("to", to)
 		fcAnswer.AddFeature(f)
 
-		// fmt.Println("path edge", edge)
+		fmt.Println("path edge", from, to, edge)
 	}
 	bytesAnswer, _ := fcAnswer.MarshalJSON()
 	_ = ioutil.WriteFile("answer_path.json", bytesAnswer, 0644)
