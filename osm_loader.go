@@ -282,7 +282,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 	}
 
 	for i, k := range restrictions {
-		if i != "no_left_turn" {
+		if i != "no_left_turn" && i != "no_left_right" {
 			continue
 		}
 		for j, v := range k {
