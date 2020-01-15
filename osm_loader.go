@@ -351,7 +351,10 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 					if j.ID == 685825895 { // ID пути для ограничения only_straight_on
 						fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
 						fmt.Println("gotcha via", fromExp, toExp, expandedGraph[fromExp][toExp])
-						// delete(expandedGraph[fromExp], toExp)
+						saveExde := expandedGraph[fromExp][toExp]
+						delete(expandedGraph, fromExp)
+						expandedGraph[fromExp] = make(map[int64]expandedEdge)
+						expandedGraph[fromExp][toExp] = saveExde
 					}
 				}
 			}
