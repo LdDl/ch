@@ -113,9 +113,9 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 							geom: []Coord{a, b},
 						}
 
-						if way.ID == 685825894 {
-							fmt.Println("Check oneway == false", 685825894, source, target, oneway, newEdgeID)
-						}
+						// if way.ID == 685825894 {
+						// 	fmt.Println("Check oneway == false", 685825894, source, target, oneway, newEdgeID)
+						// }
 
 						newEdgeID++
 
@@ -124,9 +124,9 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 						// }
 
 						if oneway == false {
-							if way.ID == 685825894 {
-								fmt.Println("Check oneway == false", 685825894, target, source, oneway, newEdgeID)
-							}
+							// if way.ID == 685825894 {
+							// 	fmt.Println("Check oneway == false", 685825894, target, source, oneway, newEdgeID)
+							// }
 							if _, ok := newEdges[target]; !ok {
 								newEdges[target] = make(map[int64]expandedEdge)
 							}
@@ -160,6 +160,9 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 				switch members[0].Role {
 				case "from":
+					if members[0].Ref == 685825895 {
+						fmt.Println(members)
+					}
 					firstMember = restrictionComponent{members[0].Ref, string(members[0].Type)}
 					break
 				case "via":
@@ -282,41 +285,82 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 	}
 
 	for i, k := range restrictions {
-		if i != "no_left_turn" && i != "no_left_right" {
-			continue
-		}
-		for j, v := range k {
-			if j.Type != "way" {
-				continue
-			}
-			from, ok := allWays[j.ID]
-			if !ok {
-				continue
-			}
-			for n := range v {
-				if n.Type != "way" {
+		switch i {
+		case "no_left_turn", "no_right_turn", "no_straight_on":
+			// handle only way(from)-way(to)-node(via)
+			for j, v := range k {
+				if j.Type != "way" { // way(from)
 					continue
 				}
-				if v[n].Type != "node" {
-					continue
-				}
-
-				to, ok := allWays[n.ID]
+				from, ok := allWays[j.ID]
 				if !ok {
 					continue
 				}
+				for n := range v {
+					if n.Type != "way" { // way(to)
+						continue
+					}
+					if v[n].Type != "node" { // node(via)
+						continue
+					}
 
-				fromRestVertex := from.LastEdge.from
-				toRestVertex := to.FirstEdge.to
-				viaRestVertex := v[n].ID
+					to, ok := allWays[n.ID]
+					if !ok {
+						continue
+					}
 
-				if j.ID == 23178249 { // ID пути в OSM
-					fromExp, toExp := newEdges[fromRestVertex][viaRestVertex].ID, newEdges[viaRestVertex][toRestVertex].ID
-					fmt.Println("gotcha", fromExp, toExp, expandedGraph[fromExp][toExp])
-					delete(expandedGraph[fromExp], toExp)
+					rvertexFrom := from.LastEdge.from
+					rvertexTo := to.FirstEdge.to
+					rvertexVia := v[n].ID
+
+					if j.ID == 23178249 { // ID пути для ограничения "no_left_turn"
+						fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
+						fmt.Println("gotcha", fromExp, toExp, expandedGraph[fromExp][toExp])
+						delete(expandedGraph[fromExp], toExp)
+					}
 				}
 			}
+			break
+		case "only_left_turn", "only_right_turn", "only_straight_on":
+			// handle only way(from)-way(to)-node(via)
+			for j, v := range k {
+				if j.Type != "way" { // way(from)
+					continue
+				}
+				from, ok := allWays[j.ID]
+				if !ok {
+					continue
+				}
+				for n := range v {
+					if n.Type != "way" { // way(to)
+						continue
+					}
+					if v[n].Type != "node" { // node(via)
+						continue
+					}
+
+					to, ok := allWays[n.ID]
+					if !ok {
+						continue
+					}
+
+					rvertexFrom := from.LastEdge.from
+					rvertexTo := to.FirstEdge.to
+					rvertexVia := v[n].ID
+
+					if j.ID == 685825895 { // ID пути для ограничения only_straight_on
+						fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
+						fmt.Println("gotcha via", fromExp, toExp, expandedGraph[fromExp][toExp])
+						// delete(expandedGraph[fromExp], toExp)
+					}
+				}
+			}
+			break
+		default:
+			// @todo: think about U-turns: "no_u_turn"
+			break
 		}
+
 	}
 
 	source := int64(2574862283)
