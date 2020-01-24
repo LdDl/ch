@@ -286,43 +286,6 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 	for i, k := range restrictions {
 		switch i {
-		case "no_left_turn", "no_right_turn", "no_straight_on":
-			// handle only way(from)-way(to)-node(via)
-			for j, v := range k {
-				if j.Type != "way" { // way(from)
-					continue
-				}
-				from, ok := allWays[j.ID]
-				if !ok {
-					continue
-				}
-				for n := range v {
-					if n.Type != "way" { // way(to)
-						continue
-					}
-					if v[n].Type != "node" { // node(via)
-						continue
-					}
-
-					to, ok := allWays[n.ID]
-					if !ok {
-						continue
-					}
-
-					rvertexFrom := from.LastEdge.from
-					rvertexTo := to.FirstEdge.to
-					rvertexVia := v[n].ID
-
-					// if j.ID == 23178249 { // ID пути для ограничения "no_left_turn"
-					fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
-					fmt.Println("gotcha", fromExp, toExp, expandedGraph[fromExp][toExp])
-					if _, ok := expandedGraph[fromExp]; ok {
-						delete(expandedGraph[fromExp], toExp)
-					}
-					// }
-				}
-			}
-			break
 		case "only_left_turn", "only_right_turn", "only_straight_on":
 			// handle only way(from)-way(to)-node(via)
 			for j, v := range k {
@@ -358,6 +321,52 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 						expandedGraph[fromExp] = make(map[int64]expandedEdge)
 						expandedGraph[fromExp][toExp] = saveExde
 					}
+				}
+			}
+			break
+		default:
+			// @todo: need to think about U-turns: "no_u_turn"
+			break
+		}
+
+	}
+
+	for i, k := range restrictions {
+		switch i {
+		case "no_left_turn", "no_right_turn", "no_straight_on":
+			// handle only way(from)-way(to)-node(via)
+			for j, v := range k {
+				if j.Type != "way" { // way(from)
+					continue
+				}
+				from, ok := allWays[j.ID]
+				if !ok {
+					continue
+				}
+				for n := range v {
+					if n.Type != "way" { // way(to)
+						continue
+					}
+					if v[n].Type != "node" { // node(via)
+						continue
+					}
+
+					to, ok := allWays[n.ID]
+					if !ok {
+						continue
+					}
+
+					rvertexFrom := from.LastEdge.from
+					rvertexTo := to.FirstEdge.to
+					rvertexVia := v[n].ID
+
+					// if j.ID == 23178249 { // ID пути для ограничения "no_left_turn"
+					fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
+					fmt.Println("gotcha", fromExp, toExp, expandedGraph[fromExp][toExp])
+					if _, ok := expandedGraph[fromExp]; ok {
+						delete(expandedGraph[fromExp], toExp)
+					}
+					// }
 				}
 			}
 			break
