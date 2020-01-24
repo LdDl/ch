@@ -309,12 +309,59 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 						continue
 					}
 
-					rvertexFrom := from.LastEdge.from
-					rvertexTo := to.FirstEdge.to
+					// rvertexFrom := from.LastEdge.from
+					// rvertexTo := to.FirstEdge.to
 					rvertexVia := v[n].ID
 
+					var rvertexFrom, rvertexTo int64
+
+					switch rvertexVia {
+					case from.LastEdge.to:
+						rvertexFrom = from.LastEdge.from
+						break
+					case from.LastEdge.from:
+						rvertexFrom = from.LastEdge.to
+						break
+					case from.FirstEdge.from:
+						rvertexFrom = from.FirstEdge.to
+						break
+					case from.FirstEdge.to:
+						rvertexFrom = from.FirstEdge.from
+						break
+					default:
+						log.Println("impossible from")
+						break
+					}
+
+					switch rvertexVia {
+					case to.FirstEdge.to:
+						rvertexTo = to.FirstEdge.from
+						break
+					case to.FirstEdge.from:
+						rvertexTo = to.FirstEdge.to
+						break
+					case to.LastEdge.to:
+						rvertexTo = to.LastEdge.from
+						break
+					case to.LastEdge.from:
+						rvertexTo = to.LastEdge.to
+						break
+					default:
+						log.Println("impossible to")
+						break
+					}
+
 					fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
-					// fmt.Println("gotcha via", fromExp, toExp, expandedGraph[fromExp][toExp])
+
+					// if toExp == 0 {
+					// 	rvertexTo := to.FirstEdge.from
+					// 	fromExp, toExp = newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
+					// }
+
+					if rvertexVia == 302953293 { // ID пути для ограничения "no_left_turn"
+						fmt.Println("gotcha via", from, rvertexVia, to, expandedGraph[fromExp][toExp], rvertexFrom, rvertexTo)
+						// fmt.Println("gotcha via", i, j.ID, n.ID, rvertexVia, rvertexTo, fromExp, toExp, expandedGraph[fromExp][toExp])
+					}
 					saveExde := expandedGraph[fromExp][toExp]
 					if _, ok := expandedGraph[fromExp]; ok {
 						delete(expandedGraph, fromExp)
@@ -362,7 +409,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 					// if j.ID == 23178249 { // ID пути для ограничения "no_left_turn"
 					fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
-					fmt.Println("gotcha", fromExp, toExp, expandedGraph[fromExp][toExp])
+					// fmt.Println("gotcha", fromExp, toExp, expandedGraph[fromExp][toExp])
 					if _, ok := expandedGraph[fromExp]; ok {
 						delete(expandedGraph[fromExp], toExp)
 					}
