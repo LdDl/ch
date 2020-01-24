@@ -313,11 +313,13 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 					rvertexTo := to.FirstEdge.to
 					rvertexVia := v[n].ID
 
-					if j.ID == 23178249 { // ID пути для ограничения "no_left_turn"
-						fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
-						fmt.Println("gotcha", fromExp, toExp, expandedGraph[fromExp][toExp])
+					// if j.ID == 23178249 { // ID пути для ограничения "no_left_turn"
+					fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
+					fmt.Println("gotcha", fromExp, toExp, expandedGraph[fromExp][toExp])
+					if _, ok := expandedGraph[fromExp]; ok {
 						delete(expandedGraph[fromExp], toExp)
 					}
+					// }
 				}
 			}
 			break
@@ -348,10 +350,10 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 					rvertexTo := to.FirstEdge.to
 					rvertexVia := v[n].ID
 
-					if j.ID == 685825895 { // ID пути для ограничения only_straight_on
-						fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
-						fmt.Println("gotcha via", fromExp, toExp, expandedGraph[fromExp][toExp])
-						saveExde := expandedGraph[fromExp][toExp]
+					fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
+					// fmt.Println("gotcha via", fromExp, toExp, expandedGraph[fromExp][toExp])
+					saveExde := expandedGraph[fromExp][toExp]
+					if _, ok := expandedGraph[fromExp]; ok {
 						delete(expandedGraph, fromExp)
 						expandedGraph[fromExp] = make(map[int64]expandedEdge)
 						expandedGraph[fromExp][toExp] = saveExde
@@ -360,7 +362,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 			}
 			break
 		default:
-			// @todo: think about U-turns: "no_u_turn"
+			// @todo: need to think about U-turns: "no_u_turn"
 			break
 		}
 
