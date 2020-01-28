@@ -64,7 +64,6 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 		if obj.ObjectID().Type() == "node" {
 			nodes[obj.ObjectID().Ref()] = [2]float64{obj.(*osm.Node).Lon, obj.(*osm.Node).Lat}
 		}
-
 		if obj.ObjectID().Type() == "way" {
 			tagMap := obj.(*osm.Way).TagMap()
 			if tag, ok := tagMap[cfg.TagName]; ok {
@@ -78,32 +77,26 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 					ns := obj.(*osm.Way).Nodes
 					way := obj.(*osm.Way)
 					allWays[int64(way.ID)] = &wayComponent{}
-
 					for i := 1; i < len(ns); i++ {
 						source := int64(ns[i-1].ID)
 						target := int64(ns[i].ID)
-
 						if (i - 1) == 0 {
 							allWays[int64(way.ID)].FirstEdge = edgeComponent{
 								from: source,
 								to:   target,
 							}
 						}
-
 						if i == len(ns)-1 {
 							allWays[int64(way.ID)].LastEdge = edgeComponent{
 								from: source,
 								to:   target,
 							}
 						}
-
 						a := Coord{Lon: nodes[source][0], Lat: nodes[source][1]}
 						b := Coord{Lon: nodes[target][0], Lat: nodes[target][1]}
 						cost := DistanceBetweenPoints(a, b) * 1000
-
 						vertices[source] = true
 						vertices[target] = true
-
 						if _, ok := newEdges[source]; !ok {
 							newEdges[source] = make(map[int64]expandedEdge)
 						}
@@ -112,21 +105,8 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 							Cost: cost,
 							geom: []Coord{a, b},
 						}
-
-						// if way.ID == 685825894 {
-						// 	fmt.Println("Check oneway == false", 685825894, source, target, oneway, newEdgeID)
-						// }
-
 						newEdgeID++
-
-						// if source == 5107446176 {
-						// 	fmt.Println("first", target)
-						// }
-
 						if oneway == false {
-							// if way.ID == 685825894 {
-							// 	fmt.Println("Check oneway == false", 685825894, target, source, oneway, newEdgeID)
-							// }
 							if _, ok := newEdges[target]; !ok {
 								newEdges[target] = make(map[int64]expandedEdge)
 							}
@@ -147,13 +127,11 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 			relation := obj.(*osm.Relation)
 			tagMap := relation.TagMap()
 			if tag, ok := tagMap["restriction"]; ok {
-				_ = tag
 
 				members := relation.Members
 				if len(members) != 3 {
 					fmt.Printf("Restriction does not contain 3 members, relation ID: %d", relation.ID)
 				}
-				// log.Println(tag, members)
 				firstMember := restrictionComponent{-1, ""}
 				secondMember := restrictionComponent{-1, ""}
 				thirdMember := restrictionComponent{-1, ""}
@@ -225,13 +203,6 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 		}
 	}
 
-	for i, v := range possibleRestrictionCombos {
-		fmt.Println(i)
-		for j := range v {
-			fmt.Println("\t", j)
-		}
-	}
-
 	expandedGraph := make(map[int64]map[int64]expandedEdge)
 	for source := range newEdges {
 
@@ -239,12 +210,6 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 			sourceExpandVertex := newEdges[source][target]
 			sourceCost := sourceExpandVertex.Cost
-			// if source == 250638721 && target == 6427828136 {
-			// 	fmt.Println(">>> Our client from-to", sourceExpandVertex)
-			// }
-			// if source == 6427828136 && target == 250638721 {
-			// 	fmt.Println(">>> Our client to-from", sourceExpandVertex)
-			// }
 			sourceMiddlePoint := MiddlePoint(sourceExpandVertex.geom[0], sourceExpandVertex.geom[1])
 			if targetAsSource, ok := newEdges[target]; ok {
 				for subTarget := range targetAsSource {
@@ -252,7 +217,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 					targetCost := targetExpandVertex.Cost
 					targetMiddlePoint := MiddlePoint(targetExpandVertex.geom[0], targetExpandVertex.geom[1])
 
-					// Обработка двунаправленных рёбер
+					// Handle bidirectional edges
 					if sourceExpandVertex.geom[0] == targetExpandVertex.geom[1] && sourceExpandVertex.geom[1] == targetExpandVertex.geom[0] {
 						continue
 					}
@@ -260,21 +225,6 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 					if _, ok := expandedGraph[sourceExpandVertex.ID]; !ok {
 						expandedGraph[sourceExpandVertex.ID] = make(map[int64]expandedEdge)
 					}
-					// if target == 5107446176 {
-					// 	fmt.Println("second", source, target, subTarget, sourceExpandVertex.ID, targetExpandVertex.ID, sourceCost+targetCost)
-					// 	fmt.Println("From edge", sourceExpandVertex.geom)
-					// 	fmt.Println("To edge", targetExpandVertex.geom)
-					// 	fmt.Println("New edge", sourceMiddlePoint, sourceExpandVertex.geom[1], targetMiddlePoint)
-					// }
-					// if sourceExpandVertex.ID == 25127 {
-					// 	log.Println("Shit is going on")
-					// 	fmt.Println("\t", sourceExpandVertex.ID, targetExpandVertex.ID)
-					// 	fmt.Println("\t\t", sourceExpandVertex.geom[0], sourceExpandVertex.geom[1], targetExpandVertex.geom[0], targetExpandVertex.geom[1])
-					// 	fmt.Println("\t\t", sourceExpandVertex.geom[0] == targetExpandVertex.geom[1], sourceExpandVertex.geom[1] == targetExpandVertex.geom[0])
-
-					// 	// fmt.Println("\t\t", sourceMiddlePoint, sourceExpandVertex.geom[1], targetMiddlePoint)
-					// }
-
 					expandedGraph[sourceExpandVertex.ID][targetExpandVertex.ID] = expandedEdge{
 						Cost: (sourceCost + targetCost) / 2.0,
 						geom: []Coord{sourceMiddlePoint, sourceExpandVertex.geom[1], targetMiddlePoint},
@@ -309,8 +259,6 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 						continue
 					}
 
-					// rvertexFrom := from.LastEdge.from
-					// rvertexTo := to.FirstEdge.to
 					rvertexVia := v[n].ID
 
 					var rvertexFrom, rvertexTo int64
@@ -329,7 +277,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 						rvertexFrom = from.FirstEdge.from
 						break
 					default:
-						log.Println("impossible from")
+						log.Println("Impossible from:", rvertexVia)
 						break
 					}
 
@@ -347,21 +295,12 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 						rvertexTo = to.LastEdge.to
 						break
 					default:
-						log.Println("impossible to")
+						log.Println("Impossible to:", rvertexVia)
 						break
 					}
 
 					fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
 
-					// if toExp == 0 {
-					// 	rvertexTo := to.FirstEdge.from
-					// 	fromExp, toExp = newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
-					// }
-
-					if rvertexVia == 302953293 { // ID пути для ограничения "no_left_turn"
-						fmt.Println("gotcha via", from, rvertexVia, to, expandedGraph[fromExp][toExp], rvertexFrom, rvertexTo)
-						// fmt.Println("gotcha via", i, j.ID, n.ID, rvertexVia, rvertexTo, fromExp, toExp, expandedGraph[fromExp][toExp])
-					}
 					saveExde := expandedGraph[fromExp][toExp]
 					if _, ok := expandedGraph[fromExp]; ok {
 						delete(expandedGraph, fromExp)
@@ -407,13 +346,10 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 					rvertexTo := to.FirstEdge.to
 					rvertexVia := v[n].ID
 
-					// if j.ID == 23178249 { // ID пути для ограничения "no_left_turn"
 					fromExp, toExp := newEdges[rvertexFrom][rvertexVia].ID, newEdges[rvertexVia][rvertexTo].ID
-					// fmt.Println("gotcha", fromExp, toExp, expandedGraph[fromExp][toExp])
 					if _, ok := expandedGraph[fromExp]; ok {
 						delete(expandedGraph[fromExp], toExp)
 					}
-					// }
 				}
 			}
 			break
@@ -423,18 +359,6 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 		}
 
 	}
-
-	source := int64(2574862283)
-	target := int64(5107446176)
-	subTarget := int64(96489258)
-
-	edge := newEdges[source][target]
-	subEdge := newEdges[target][subTarget]
-	_, _ = edge, subEdge
-	// toTarget1 := graph.Vertices[15770].inEdges
-	// toTargetCost1 := graph.Vertices[15770].inECost[0]
-
-	// fmt.Println(edge, subEdge, expandedGraph[edge.ID][subEdge.ID])
 
 	for source := range expandedGraph {
 		for target := range expandedGraph[source] {
@@ -448,7 +372,6 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 	fc := geojson.NewFeatureCollection()
 	for i, k := range expandedGraph {
 		for j := range k {
-			// fmt.Println(i, j, k[j])
 			ls := make([][]float64, len(k[j].geom))
 			for v := range k[j].geom {
 				ls[v] = []float64{k[j].geom[v].Lon, k[j].geom[v].Lat}
@@ -464,8 +387,8 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 	log.Println("Number of edges:", len(newEdges))
 	log.Println("Number of vertices:", len(vertices))
-	log.Println("Number of new edges:", len(expandedGraph))
-	log.Println("Number of new vertices:", len(graph.Vertices))
+	log.Println("Number of edges in expanded graph:", len(expandedGraph))
+	log.Println("Number of vertices in expanded graph:", len(graph.Vertices))
 
 	st := time.Now()
 	graph.PrepareContracts()
