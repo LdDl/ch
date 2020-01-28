@@ -138,9 +138,6 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 				switch members[0].Role {
 				case "from":
-					if members[0].Ref == 685825895 {
-						fmt.Println(members)
-					}
 					firstMember = restrictionComponent{members[0].Ref, string(members[0].Type)}
 					break
 				case "via":
