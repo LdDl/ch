@@ -11,6 +11,8 @@ import (
 func main() {
 	tagStr := flag.String("tags", "motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link", "Set of needed tags (separated by commas)")
 	osmFileName := flag.String("file", "my_graph.osm.pbf", "Filename of *.osm.pbf file (it has to be compressed)")
+	out := flag.String("out", "my_graph.csv", "Filename of 'Comma-Separated Values' (CSV) formatted file")
+	_ = out
 	flag.Parse()
 
 	tags := strings.Split(*tagStr, ",")

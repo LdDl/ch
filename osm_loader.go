@@ -390,11 +390,9 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 	st := time.Now()
 	graph.PrepareContracts()
 	log.Println("Elapsed to prepare contracts:", time.Since(st))
-	u := int64(17752)
-	v := int64(19811)
 
-	u = int64(2274)
-	v = int64(17709)
+	u := int64(11017)
+	v := int64(20821)
 
 	ans, path := graph.ShortestPath(u, v)
 	_, _ = ans, path
