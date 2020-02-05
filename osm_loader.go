@@ -20,17 +20,20 @@ type restrictionComponent struct {
 	Type string
 }
 
+// expandedEdge New edge built on top of two adjacent edges
 type expandedEdge struct {
 	ID   int64
 	Cost float64
 	geom []geoPoint
 }
 
+// wayComponent First and last edges of osm.Way
 type wayComponent struct {
 	FirstEdge edgeComponent
 	LastEdge  edgeComponent
 }
 
+// edgeComponent Representation of edge (vertex_from -> vertex_to)
 type edgeComponent struct {
 	from int64
 	to   int64
