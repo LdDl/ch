@@ -23,7 +23,7 @@ type restrictionComponent struct {
 type expandedEdge struct {
 	ID   int64
 	Cost float64
-	geom []Coord
+	geom []geoPoint
 }
 
 type wayComponent struct {
@@ -51,7 +51,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 	scanner := osmpbf.New(context.Background(), f, 4)
 	defer scanner.Close()
 
-	nodes := make(map[int64][2]float64)
+	nodes := make(map[int64]geoPoint)
 	vertices := make(map[int64]bool)
 	newEdges := make(map[int64]map[int64]expandedEdge)
 	newEdgeID := int64(1)
@@ -62,7 +62,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 	for scanner.Scan() {
 		obj := scanner.Object()
 		if obj.ObjectID().Type() == "node" {
-			nodes[obj.ObjectID().Ref()] = [2]float64{obj.(*osm.Node).Lon, obj.(*osm.Node).Lat}
+			nodes[obj.ObjectID().Ref()] = geoPoint{Lon: obj.(*osm.Node).Lon, Lat: obj.(*osm.Node).Lat}
 		}
 		if obj.ObjectID().Type() == "way" {
 			tagMap := obj.(*osm.Way).TagMap()
@@ -92,9 +92,9 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 								to:   target,
 							}
 						}
-						a := Coord{Lon: nodes[source][0], Lat: nodes[source][1]}
-						b := Coord{Lon: nodes[target][0], Lat: nodes[target][1]}
-						cost := DistanceBetweenPoints(a, b) * 1000
+						a := nodes[source]
+						b := nodes[target]
+						cost := greatCircleDistance(a, b) * 1000
 						vertices[source] = true
 						vertices[target] = true
 						if _, ok := newEdges[source]; !ok {
@@ -103,7 +103,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 						newEdges[source][target] = expandedEdge{
 							ID:   newEdgeID,
 							Cost: cost,
-							geom: []Coord{a, b},
+							geom: []geoPoint{a, b},
 						}
 						newEdgeID++
 						if oneway == false {
@@ -113,7 +113,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 							newEdges[target][source] = expandedEdge{
 								ID:   newEdgeID,
 								Cost: cost,
-								geom: []Coord{b, a},
+								geom: []geoPoint{b, a},
 							}
 							newEdgeID++
 						}
@@ -207,12 +207,12 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 			sourceExpandVertex := newEdges[source][target]
 			sourceCost := sourceExpandVertex.Cost
-			sourceMiddlePoint := MiddlePoint(sourceExpandVertex.geom[0], sourceExpandVertex.geom[1])
+			sourceMiddlePoint := middlePoint(sourceExpandVertex.geom[0], sourceExpandVertex.geom[1])
 			if targetAsSource, ok := newEdges[target]; ok {
 				for subTarget := range targetAsSource {
 					targetExpandVertex := newEdges[target][subTarget]
 					targetCost := targetExpandVertex.Cost
-					targetMiddlePoint := MiddlePoint(targetExpandVertex.geom[0], targetExpandVertex.geom[1])
+					targetMiddlePoint := middlePoint(targetExpandVertex.geom[0], targetExpandVertex.geom[1])
 
 					// Handle bidirectional edges
 					if sourceExpandVertex.geom[0] == targetExpandVertex.geom[1] && sourceExpandVertex.geom[1] == targetExpandVertex.geom[0] {
@@ -224,7 +224,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 					}
 					expandedGraph[sourceExpandVertex.ID][targetExpandVertex.ID] = expandedEdge{
 						Cost: (sourceCost + targetCost) / 2.0,
-						geom: []Coord{sourceMiddlePoint, sourceExpandVertex.geom[1], targetMiddlePoint},
+						geom: []geoPoint{sourceMiddlePoint, sourceExpandVertex.geom[1], targetMiddlePoint},
 					}
 				}
 			}
@@ -427,12 +427,12 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 }
 
 const (
-	EarthRadius = 6370.986884258304
-	pi180       = math.Pi / 180
-	pi180_rev   = 180 / math.Pi
+	earthRadius = 6370.986884258304
+	pi180       = math.Pi / 180.0
+	pi180Rev    = 180.0 / math.Pi
 )
 
-type Coord struct {
+type geoPoint struct {
 	Lat float64
 	Lon float64
 }
@@ -442,10 +442,10 @@ func degreesToRadians(d float64) float64 {
 }
 
 func radiansTodegrees(d float64) float64 {
-	return d * pi180_rev
+	return d * pi180Rev
 }
 
-func DistanceBetweenPoints(p, q Coord) float64 {
+func greatCircleDistance(p, q geoPoint) float64 {
 	lat1 := degreesToRadians(p.Lat)
 	lon1 := degreesToRadians(p.Lon)
 	lat2 := degreesToRadians(q.Lat)
@@ -454,11 +454,11 @@ func DistanceBetweenPoints(p, q Coord) float64 {
 	diffLon := lon2 - lon1
 	a := math.Pow(math.Sin(diffLat/2), 2) + math.Cos(lat1)*math.Cos(lat2)*math.Pow(math.Sin(diffLon/2), 2)
 	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
-	ans := c * EarthRadius
+	ans := c * earthRadius
 	return ans
 }
 
-func MiddlePoint(p, q Coord) Coord {
+func middlePoint(p, q geoPoint) geoPoint {
 	lat1 := degreesToRadians(p.Lat)
 	lon1 := degreesToRadians(p.Lon)
 	lat2 := degreesToRadians(q.Lat)
@@ -469,5 +469,5 @@ func MiddlePoint(p, q Coord) Coord {
 
 	latMid := math.Atan2(math.Sin(lat1)+math.Sin(lat2), math.Sqrt((math.Cos(lat1)+Bx)*(math.Cos(lat1)+Bx)+By*By))
 	lonMid := lon1 + math.Atan2(By, math.Cos(lat1)+Bx)
-	return Coord{Lat: radiansTodegrees(latMid), Lon: radiansTodegrees(lonMid)}
+	return geoPoint{Lat: radiansTodegrees(latMid), Lon: radiansTodegrees(lonMid)}
 }

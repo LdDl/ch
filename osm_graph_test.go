@@ -48,18 +48,18 @@ func TestLoadOsmGraph(t *testing.T) {
 }
 
 func TestMiddlePoint(t *testing.T) {
-	p1 := Coord{
+	p1 := geoPoint{
 		Lon: 37.6417350769043,
 		Lat: 55.751849391735284,
 	}
-	p2 := Coord{
+	p2 := geoPoint{
 		Lon: 37.668514251708984,
 		Lat: 55.73261980350401,
 	}
-	res := Coord{
+	res := geoPoint{
 		Lon: 37.65512796336629,
 		Lat: 55.742235325526806,
 	}
-	fmt.Println(MiddlePoint(p1, p2) == res)
+	fmt.Println(middlePoint(p1, p2) == res)
 	t.Error(0)
 }
