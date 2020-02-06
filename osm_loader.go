@@ -2,16 +2,12 @@ package ch
 
 import (
 	"context"
-	"encoding/csv"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math"
 	"os"
 	"strings"
-	"time"
 
-	geojson "github.com/paulmach/go.geojson"
 	"github.com/paulmach/osm"
 	"github.com/paulmach/osm/osmpbf"
 )
@@ -55,7 +51,7 @@ type restrictionComponent struct {
 type expandedEdge struct {
 	ID   int64
 	Cost float64
-	geom []geoPoint
+	Geom []geoPoint
 }
 
 // ExpandedGraph Representation of edge expanded graph
@@ -68,8 +64,8 @@ type ExpandedGraph map[int64]map[int64]expandedEdge
 /*
 	File should have PBF (Protocolbuffer Binary Format) extension according to https://github.com/paulmach/osm
 */
-func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
-	graph := Graph{}
+func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, error) {
+	// graph := Graph{}
 	f, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
@@ -131,7 +127,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 						newEdges[source][target] = expandedEdge{
 							ID:   newEdgeID,
 							Cost: cost,
-							geom: []geoPoint{a, b},
+							Geom: []geoPoint{a, b},
 						}
 						newEdgeID++
 						if oneway == false {
@@ -141,7 +137,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 							newEdges[target][source] = expandedEdge{
 								ID:   newEdgeID,
 								Cost: cost,
-								geom: []geoPoint{b, a},
+								Geom: []geoPoint{b, a},
 							}
 							newEdgeID++
 						}
@@ -235,15 +231,15 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 			sourceExpandVertex := newEdges[source][target]
 			sourceCost := sourceExpandVertex.Cost
-			sourceMiddlePoint := middlePoint(sourceExpandVertex.geom[0], sourceExpandVertex.geom[1])
+			sourceMiddlePoint := middlePoint(sourceExpandVertex.Geom[0], sourceExpandVertex.Geom[1])
 			if targetAsSource, ok := newEdges[target]; ok {
 				for subTarget := range targetAsSource {
 					targetExpandVertex := newEdges[target][subTarget]
 					targetCost := targetExpandVertex.Cost
-					targetMiddlePoint := middlePoint(targetExpandVertex.geom[0], targetExpandVertex.geom[1])
+					targetMiddlePoint := middlePoint(targetExpandVertex.Geom[0], targetExpandVertex.Geom[1])
 
 					// Handle bidirectional edges
-					if sourceExpandVertex.geom[0] == targetExpandVertex.geom[1] && sourceExpandVertex.geom[1] == targetExpandVertex.geom[0] {
+					if sourceExpandVertex.Geom[0] == targetExpandVertex.Geom[1] && sourceExpandVertex.Geom[1] == targetExpandVertex.Geom[0] {
 						continue
 					}
 
@@ -252,7 +248,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 					}
 					expandedGraph[sourceExpandVertex.ID][targetExpandVertex.ID] = expandedEdge{
 						Cost: (sourceCost + targetCost) / 2.0,
-						geom: []geoPoint{sourceMiddlePoint, sourceExpandVertex.geom[1], targetMiddlePoint},
+						Geom: []geoPoint{sourceMiddlePoint, sourceExpandVertex.Geom[1], targetMiddlePoint},
 					}
 				}
 			}
@@ -387,91 +383,79 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 	}
 
-	file, err := os.Create("kek.csv")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer file.Close()
+	return &expandedGraph, nil
 
-	writer := csv.NewWriter(file)
-	defer writer.Flush()
-	writer.Comma = ';'
-	err = writer.Write([]string{"from_vertex_id", "to_vertex_id", "weights", "geom"})
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// for source := range expandedGraph {
+	// 	for target := range expandedGraph[source] {
+	// 		expEdge := expandedGraph[source][target]
+	// 		graph.CreateVertex(source)
+	// 		graph.CreateVertex(target)
+	// 		graph.AddEdge(source, target, expEdge.Cost)
+	// 		err = writer.Write([]string{fmt.Sprintf("%d", source), fmt.Sprintf("%d", target), fmt.Sprintf("%f", expEdge.Cost), prepareWKTLinestring(expEdge.Geom)})
+	// 		if err != nil {
+	// 			log.Fatalln(err)
+	// 		}
+	// 	}
+	// }
 
-	for source := range expandedGraph {
-		for target := range expandedGraph[source] {
-			expEdge := expandedGraph[source][target]
-			graph.CreateVertex(source)
-			graph.CreateVertex(target)
-			graph.AddEdge(source, target, expEdge.Cost)
-			err = writer.Write([]string{fmt.Sprintf("%d", source), fmt.Sprintf("%d", target), fmt.Sprintf("%f", expEdge.Cost), prepareWKTLinestring(expEdge.geom)})
-			if err != nil {
-				log.Fatalln(err)
-			}
-		}
-	}
+	// fc := geojson.NewFeatureCollection()
+	// for i, k := range expandedGraph {
+	// 	for j := range k {
+	// 		ls := make([][]float64, len(k[j].Geom))
+	// 		for v := range k[j].Geom {
+	// 			ls[v] = []float64{k[j].Geom[v].Lon, k[j].Geom[v].Lat}
+	// 		}
+	// 		f := geojson.NewLineStringFeature(ls)
+	// 		f.SetProperty("from", i)
+	// 		f.SetProperty("to", j)
+	// 		fc.AddFeature(f)
+	// 	}
+	// }
+	// bytesFC, _ := fc.MarshalJSON()
+	// _ = ioutil.WriteFile("expanded_graph.json", bytesFC, 0644)
 
-	fc := geojson.NewFeatureCollection()
-	for i, k := range expandedGraph {
-		for j := range k {
-			ls := make([][]float64, len(k[j].geom))
-			for v := range k[j].geom {
-				ls[v] = []float64{k[j].geom[v].Lon, k[j].geom[v].Lat}
-			}
-			f := geojson.NewLineStringFeature(ls)
-			f.SetProperty("from", i)
-			f.SetProperty("to", j)
-			fc.AddFeature(f)
-		}
-	}
-	bytesFC, _ := fc.MarshalJSON()
-	_ = ioutil.WriteFile("expanded_graph.json", bytesFC, 0644)
+	// log.Println("Number of edges:", len(newEdges))
+	// log.Println("Number of vertices:", len(vertices))
+	// log.Println("Number of edges in expanded graph:", len(expandedGraph))
+	// log.Println("Number of vertices in expanded graph:", len(graph.Vertices))
 
-	log.Println("Number of edges:", len(newEdges))
-	log.Println("Number of vertices:", len(vertices))
-	log.Println("Number of edges in expanded graph:", len(expandedGraph))
-	log.Println("Number of vertices in expanded graph:", len(graph.Vertices))
+	// st := time.Now()
+	// graph.PrepareContracts()
+	// log.Println("Elapsed to prepare contracts:", time.Since(st))
 
-	st := time.Now()
-	graph.PrepareContracts()
-	log.Println("Elapsed to prepare contracts:", time.Since(st))
+	// u := int64(11017)
+	// v := int64(20821)
 
-	u := int64(11017)
-	v := int64(20821)
+	// ans, path := graph.ShortestPath(u, v)
+	// _, _ = ans, path
+	// // log.Println("answer", ans, path)
 
-	ans, path := graph.ShortestPath(u, v)
-	_, _ = ans, path
-	// log.Println("answer", ans, path)
+	// fcAnswer := geojson.NewFeatureCollection()
+	// for i := 1; i < len(path); i++ {
+	// 	from := path[i-1]
+	// 	to := path[i]
+	// 	edge := expandedGraph[from][to]
 
-	fcAnswer := geojson.NewFeatureCollection()
-	for i := 1; i < len(path); i++ {
-		from := path[i-1]
-		to := path[i]
-		edge := expandedGraph[from][to]
+	// 	ls := make([][]float64, len(edge.Geom))
+	// 	for v := range edge.Geom {
+	// 		ls[v] = []float64{edge.Geom[v].Lon, edge.Geom[v].Lat}
+	// 	}
+	// 	f := geojson.NewLineStringFeature(ls)
+	// 	f.SetProperty("from", from)
+	// 	f.SetProperty("to", to)
+	// 	fcAnswer.AddFeature(f)
 
-		ls := make([][]float64, len(edge.geom))
-		for v := range edge.geom {
-			ls[v] = []float64{edge.geom[v].Lon, edge.geom[v].Lat}
-		}
-		f := geojson.NewLineStringFeature(ls)
-		f.SetProperty("from", from)
-		f.SetProperty("to", to)
-		fcAnswer.AddFeature(f)
+	// 	// fmt.Println("path edge", from, to, edge)
+	// }
+	// bytesAnswer, _ := fcAnswer.MarshalJSON()
+	// _ = ioutil.WriteFile("answer_path.json", bytesAnswer, 0644)
 
-		// fmt.Println("path edge", from, to, edge)
-	}
-	bytesAnswer, _ := fcAnswer.MarshalJSON()
-	_ = ioutil.WriteFile("answer_path.json", bytesAnswer, 0644)
+	// scanErr := scanner.Err()
+	// if scanErr != nil {
+	// 	return nil, scanErr
+	// }
 
-	scanErr := scanner.Err()
-	if scanErr != nil {
-		return nil, scanErr
-	}
-
-	return &graph, nil
+	// return &graph, nil
 }
 
 // degreesToRadians deg = r * pi / 180
@@ -512,7 +496,8 @@ func middlePoint(p, q geoPoint) geoPoint {
 	return geoPoint{Lat: radiansTodegrees(latMid), Lon: radiansTodegrees(lonMid)}
 }
 
-func prepareWKTLinestring(pts []geoPoint) string {
+// PrepareWKTLinestring Creates WKT LineString from set of points
+func PrepareWKTLinestring(pts []geoPoint) string {
 	ptsStr := make([]string, len(pts))
 	for i := range pts {
 		ptsStr[i] = fmt.Sprintf("%f %f", pts[i].Lon, pts[i].Lat)
