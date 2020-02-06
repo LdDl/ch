@@ -2,17 +2,48 @@ package ch
 
 import (
 	"context"
+	"encoding/csv"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"math"
 	"os"
+	"strings"
 	"time"
 
 	geojson "github.com/paulmach/go.geojson"
 	"github.com/paulmach/osm"
 	"github.com/paulmach/osm/osmpbf"
 )
+
+const (
+	earthRadius = 6370.986884258304
+	pi180       = math.Pi / 180.0
+	pi180Rev    = 180.0 / math.Pi
+)
+
+// geoPoint Representation of point on Earth
+type geoPoint struct {
+	Lat float64
+	Lon float64
+}
+
+// String Pretty printing for geoPoint
+func (gp geoPoint) String() string {
+	return fmt.Sprintf("Lon: %f | Lat: %f", gp.Lon, gp.Lat)
+}
+
+// edgeComponent Representation of edge (vertex_from -> vertex_to)
+type edgeComponent struct {
+	from int64
+	to   int64
+}
+
+// wayComponent First and last edges of osm.Way
+type wayComponent struct {
+	FirstEdge edgeComponent
+	LastEdge  edgeComponent
+}
 
 // restrictionComponent Representation of member of restriction relation. Could be way or node.
 type restrictionComponent struct {
@@ -27,17 +58,11 @@ type expandedEdge struct {
 	geom []geoPoint
 }
 
-// wayComponent First and last edges of osm.Way
-type wayComponent struct {
-	FirstEdge edgeComponent
-	LastEdge  edgeComponent
-}
-
-// edgeComponent Representation of edge (vertex_from -> vertex_to)
-type edgeComponent struct {
-	from int64
-	to   int64
-}
+// ExpandedGraph Representation of edge expanded graph
+/*
+	map[newSourceVertexID]map[newTargetVertexID]newExpandedEdge
+*/
+type ExpandedGraph map[int64]map[int64]expandedEdge
 
 // ImportFromOSMFile Imports graph from file of PBF-format (in OSM terms)
 /*
@@ -56,7 +81,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 	nodes := make(map[int64]geoPoint)
 	vertices := make(map[int64]bool)
-	newEdges := make(map[int64]map[int64]expandedEdge)
+	newEdges := make(ExpandedGraph)
 	newEdgeID := int64(1)
 	allWays := make(map[int64]*wayComponent)
 	restrictions := make(map[string]map[restrictionComponent]map[restrictionComponent]restrictionComponent)
@@ -97,7 +122,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 						}
 						a := nodes[source]
 						b := nodes[target]
-						cost := greatCircleDistance(a, b) * 1000
+						cost := greatCircleDistance(a, b) // kilometers
 						vertices[source] = true
 						vertices[target] = true
 						if _, ok := newEdges[source]; !ok {
@@ -125,7 +150,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 			}
 		}
 
-		// Handling restrictions
+		// Collect restrictions
 		if obj.ObjectID().Type() == "relation" {
 			relation := obj.(*osm.Relation)
 			tagMap := relation.TagMap()
@@ -203,7 +228,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 		}
 	}
 
-	expandedGraph := make(map[int64]map[int64]expandedEdge)
+	expandedGraph := make(ExpandedGraph)
 	for source := range newEdges {
 
 		for target := range newEdges[source] {
@@ -234,6 +259,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 		}
 	}
 
+	// Handling restrictions of "only" type
 	for i, k := range restrictions {
 		switch i {
 		case "only_left_turn", "only_right_turn", "only_straight_on":
@@ -317,6 +343,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 	}
 
+	// Handling restrictions of "no" type
 	for i, k := range restrictions {
 		switch i {
 		case "no_left_turn", "no_right_turn", "no_straight_on":
@@ -360,12 +387,30 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 
 	}
 
+	file, err := os.Create("kek.csv")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+	writer.Comma = ';'
+	err = writer.Write([]string{"from_vertex_id", "to_vertex_id", "weights", "geom"})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	for source := range expandedGraph {
 		for target := range expandedGraph[source] {
-			cost := expandedGraph[source][target]
+			expEdge := expandedGraph[source][target]
 			graph.CreateVertex(source)
 			graph.CreateVertex(target)
-			graph.AddEdge(source, target, cost.Cost)
+			graph.AddEdge(source, target, expEdge.Cost)
+			err = writer.Write([]string{fmt.Sprintf("%d", source), fmt.Sprintf("%d", target), fmt.Sprintf("%f", expEdge.Cost), prepareWKTLinestring(expEdge.geom)})
+			if err != nil {
+				log.Fatalln(err)
+			}
 		}
 	}
 
@@ -416,7 +461,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 		f.SetProperty("to", to)
 		fcAnswer.AddFeature(f)
 
-		fmt.Println("path edge", from, to, edge)
+		// fmt.Println("path edge", from, to, edge)
 	}
 	bytesAnswer, _ := fcAnswer.MarshalJSON()
 	_ = ioutil.WriteFile("answer_path.json", bytesAnswer, 0644)
@@ -429,25 +474,17 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*Graph, error) {
 	return &graph, nil
 }
 
-const (
-	earthRadius = 6370.986884258304
-	pi180       = math.Pi / 180.0
-	pi180Rev    = 180.0 / math.Pi
-)
-
-type geoPoint struct {
-	Lat float64
-	Lon float64
-}
-
+// degreesToRadians deg = r * pi / 180
 func degreesToRadians(d float64) float64 {
 	return d * pi180
 }
 
+// radiansTodegrees r = deg  * 180 / pi
 func radiansTodegrees(d float64) float64 {
 	return d * pi180Rev
 }
 
+// greatCircleDistance Returns distance between two geo-points (kilometers)
 func greatCircleDistance(p, q geoPoint) float64 {
 	lat1 := degreesToRadians(p.Lat)
 	lon1 := degreesToRadians(p.Lon)
@@ -473,4 +510,12 @@ func middlePoint(p, q geoPoint) geoPoint {
 	latMid := math.Atan2(math.Sin(lat1)+math.Sin(lat2), math.Sqrt((math.Cos(lat1)+Bx)*(math.Cos(lat1)+Bx)+By*By))
 	lonMid := lon1 + math.Atan2(By, math.Cos(lat1)+Bx)
 	return geoPoint{Lat: radiansTodegrees(latMid), Lon: radiansTodegrees(lonMid)}
+}
+
+func prepareWKTLinestring(pts []geoPoint) string {
+	ptsStr := make([]string, len(pts))
+	for i := range pts {
+		ptsStr[i] = fmt.Sprintf("%f %f", pts[i].Lon, pts[i].Lat)
+	}
+	return fmt.Sprintf("LINESTRING(%s)", strings.Join(ptsStr, ","))
 }
