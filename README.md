@@ -174,6 +174,7 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 * ~~OneTwoMany function (contraction hierarchies)~~ **Done, ~~may be some bench comparisons~~**
 * ManyToMany function (contraction hierarchies) **Thoughts**
 * Replace int with int64 (OSM purposes) **Done**
+* Separate benchmarks to BEnCHMARKS.md
 
 ## Theory
 [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
