@@ -19,12 +19,11 @@ func main() {
 
 	tags := strings.Split(*tagStr, ",")
 	cfg := ch.OsmConfiguration{
-		TagName: "highway",
-		Tags:    tags,
+		EntityName: "highway",
+		Tags:       tags,
 	}
-	log.Println(cfg, *osmFileName)
 
-	edgeExpandedGraph, err := ch.ImportFromOSMFile("data/moscow_center_reduced.osm.pbf", &cfg)
+	edgeExpandedGraph, err := ch.ImportFromOSMFile(*osmFileName, &cfg)
 	if err != nil {
 		log.Fatalln(err)
 	}

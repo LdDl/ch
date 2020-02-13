@@ -90,7 +90,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, 
 		}
 		if obj.ObjectID().Type() == "way" {
 			tagMap := obj.(*osm.Way).TagMap()
-			if tag, ok := tagMap[cfg.TagName]; ok {
+			if tag, ok := tagMap[cfg.EntityName]; ok {
 				if cfg.CheckTag(tag) {
 					oneway := false
 					if v, ok := tagMap["oneway"]; ok {

@@ -2,8 +2,8 @@ package ch
 
 // OsmConfiguration Allows to filter ways by certain tags from OSM data
 type OsmConfiguration struct {
-	TagName string
-	Tags    []string
+	EntityName string
+	Tags       []string
 }
 
 // CheckTag Checks if incoming tag is represented in configuration
