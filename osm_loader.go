@@ -3,7 +3,6 @@ package ch
 import (
 	"context"
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"strings"
@@ -83,6 +82,8 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, 
 	restrictions := make(map[string]map[restrictionComponent]map[restrictionComponent]restrictionComponent)
 	possibleRestrictionCombos := make(map[string]map[string]bool)
 
+	skipped := 0
+	unsupportedRestrictionRoles := 0
 	for scanner.Scan() {
 		obj := scanner.Object()
 		if obj.ObjectID().Type() == "node" {
@@ -154,7 +155,9 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, 
 
 				members := relation.Members
 				if len(members) != 3 {
-					fmt.Printf("Restriction does not contain 3 members, relation ID: %d", relation.ID)
+					skipped++
+					// fmt.Printf("Restriction does not contain 3 members, relation ID: %d. Skip it\n", relation.ID)
+					continue
 				}
 				firstMember := restrictionComponent{-1, ""}
 				secondMember := restrictionComponent{-1, ""}
@@ -171,7 +174,8 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, 
 					secondMember = restrictionComponent{members[0].Ref, string(members[0].Type)}
 					break
 				default:
-					fmt.Printf("Something went wrong for first member of relation with ID: %d", relation.ID)
+					unsupportedRestrictionRoles++
+					// fmt.Printf("Something went wrong for first member of relation with ID: %d\n", relation.ID)
 					break
 				}
 
@@ -186,7 +190,8 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, 
 					secondMember = restrictionComponent{members[1].Ref, string(members[1].Type)}
 					break
 				default:
-					fmt.Printf("Something went wrong for second member of relation with ID: %d", relation.ID)
+					unsupportedRestrictionRoles++
+					// fmt.Printf("Something went wrong for second member of relation with ID: %d\n", relation.ID)
 					break
 				}
 
@@ -201,7 +206,8 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, 
 					secondMember = restrictionComponent{members[2].Ref, string(members[2].Type)}
 					break
 				default:
-					fmt.Printf("Something went wrong for third member of relation with ID: %d", relation.ID)
+					unsupportedRestrictionRoles++
+					// fmt.Printf("Something went wrong for third member of relation with ID: %d\n", relation.ID)
 					break
 				}
 
@@ -255,6 +261,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, 
 		}
 	}
 
+	immposibleRestrictions := 0
 	// Handling restrictions of "only" type
 	for i, k := range restrictions {
 		switch i {
@@ -299,7 +306,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, 
 						rvertexFrom = from.FirstEdge.from
 						break
 					default:
-						log.Println("Impossible from:", rvertexVia)
+						immposibleRestrictions++
 						break
 					}
 
@@ -317,7 +324,7 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, 
 						rvertexTo = to.LastEdge.to
 						break
 					default:
-						log.Println("Impossible to:", rvertexVia)
+						immposibleRestrictions++
 						break
 					}
 
@@ -383,79 +390,11 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, 
 
 	}
 
+	fmt.Printf("Skipped restrictions (which have not exactly 3 members): %d\n", skipped)
+	fmt.Printf("Not properly handeled restrictions: %d\n", immposibleRestrictions)
+	fmt.Printf("Number of unknow restriction roles (only 'from', 'to' and 'via' supported): %d\n", unsupportedRestrictionRoles)
+
 	return &expandedGraph, nil
-
-	// for source := range expandedGraph {
-	// 	for target := range expandedGraph[source] {
-	// 		expEdge := expandedGraph[source][target]
-	// 		graph.CreateVertex(source)
-	// 		graph.CreateVertex(target)
-	// 		graph.AddEdge(source, target, expEdge.Cost)
-	// 		err = writer.Write([]string{fmt.Sprintf("%d", source), fmt.Sprintf("%d", target), fmt.Sprintf("%f", expEdge.Cost), prepareWKTLinestring(expEdge.Geom)})
-	// 		if err != nil {
-	// 			log.Fatalln(err)
-	// 		}
-	// 	}
-	// }
-
-	// fc := geojson.NewFeatureCollection()
-	// for i, k := range expandedGraph {
-	// 	for j := range k {
-	// 		ls := make([][]float64, len(k[j].Geom))
-	// 		for v := range k[j].Geom {
-	// 			ls[v] = []float64{k[j].Geom[v].Lon, k[j].Geom[v].Lat}
-	// 		}
-	// 		f := geojson.NewLineStringFeature(ls)
-	// 		f.SetProperty("from", i)
-	// 		f.SetProperty("to", j)
-	// 		fc.AddFeature(f)
-	// 	}
-	// }
-	// bytesFC, _ := fc.MarshalJSON()
-	// _ = ioutil.WriteFile("expanded_graph.json", bytesFC, 0644)
-
-	// log.Println("Number of edges:", len(newEdges))
-	// log.Println("Number of vertices:", len(vertices))
-	// log.Println("Number of edges in expanded graph:", len(expandedGraph))
-	// log.Println("Number of vertices in expanded graph:", len(graph.Vertices))
-
-	// st := time.Now()
-	// graph.PrepareContracts()
-	// log.Println("Elapsed to prepare contracts:", time.Since(st))
-
-	// u := int64(11017)
-	// v := int64(20821)
-
-	// ans, path := graph.ShortestPath(u, v)
-	// _, _ = ans, path
-	// // log.Println("answer", ans, path)
-
-	// fcAnswer := geojson.NewFeatureCollection()
-	// for i := 1; i < len(path); i++ {
-	// 	from := path[i-1]
-	// 	to := path[i]
-	// 	edge := expandedGraph[from][to]
-
-	// 	ls := make([][]float64, len(edge.Geom))
-	// 	for v := range edge.Geom {
-	// 		ls[v] = []float64{edge.Geom[v].Lon, edge.Geom[v].Lat}
-	// 	}
-	// 	f := geojson.NewLineStringFeature(ls)
-	// 	f.SetProperty("from", from)
-	// 	f.SetProperty("to", to)
-	// 	fcAnswer.AddFeature(f)
-
-	// 	// fmt.Println("path edge", from, to, edge)
-	// }
-	// bytesAnswer, _ := fcAnswer.MarshalJSON()
-	// _ = ioutil.WriteFile("answer_path.json", bytesAnswer, 0644)
-
-	// scanErr := scanner.Err()
-	// if scanErr != nil {
-	// 	return nil, scanErr
-	// }
-
-	// return &graph, nil
 }
 
 // degreesToRadians deg = r * pi / 180

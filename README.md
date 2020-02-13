@@ -88,14 +88,14 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 * ~~Export file of specific format~~ **Done as CSV**
 * Turn Restricted Shortest Path extension for CH-algorithm **Propably not modify algorithm, but graph**
 * Thoughts and discussions about OSM graph and extensions **Need some ideas about parsing and preparing**
-* Map matcher as another project **WIP**
+* Map matcher as another project **WIP (now it is in local git storage)**
 * Bring interfaces{} **Thoughts**
 * Bring OSM parser **WIP It exists, now need restrictions handle**
 * Bring OSM restrictions **WIP PRs are welcome**
 * ~~OneTwoMany function (contraction hierarchies)~~ **Done, ~~may be some bench comparisons~~**
 * ManyToMany function (contraction hierarchies) **Thoughts**
 * Replace int with int64 (OSM purposes) **Done**
-* Separate benchmarks to BEnCHMARKS.md
+* Separate benchmarks to BENCHMARK.md
 
 ## Theory
 [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
