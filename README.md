@@ -18,6 +18,7 @@ This library provides classic implementation of Dijkstra's algorithm and maneuve
 - [ToDo](#todo)
 - [Thanks](#thanks)
 - [Theory](#theory)
+- [Dependencies](#dependencies)
 - [License](#license)
 
 ## About
@@ -114,6 +115,11 @@ If you have troubles or questions please [open an issue].
 
 ## Thanks
 Thanks to [this](https://github.com/navjindervirdee/Advanced-Shortest-Paths-Algorithms) Java implementation of mentioned algorithms
+
+## Dependencies
+Thanks to [paulmach](https://github.com/paulmach) for his [OSM-parser](https://github.com/paulmach/osm) written in Go.
+
+Paulmach's license is [here](https://github.com/paulmach/osm/blob/master/LICENSE.md) (it's MIT)
 
 ## License
 You can check it [here](https://github.com/LdDl/ch/blob/master/LICENSE)
