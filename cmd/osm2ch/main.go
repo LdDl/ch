@@ -37,14 +37,14 @@ func main() {
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 	writer.Comma = ';'
-	err = writer.Write([]string{"from_vertex_id", "to_vertex_id", "weight", "geom"})
+	err = writer.Write([]string{"from_vertex_id", "to_vertex_id", "one_way", "weight", "geom"})
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	for source, targets := range *edgeExpandedGraph {
 		for target, expEdge := range targets {
-			err = writer.Write([]string{fmt.Sprintf("%d", source), fmt.Sprintf("%d", target), fmt.Sprintf("%f", expEdge.Cost), ch.PrepareWKTLinestring(expEdge.Geom)})
+			err = writer.Write([]string{fmt.Sprintf("%d", source), fmt.Sprintf("%d", target), "FT", fmt.Sprintf("%f", expEdge.Cost), ch.PrepareWKTLinestring(expEdge.Geom)})
 			if err != nil {
 				log.Fatalln(err)
 			}
