@@ -4,6 +4,7 @@ Convert *.osm.pbf files to CSV
 - [About](#about)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Example](#example)
 - [Dependencies](#dependencies)
 - [License](#license)
 
@@ -31,10 +32,13 @@ Usage of osm2ch:
         Set of needed tags (separated by commas) (default "motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link")
 ```
 
+## Example
+You can find example file of *.osm.pbf file in nested child [/example_data](/example_data)
+
 ## Dependencies
 Thanks to [paulmach](https://github.com/paulmach) for his [OSM-parser](https://github.com/paulmach/osm) written in Go.
 
 Paulmach's license is [here](https://github.com/paulmach/osm/blob/master/LICENSE.md) (it's MIT)
 
 ## License
-- Please see [here](https://github.com/LdDl/ch/blob/master/LICENSE.md)
+- Please see [here](https://github.com/LdDl/ch/blob/master/LICENSE)
