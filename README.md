@@ -4,7 +4,7 @@
 # ch - Contraction Hierarchies
 ## Contraction Hierarchies (with bidirectional version of Dijkstra's algorithm) for computing shortest path in graph.
 
-This library provides classic implementation of Dijkstra's algorithm and turn restrictions extension also.
+This library provides classic implementation of Dijkstra's algorithm and maneuver restrictions extension also.
 
 ## Table of Contents
 
