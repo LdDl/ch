@@ -66,12 +66,29 @@ Please see this [benchmark](bidirectional_ch_test.go#L59)
 
 I hope it's pretty clear, but here is little explanation:
 ```go
-    g := Graph{} // Prepare variable for storing graph
-    graphFromCSV(&g, "data/pgrouting_osm.csv") // Import CSV-file file into programm
-    g.PrepareContracts() // Compute contraction hierarchies
-    u := 144031 // Define source vertex
-    v := 452090 // Define target vertex
-    ans, path := g.ShortestPath(u, v) // Get shortest path and it's cost between source and target vertex
+g := Graph{} // Prepare variable for storing graph
+graphFromCSV(&g, "data/pgrouting_osm.csv") // Import CSV-file file into programm
+g.PrepareContracts() // Compute contraction hierarchies
+u := 144031 // Define source vertex
+v := 452090 // Define target vertex
+ans, path := g.ShortestPath(u, v) // Get shortest path and it's cost between source and target vertex
+```
+
+If you want to import OSM (Open Street Map) file, you have to convert it to CSV (comma separated value) format. We have tool for it called [osm2ch].
+You can install it via next command:
+```go
+go instal github.com/LdDl/ch/...
+```
+
+How to use **osm2ch**:
+
+```
+-file string
+    Filename of *.osm.pbf file (it has to be compressed) (default "my_graph.osm.pbf")
+-out string
+    Filename of 'Comma-Separated Values' (CSV) formatted file (default "my_graph.csv")
+-tags string
+    Set of needed tags (separated by commas) (default "motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link")
 ```
 
 ## Benchmark
@@ -111,3 +128,6 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 
 ## Thanks
 Thanks to [this](https://github.com/navjindervirdee/Advanced-Shortest-Paths-Algorithms) Java implementation of mentioned algorithms
+
+
+[osm2ch]: (https://github.com/LdDl/ch/cmd/osm2ch)
