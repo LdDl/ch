@@ -18,6 +18,7 @@ This library provides classic implementation of Dijkstra's algorithm and turn re
 - [ToDo](#todo)
 - [Thanks](#thanks)
 - [Theory](#theory)
+- [License](#license)
 
 ## About
 This package provides implemented next techniques and algorithms:
@@ -55,8 +56,8 @@ go build
 ```
 You will see next output:
 ```shell
-go: finding github.com/LdDl/ch v1.2.0
-go: downloading github.com/LdDl/ch v1.2.0
+go: finding github.com/LdDl/ch v1.3.3
+go: downloading github.com/LdDl/ch v1.3.3
 ```
 And then you are good to go 
 
@@ -77,7 +78,7 @@ ans, path := g.ShortestPath(u, v) // Get shortest path and it's cost between sou
 If you want to import OSM (Open Street Map) file, you have to convert it to CSV (comma separated value) format. We have tool for it called [osm2ch].
 You can install it via next command:
 ```go
-go instal github.com/LdDl/ch/...
+go install github.com/LdDl/ch/...
 ```
 
 How to use **osm2ch**:
@@ -93,11 +94,11 @@ How to use **osm2ch**:
 
 ## Benchmark
 
-You can check benchmarks [here](BENCHMARK.md)
+You can check benchmarks [here](https://github.com/LdDl/ch/blob/master/BENCHMARK.md)
 
 ## Support
 
-If you have troubles or questions please [open an issue](https://github.com/LdDl/ch/issues/new).
+If you have troubles or questions please [open an issue].
 
 ## ToDo
 
@@ -129,5 +130,9 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 ## Thanks
 Thanks to [this](https://github.com/navjindervirdee/Advanced-Shortest-Paths-Algorithms) Java implementation of mentioned algorithms
 
+## License
+You can check it [here](https://github.com/LdDl/ch/blob/master/LICENSE)
 
 [osm2ch]: (https://github.com/LdDl/ch/cmd/osm2ch)
+[open an issue]: (https://github.com/LdDl/ch/issues/new)
+[BENCHMARK.md]: (https://github.com/LdDl/ch/blob/master/BENCHMARK.md)
