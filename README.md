@@ -93,7 +93,7 @@ If you have troubles or questions please [open an issue].
 * ~~Thoughts and discussions about OSM graph and extensions~~ **Need some ideas about parsing and preparing. UPD: osm2ch**
 * Map matcher as another project **WIP (now it is in local git storage)**
 * Bring interfaces{} **Thoughts (do we really need it?)**
-* ~~Bring OSM parse~~r **WIP It's done in poor way. PRs are welcome**
+* ~~Bring OSM parser~~ **WIP It's done in poor way. PRs are welcome**
 * ~~Bring OSM restrictions~~ **WIP It's done in poor way. PRs are welcome**
 * ~~OneTwoMany function (contraction hierarchies)~~ **Done, ~~may be some bench comparisons~~**
 * ManyToMany function (contraction hierarchies) **Thoughts**
