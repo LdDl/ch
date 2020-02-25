@@ -33,7 +33,10 @@ Usage of osm2ch:
 ```
 
 ## Example
-You can find example file of *.osm.pbf file in nested child [/example_data](/example_data)
+You can find example file of *.osm.pbf file in nested child [/example_data](/example_data).
+```shell
+osm2ch -file example_data/moscow_center_reduced.osm.pbf -out graph.csv -tags motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link
+```
 
 ## Dependencies
 Thanks to [paulmach](https://github.com/paulmach) for his [OSM-parser](https://github.com/paulmach/osm) written in Go.

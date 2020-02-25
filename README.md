@@ -10,8 +10,8 @@ This library provides classic implementation of Dijkstra's algorithm and turn re
 
 - [About](#about)
 - [Installation](#installation)
-    - [Old](#old-way)
-    - [New](#new-way)
+    - [Go get](#go-get)
+    - [Go mod](#go-mod)
 - [Usage](#usage)
 - [Benchmark](#benchmark)
 - [Support](#support)
@@ -28,13 +28,13 @@ This package provides implemented next techniques and algorithms:
 
 ## Installation
 
-### Old way
+### Go get
 ```go
 go get github.com/LdDl/ch
 ```
 
 
-### New way 
+### Go mod 
 In your project folder execute next command (assuming you have GO111MODULE=on):
 ```go
 go mod init mod
@@ -63,7 +63,7 @@ And then you are good to go
 
 ## Usage
 
-Please see this [benchmark](bidirectional_ch_test.go#L59)
+Please see this [test file](bidirectional_ch_test.go#L17)
 
 I hope it's pretty clear, but here is little explanation:
 ```go
@@ -75,22 +75,7 @@ v := 452090 // Define target vertex
 ans, path := g.ShortestPath(u, v) // Get shortest path and it's cost between source and target vertex
 ```
 
-If you want to import OSM (Open Street Map) file, you have to convert it to CSV (comma separated value) format. We have tool for it called [osm2ch].
-You can install it via next command:
-```go
-go install github.com/LdDl/ch/...
-```
-
-How to use **osm2ch**:
-
-```
--file string
-    Filename of *.osm.pbf file (it has to be compressed) (default "my_graph.osm.pbf")
--out string
-    Filename of 'Comma-Separated Values' (CSV) formatted file (default "my_graph.csv")
--tags string
-    Set of needed tags (separated by commas) (default "motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link")
-```
+### If you want to import OSM (Open Street Map) file then follow instructions for [osm2ch]
 
 ## Benchmark
 
@@ -107,13 +92,13 @@ If you have troubles or questions please [open an issue].
 * Turn Restricted Shortest Path extension for CH-algorithm **Propably not modify algorithm, but graph**
 * Thoughts and discussions about OSM graph and extensions **Need some ideas about parsing and preparing**
 * Map matcher as another project **WIP (now it is in local git storage)**
-* Bring interfaces{} **Thoughts**
-* Bring OSM parser **WIP It exists, now need restrictions handle**
-* Bring OSM restrictions **WIP PRs are welcome**
+* Bring interfaces{} **Thoughts (do we really need it?)**
+* Bring OSM parser **WIP It's done in poor way. PRs are welcome**
+* Bring OSM restrictions **WIP It's done in poor way. PRs are welcome**
 * ~~OneTwoMany function (contraction hierarchies)~~ **Done, ~~may be some bench comparisons~~**
 * ManyToMany function (contraction hierarchies) **Thoughts**
 * Replace int with int64 (OSM purposes) **Done**
-* Separate benchmarks to BENCHMARK.md
+* Separate benchmarks to BENCHMARK.md **Done**
 
 ## Theory
 [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
