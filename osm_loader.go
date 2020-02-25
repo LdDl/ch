@@ -3,6 +3,7 @@ package ch
 import (
 	"context"
 	"fmt"
+	"log"
 	"math"
 	"os"
 	"strings"
@@ -390,9 +391,9 @@ func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, 
 
 	}
 
-	fmt.Printf("Skipped restrictions (which have not exactly 3 members): %d\n", skipped)
-	fmt.Printf("Not properly handeled restrictions: %d\n", immposibleRestrictions)
-	fmt.Printf("Number of unknow restriction roles (only 'from', 'to' and 'via' supported): %d\n", unsupportedRestrictionRoles)
+	log.Printf("Skipped restrictions (which have not exactly 3 members): %d\n", skipped)
+	log.Printf("Not properly handeled restrictions: %d\n", immposibleRestrictions)
+	log.Printf("Number of unknow restriction roles (only 'from', 'to' and 'via' supported): %d\n", unsupportedRestrictionRoles)
 
 	return &expandedGraph, nil
 }

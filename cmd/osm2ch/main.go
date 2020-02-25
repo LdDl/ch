@@ -37,7 +37,7 @@ func main() {
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 	writer.Comma = ';'
-	err = writer.Write([]string{"from_vertex_id", "to_vertex_id", "weights", "geom"})
+	err = writer.Write([]string{"from_vertex_id", "to_vertex_id", "weight", "geom"})
 	if err != nil {
 		log.Fatalln(err)
 	}

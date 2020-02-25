@@ -4,3 +4,4 @@ benchmark_graph.csv
 /data/export_pgrouting.csv
 new.txt
 old.txt
+cmd/osm2ch/*.csv
