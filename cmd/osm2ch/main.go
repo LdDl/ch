@@ -19,7 +19,7 @@ func main() {
 
 	tags := strings.Split(*tagStr, ",")
 	cfg := ch.OsmConfiguration{
-		EntityName: "highway",
+		EntityName: "highway", // Currrently we do not support others
 		Tags:       tags,
 	}
 

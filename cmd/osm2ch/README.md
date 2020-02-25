@@ -10,6 +10,22 @@
 
 ## About
 With this CLI tool you can convert *.osm.pbf (Compressed Open Street Map) file to CSV (Comma-Separated Values) file, which is used in our [contraction hierarchies library].
+What it does:
+- Edge expansion (single edge == single vertex);
+- Handles some kind and types of restrictions:
+    - Supported kind of restrictions:
+        - EdgeFrom - NodeVia - EdgeTo.
+    - Supported types of restrictions:
+        - only_left_turn;
+        - only_right_turn;
+        - only_straight_on;
+        - no_left_turn;
+        - no_right_turn;
+        - no_straight_on.
+- Saves CSV file with geom in WKT format;
+- Currently supports tags for 'highway' OSM entity only.
+
+PRs are welcome!
 
 ## Installation
 ```shell

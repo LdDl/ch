@@ -65,7 +65,6 @@ type ExpandedGraph map[int64]map[int64]expandedEdge
 	File should have PBF (Protocolbuffer Binary Format) extension according to https://github.com/paulmach/osm
 */
 func ImportFromOSMFile(fileName string, cfg *OsmConfiguration) (*ExpandedGraph, error) {
-	// graph := Graph{}
 	f, err := os.Open(fileName)
 	if err != nil {
 		return nil, err

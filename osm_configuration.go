@@ -2,7 +2,7 @@ package ch
 
 // OsmConfiguration Allows to filter ways by certain tags from OSM data
 type OsmConfiguration struct {
-	EntityName string
+	EntityName string // Currrently we support 'highway' only
 	Tags       []string
 }
 
