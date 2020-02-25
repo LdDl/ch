@@ -89,16 +89,16 @@ If you have troubles or questions please [open an issue].
 
 * ~~Import file of specific format~~ **Done as CSV**
 * ~~Export file of specific format~~ **Done as CSV**
-* Turn Restricted Shortest Path extension for CH-algorithm **Propably not modify algorithm, but graph**
+* ~~Turn Restricted Shortest Path extension for CH-algorithm~~ **Propably not modify algorithm, but graph. UPD: done with osm2ch**
 * Thoughts and discussions about OSM graph and extensions **Need some ideas about parsing and preparing**
 * Map matcher as another project **WIP (now it is in local git storage)**
 * Bring interfaces{} **Thoughts (do we really need it?)**
-* Bring OSM parser **WIP It's done in poor way. PRs are welcome**
-* Bring OSM restrictions **WIP It's done in poor way. PRs are welcome**
+* ~~Bring OSM parse~~r **WIP It's done in poor way. PRs are welcome**
+* ~~Bring OSM restrictions~~ **WIP It's done in poor way. PRs are welcome**
 * ~~OneTwoMany function (contraction hierarchies)~~ **Done, ~~may be some bench comparisons~~**
 * ManyToMany function (contraction hierarchies) **Thoughts**
-* Replace int with int64 (OSM purposes) **Done**
-* Separate benchmarks to BENCHMARK.md **Done**
+* ~~Replace int with int64 (OSM purposes)~~ **Done**
+* ~~Separate benchmarks to BENCHMARK.md~~ **Done**
 
 ## Theory
 [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm)
