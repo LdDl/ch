@@ -76,7 +76,7 @@ v := 452090 // Define target vertex
 ans, path := g.ShortestPath(u, v) // Get shortest path and it's cost between source and target vertex
 ```
 
-### If you want to import OSM (Open Street Map) file then follow instructions for [osm2ch]
+### If you want to import OSM (Open Street Map) file then follow instructions for [osm2ch](https://github.com/LdDl/ch/cmd/osm2ch)
 
 ## Benchmark
 
