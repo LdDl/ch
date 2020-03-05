@@ -1,6 +1,8 @@
 [![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/LdDl/ch)
 [![Build Status](https://travis-ci.com/LdDl/ch.svg?branch=master)](https://travis-ci.com/LdDl/ch)
 [![Sourcegraph](https://sourcegraph.com/github.com/LdDl/ch/-/badge.svg)](https://sourcegraph.com/github.com/LdDl/ch?badge)
+[![Go Report Card](https://goreportcard.com/badge/github.com/LdDl/ch)](https://goreportcard.com/report/github.com/LdDl/ch)
+[![GitHub tag](https://img.shields.io/github/tag/LdDl/ch.svg)](https://github.com/LdDl/ch/releases)
 
 # ch - Contraction Hierarchies
 ## Contraction Hierarchies (with bidirectional version of Dijkstra's algorithm) for computing shortest path in graph.
