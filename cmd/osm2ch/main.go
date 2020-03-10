@@ -16,6 +16,7 @@ var (
 	osmFileName = flag.String("file", "my_graph.osm.pbf", "Filename of *.osm.pbf file (it has to be compressed)")
 	out         = flag.String("out", "my_graph.csv", "Filename of 'Comma-Separated Values' (CSV) formatted file")
 	geomFormat  = flag.String("geomf", "wkt", "Format of output geometry. Expected values: wkt / geojson")
+	units       = flag.String("units", "km", "Units of output weights. Expected values: km for kilometers / m for meters")
 )
 
 func main() {
@@ -56,7 +57,11 @@ func main() {
 			} else {
 				geomStr = ch.PrepareWKTLinestring(expEdge.Geom)
 			}
-			err = writer.Write([]string{fmt.Sprintf("%d", source), fmt.Sprintf("%d", target), "FT", fmt.Sprintf("%f", expEdge.Cost), geomStr})
+			cost := expEdge.Cost
+			if strings.ToLower(*units) == "m" {
+				cost *= 1000.0
+			}
+			err = writer.Write([]string{fmt.Sprintf("%d", source), fmt.Sprintf("%d", target), "FT", fmt.Sprintf("%f", cost), geomStr})
 			if err != nil {
 				log.Fatalln(err)
 			}

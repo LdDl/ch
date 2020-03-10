@@ -38,7 +38,7 @@ After installation step is complete you can call 'osm2ch' from any place in your
 osm2ch -h
 ```
 Output:
-```sh
+```shell
 Usage of osm2ch:
   -file string
         Filename of *.osm.pbf file (it has to be compressed) (default "my_graph.osm.pbf")
@@ -48,6 +48,8 @@ Usage of osm2ch:
         Filename of 'Comma-Separated Values' (CSV) formatted file (default "my_graph.csv")
   -tags string
         Set of needed tags (separated by commas) (default "motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link")
+  -units string
+        Units of output weights. Expected values: km for kilometers / m for meters (default "km")
 ```
 The default list of tags is this, since usually these tags are used for routing for personal cars.
 
@@ -57,11 +59,11 @@ You can find example file of *.osm.pbf file in nested child [/example_data](/exa
 
 If you want WKT format for output geometry:
 ```shell
-osm2ch --file example_data/moscow_center_reduced.osm.pbf --out graph.csv --geomf wkt --tags motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link
+osm2ch --file example_data/moscow_center_reduced.osm.pbf --out graph.csv --geomf wkt --units m --tags motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link
 ```
 If you want GeoJSON format for output geometry:
 ```shell
-osm2ch --file example_data/moscow_center_reduced.osm.pbf --out graph.csv --geomf geojson --tags motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link
+osm2ch --file example_data/moscow_center_reduced.osm.pbf --out graph.csv --geomf geojson --units m --tags motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link
 ```
 
 After that file 'graph.csv' will be created.
