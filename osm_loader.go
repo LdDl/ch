@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 
+	geojson "github.com/paulmach/go.geojson"
+
 	"github.com/paulmach/osm"
 	"github.com/paulmach/osm/osmpbf"
 )
@@ -442,4 +444,18 @@ func PrepareWKTLinestring(pts []geoPoint) string {
 		ptsStr[i] = fmt.Sprintf("%f %f", pts[i].Lon, pts[i].Lat)
 	}
 	return fmt.Sprintf("LINESTRING(%s)", strings.Join(ptsStr, ","))
+}
+
+// PrepareGeoJSONLinestring Creates GeoJSON LineString from set of points
+func PrepareGeoJSONLinestring(pts []geoPoint) string {
+	pts2d := make([][]float64, len(pts))
+	for i := range pts {
+		pts2d[i] = []float64{pts[i].Lon, pts[i].Lat}
+	}
+	b, err := geojson.NewLineStringGeometry(pts2d).MarshalJSON()
+	if err != nil {
+		fmt.Printf("Warning. Can not convert geometry to geojson format: %s", err.Error())
+		return ""
+	}
+	return string(b)
 }

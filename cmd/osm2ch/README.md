@@ -42,6 +42,8 @@ Output:
 Usage of osm2ch:
   -file string
         Filename of *.osm.pbf file (it has to be compressed) (default "my_graph.osm.pbf")
+  -geomf string
+        Format of output geometry. Expected values: wkt / geojson (default "wkt")
   -out string
         Filename of 'Comma-Separated Values' (CSV) formatted file (default "my_graph.csv")
   -tags string
@@ -52,15 +54,22 @@ The default list of tags is this, since usually these tags are used for routing 
 
 ## Example
 You can find example file of *.osm.pbf file in nested child [/example_data](/example_data).
+
+If you want WKT format for output geometry:
 ```shell
-osm2ch -file example_data/moscow_center_reduced.osm.pbf -out graph.csv -tags motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link
+osm2ch --file example_data/moscow_center_reduced.osm.pbf --out graph.csv --geomf wkt --tags motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link
 ```
+If you want GeoJSON format for output geometry:
+```shell
+osm2ch --file example_data/moscow_center_reduced.osm.pbf --out graph.csv --geomf geojson --tags motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link
+```
+
 After that file 'graph.csv' will be created.
 Header of CSV-file is: from_vertex_id;to_vertex_id;weights;geom
 - from_vertex_id Source vertex;
 - to_vertex_id Target vertex;
 - weight Traveling cost from source to target (actually length of edge in kilometers);
-- geom Geometry of edge in WKT format.
+- geom Geometry of edge in WKT or GeoJSON format.
 
 Now you can use this graph in [contraction hierarchies library].
 

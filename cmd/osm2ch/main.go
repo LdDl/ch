@@ -11,10 +11,15 @@ import (
 	"github.com/LdDl/ch"
 )
 
+var (
+	tagStr      = flag.String("tags", "motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link", "Set of needed tags (separated by commas)")
+	osmFileName = flag.String("file", "my_graph.osm.pbf", "Filename of *.osm.pbf file (it has to be compressed)")
+	out         = flag.String("out", "my_graph.csv", "Filename of 'Comma-Separated Values' (CSV) formatted file")
+	geomFormat  = flag.String("geomf", "wkt", "Format of output geometry. Expected values: wkt / geojson")
+)
+
 func main() {
-	tagStr := flag.String("tags", "motorway,primary,primary_link,road,secondary,secondary_link,residential,tertiary,tertiary_link,unclassified,trunk,trunk_link", "Set of needed tags (separated by commas)")
-	osmFileName := flag.String("file", "my_graph.osm.pbf", "Filename of *.osm.pbf file (it has to be compressed)")
-	out := flag.String("out", "my_graph.csv", "Filename of 'Comma-Separated Values' (CSV) formatted file")
+
 	flag.Parse()
 
 	tags := strings.Split(*tagStr, ",")
@@ -37,6 +42,7 @@ func main() {
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 	writer.Comma = ';'
+
 	err = writer.Write([]string{"from_vertex_id", "to_vertex_id", "one_way", "weight", "geom"})
 	if err != nil {
 		log.Fatalln(err)
@@ -44,7 +50,13 @@ func main() {
 
 	for source, targets := range *edgeExpandedGraph {
 		for target, expEdge := range targets {
-			err = writer.Write([]string{fmt.Sprintf("%d", source), fmt.Sprintf("%d", target), "FT", fmt.Sprintf("%f", expEdge.Cost), ch.PrepareWKTLinestring(expEdge.Geom)})
+			geomStr := ""
+			if strings.ToLower(*geomFormat) == "geojson" {
+				geomStr = ch.PrepareGeoJSONLinestring(expEdge.Geom)
+			} else {
+				geomStr = ch.PrepareWKTLinestring(expEdge.Geom)
+			}
+			err = writer.Write([]string{fmt.Sprintf("%d", source), fmt.Sprintf("%d", target), "FT", fmt.Sprintf("%f", expEdge.Cost), geomStr})
 			if err != nil {
 				log.Fatalln(err)
 			}
