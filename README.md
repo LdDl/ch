@@ -86,8 +86,7 @@ ans, path := g.ShortestPath(u, v) // Get shortest path and it's cost between sou
 You can check benchmarks [here](https://github.com/LdDl/ch/blob/master/BENCHMARK.md)
 
 ## Support
-
-If you have troubles or questions please [open an issue].
+If you have troubles or questions please [open an issue](https://github.com/LdDl/ch/issues/new).
 
 ## ToDo
 
