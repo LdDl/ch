@@ -5,3 +5,4 @@ benchmark_graph.csv
 new.txt
 old.txt
 cmd/osm2ch/*.csv
+*.exe
