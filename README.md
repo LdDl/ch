@@ -1,4 +1,4 @@
-[![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/LdDl/ch)
+[![GoDoc](https://godoc.org/github.com/LdDl/ch?status.svg)](https://godoc.org/github.com/LdDl/ch)
 [![Build Status](https://travis-ci.com/LdDl/ch.svg?branch=master)](https://travis-ci.com/LdDl/ch)
 [![Sourcegraph](https://sourcegraph.com/github.com/LdDl/ch/-/badge.svg)](https://sourcegraph.com/github.com/LdDl/ch?badge)
 [![Go Report Card](https://goreportcard.com/badge/github.com/LdDl/ch)](https://goreportcard.com/report/github.com/LdDl/ch)
