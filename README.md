@@ -79,7 +79,7 @@ v := 452090 // Define target vertex
 ans, path := g.ShortestPath(u, v) // Get shortest path and it's cost between source and target vertex
 ```
 
-### If you want to import OSM (Open Street Map) file then follow instructions for [osm2ch](https://github.com/LdDl/ch/tree/master/cmd/osm2ch#osm2ch)
+### If you want to import OSM (Open Street Map) file then follow instructions for [osm2ch](https://github.com/LdDl/osm2ch#osm2ch)
 
 ## Benchmark
 
@@ -92,8 +92,8 @@ If you have troubles or questions please [open an issue](https://github.com/LdDl
 
 * ~~Import file of specific format~~ **Done as CSV**
 * ~~Export file of specific format~~ **Done as CSV**
-* ~~Turn Restricted Shortest Path extension for CH-algorithm~~ **Propably not modify algorithm, but graph. UPD: done with osm2ch**
-* ~~Thoughts and discussions about OSM graph and extensions~~ **Need some ideas about parsing and preparing. UPD: osm2ch**
+* ~~Turn Restricted Shortest Path extension for CH-algorithm~~ **Propably not modify algorithm, but graph. UPD: done with osm2ch - https://github.com/LdDl/osm2ch#osm2ch**
+* ~~Thoughts and discussions about OSM graph and extensions~~ **Need some ideas about parsing and preparing. UPD: osm2ch - https://github.com/LdDl/osm2ch#osm2ch**
 * ~~Map matcher as another project **WIP (now it is in local git storage)**~~ Here is the one https://github.com/LdDl/horizon
 * Bring interfaces{} **Thoughts (do we really need it?)**
 * ~~Bring OSM parser~~ **WIP It's done in poor way. PRs are welcome**
@@ -126,6 +126,6 @@ Paulmach's license is [here](https://github.com/paulmach/osm/blob/master/LICENSE
 ## License
 You can check it [here](https://github.com/LdDl/ch/blob/master/LICENSE)
 
-[osm2ch]: (https://github.com/LdDl/ch/tree/master/cmd/osm2ch#osm2ch)
+[osm2ch]: (https://github.com/LdDl/osm2ch#osm2ch)
 [open an issue]: (https://github.com/LdDl/ch/issues/new)
 [BENCHMARK.md]: (https://github.com/LdDl/ch/blob/master/BENCHMARK.md)
