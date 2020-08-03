@@ -5,9 +5,9 @@
 [![GitHub tag](https://img.shields.io/github/tag/LdDl/ch.svg)](https://github.com/LdDl/ch/releases)
 
 # ch - Contraction Hierarchies
-## Contraction Hierarchies (with bidirectional version of Dijkstra's algorithm) for computing shortest path in graph.
+## Contraction Hierarchies - technique for for computing shortest path in graph.
 
-This library provides classic implementation of Dijkstra's algorithm and maneuver restrictions extension also.
+This library provides Contraction Hierarchies preprocessing graph technique for Dijkstra's algorithm. Classic implementation of Dijkstra's algorithm and maneuver restrictions extension are included also.
 
 ## Table of Contents
 
@@ -27,7 +27,7 @@ This library provides classic implementation of Dijkstra's algorithm and maneuve
 ## About
 This package provides implemented next techniques and algorithms:
 * Dijkstra's algorithm
-* Contracntion hierarchies
+* Contraction hierarchies
 * Bidirectional extension of Dijkstra's algorithm with contracted nodes
 
 ## Installation
