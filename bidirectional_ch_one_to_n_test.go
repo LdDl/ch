@@ -11,6 +11,7 @@ func TestOneToManyShortestPath(t *testing.T) {
 	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	t.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
@@ -22,11 +23,13 @@ func TestOneToManyShortestPath(t *testing.T) {
 	for i := range path {
 		if len(path[i]) != correctPath[i] {
 			t.Errorf("Num of vertices in path should be %d, but got %d", correctPath[i], len(path[i]))
+			return
 		}
 	}
 	for i := range ans {
 		if Round(ans[i], 0.00005) != Round(correctAns[i], 0.00005) {
 			t.Errorf("Length of path should be %f, but got %f", correctAns[i], ans[i])
+			return
 		}
 	}
 

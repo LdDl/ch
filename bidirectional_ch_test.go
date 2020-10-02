@@ -18,6 +18,7 @@ func TestShortestPath(t *testing.T) {
 	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	t.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
@@ -28,9 +29,11 @@ func TestShortestPath(t *testing.T) {
 	ans, path := g.ShortestPath(u, v)
 	if len(path) != 160 {
 		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
+		return
 	}
 	if Round(ans, 0.00005) != Round(19135.6581215226, 0.00005) {
 		t.Errorf("Length of path should be 19135.6581215226, but got %f", ans)
+		return
 	}
 	t.Log("TestShortestPath is Ok!")
 }
@@ -54,9 +57,11 @@ func TestBothVanillaAndCH(t *testing.T) {
 		ansVanilla, pathVanilla := g.VanillaShortestPath(rndV, rndU)
 		if len(pathCH) != len(pathVanilla) {
 			t.Errorf("Num of vertices in path should be %d, but got %d", len(pathVanilla), len(pathCH))
+			return
 		}
 		if Round(ansCH, 0.00005) != Round(ansVanilla, 0.00005) {
 			t.Errorf("Length of path should be %f, but got %f", ansVanilla, ansCH)
+			return
 		}
 	}
 	t.Log("TestAndSHVanPath is Ok!")

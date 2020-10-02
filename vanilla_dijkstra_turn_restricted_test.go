@@ -62,42 +62,51 @@ func TestVanillaTurnRestrictedShortestPath(t *testing.T) {
 	rightPath := []int64{1, 2, 3, 4, 5}
 	if len(path) != 5 {
 		t.Errorf("Run 1: num of vertices in path should be 5, but got %d", len(path))
+		return
 	}
 	for i := range path {
 		if path[i] != rightPath[i] {
 			t.Errorf("Run 1: vertex in path should be %d, but got %d", path[i], rightPath[i])
+			return
 		}
 	}
 	if ans != 6 {
 		t.Errorf("Run 1: length of path should be 6, but got %f", ans)
+		return
 	}
 
 	ans, path = graph.VanillaTurnRestrictedShortestPath(2, 7)
 	rightPath = []int64{2, 3, 4, 5, 7}
 	if len(path) != 5 {
 		t.Errorf("Run 2: num of vertices in path should be 5, but got %d", len(path))
+		return
 	}
 	for i := range path {
 		if path[i] != rightPath[i] {
 			t.Errorf("Run 2: vertex in path should be %d, but got %d", path[i], rightPath[i])
+			return
 		}
 	}
 	if ans != 6 {
 		t.Errorf("Run 2: length of path should be 6, but got %f", ans)
+		return
 	}
 
 	ans, path = graph.VanillaTurnRestrictedShortestPath(1, 7)
 	rightPath = []int64{1, 2, 3, 4, 5, 7}
 	if len(path) != 6 {
 		t.Errorf("Run 3: num of vertices in path should be 6, but got %d", len(path))
+		return
 	}
 	for i := range path {
 		if path[i] != rightPath[i] {
 			t.Errorf("Run 3: vertex in path should be %d, but got %d", path[i], rightPath[i])
+			return
 		}
 	}
 	if ans != 7 {
 		t.Errorf("Run 3: length of path should be 7, but got %f", ans)
+		return
 	}
 
 	t.Log("TestVanillaTurnRestrictedShortestPath is Ok!")
