@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 // ImportFromFile Imports graph from file of CSV-format
@@ -70,11 +72,19 @@ func ImportFromFile(fname string) (*Graph, error) {
 			return nil, err
 		}
 
-		graph.AddVertex(sourceExternal, sourceInternal)
-		graph.AddVertex(targetExternal, targetInternal)
+		err = graph.AddVertex(sourceExternal, sourceInternal)
+		if err != nil {
+			return nil, errors.Wrap(err, "Can't add vertex")
+		}
+		err = graph.AddVertex(targetExternal, targetInternal)
+		if err != nil {
+			return nil, errors.Wrap(err, "Can't add vertex")
+		}
 
-		graph.AddEdge(sourceExternal, targetExternal, weight)
-
+		err = graph.AddEdge(sourceExternal, targetExternal, weight)
+		if err != nil {
+			return nil, errors.Wrap(err, "Can't add edge")
+		}
 		if isContractInternal != -1 {
 			if _, ok := graph.contracts[sourceInternal]; !ok {
 				graph.contracts[sourceInternal] = make(map[int64]int64)
@@ -138,7 +148,10 @@ func (g *Graph) ImportRestrictionsFromFile(fname string) error {
 			return err
 		}
 
-		g.AddTurnRestriction(sourceExternal, viaExternal, targetExternal)
+		err = g.AddTurnRestriction(sourceExternal, viaExternal, targetExternal)
+		if err != nil {
+			return errors.Wrap(err, "Can't add restriction")
+		}
 	}
 	return nil
 }

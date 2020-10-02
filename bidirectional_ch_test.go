@@ -128,9 +128,17 @@ func graphFromCSV(graph *Graph, fname string) {
 		graph.CreateVertex(source)
 		graph.CreateVertex(target)
 
-		graph.AddEdge(source, target, weight)
+		err = graph.AddEdge(source, target, weight)
+		if err != nil {
+			log.Panicln(err)
+			continue
+		}
 		if oneway == "B" {
 			graph.AddEdge(target, source, weight)
+			if err != nil {
+				log.Panicln(err)
+				continue
+			}
 		}
 	}
 }

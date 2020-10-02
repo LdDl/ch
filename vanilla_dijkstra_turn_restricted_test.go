@@ -1,6 +1,7 @@
 package ch
 
 import (
+	"log"
 	"testing"
 )
 
@@ -27,7 +28,11 @@ func TestVanillaTurnRestrictedShortestPath(t *testing.T) {
 	for i := range vertices {
 		graph.CreateVertex(vertices[i].from)
 		graph.CreateVertex(vertices[i].to)
-		graph.AddEdge(vertices[i].from, vertices[i].to, vertices[i].weight)
+		err := graph.AddEdge(vertices[i].from, vertices[i].to, vertices[i].weight)
+		if err != nil {
+			log.Panicln(err)
+			continue
+		}
 	}
 
 	restrictions := make(map[int64]map[int64]int64)
@@ -38,7 +43,11 @@ func TestVanillaTurnRestrictedShortestPath(t *testing.T) {
 
 	for source, turn := range restrictions {
 		for via, target := range turn {
-			graph.AddTurnRestriction(source, via, target)
+			err := graph.AddTurnRestriction(source, via, target)
+			if err != nil {
+				log.Panicln(err)
+				continue
+			}
 		}
 	}
 
