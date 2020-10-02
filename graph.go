@@ -2,7 +2,7 @@ package ch
 
 import (
 	"container/heap"
-	"errors"
+	"fmt"
 	"log"
 )
 
@@ -35,7 +35,7 @@ type Graph struct {
 //
 func (graph *Graph) CreateVertex(label int64) error {
 	if graph.frozen {
-		return errors.New("can't modify data in frozen graph")
+		return ErrGraphIsFrozen
 	}
 	v := &Vertex{
 		Label:        label,
@@ -65,7 +65,7 @@ func (graph *Graph) CreateVertex(label int64) error {
 //
 func (graph *Graph) AddVertex(labelExternal, labelInternal int64) error {
 	if graph.frozen {
-		return errors.New("can't modify data in frozen graph")
+		return ErrGraphIsFrozen
 	}
 	v := &Vertex{
 		Label:        labelExternal,
@@ -103,7 +103,7 @@ func (graph *Graph) AddVertex(labelExternal, labelInternal int64) error {
 //
 func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 	if graph.frozen {
-		return errors.New("can't modify data in frozen graph")
+		return ErrGraphIsFrozen
 	}
 
 	from = graph.mapping[from]
@@ -125,7 +125,7 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 //
 func (graph *Graph) AddTurnRestriction(from, via, to int64) error {
 	if graph.frozen {
-		return errors.New("can't modify data in frozen graph")
+		return ErrGraphIsFrozen
 	}
 
 	from = graph.mapping[from]
@@ -166,12 +166,13 @@ func (graph *Graph) PrepareContracts() {
 	graph.Freeze()
 }
 
-// Freeze - Exported
+// Freeze Freeze graph. Should be called after contraction hierarchies had been prepared.
 func (graph *Graph) Freeze() {
 	graph.frozen = true
 }
 
-// unfreeze - unexported
-func (graph *Graph) unfreeze() {
+// Unfreeze Freeze graph. Should be called if graph modification is needed.
+func (graph *Graph) Unfreeze() {
+	fmt.Println("Warning: You will need to call PrepareContracts() or even refresh graph again if you want to modify graph data")
 	graph.frozen = false
 }
