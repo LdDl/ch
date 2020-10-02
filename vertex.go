@@ -56,6 +56,7 @@ func (vertex *Vertex) computeImportance() {
 	vertex.importance = vertex.edgeDiff*14 + vertex.shortcutCover*25 + vertex.delNeighbors*10
 }
 
+// Distance Information about contraction between source vertex and contraction vertex
 type Distance struct {
 	contractID  int64
 	sourceID    int64
@@ -64,6 +65,7 @@ type Distance struct {
 	revDistance float64
 }
 
+// NewDistance Constructor for Distance
 func NewDistance() *Distance {
 	return &Distance{
 		contractID:  -1,
