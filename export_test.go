@@ -16,6 +16,7 @@ func TestExport(t *testing.T) {
 	err := g.ExportToFile("data/export_pgrouting.csv")
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	log.Println("TestExport is Ok!")
 }

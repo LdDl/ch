@@ -3,9 +3,12 @@ package ch
 import (
 	"container/heap"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"os"
 	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 // ImportFromFile Imports graph from file of CSV-format
@@ -61,20 +64,24 @@ func ImportFromFile(fname string) (*Graph, error) {
 			return nil, err
 		}
 
-		// isContractExternal, err := strconv.Atoi(record[5])
-		// if err != nil {
-		// 	return nil, err
-		// }
 		isContractInternal, err := strconv.ParseInt(record[6], 10, 64)
 		if err != nil {
 			return nil, err
 		}
 
-		graph.AddVertex(sourceExternal, sourceInternal)
-		graph.AddVertex(targetExternal, targetInternal)
+		err = graph.AddVertex(sourceExternal, sourceInternal)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Can't add source vertex with external_ID = '%d' and internal_ID = '%d'", sourceExternal, sourceInternal))
+		}
+		err = graph.AddVertex(targetExternal, targetInternal)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Can't add target vertex with external_ID = '%d' and internal_ID = '%d'", targetExternal, targetInternal))
+		}
 
-		graph.AddEdge(sourceExternal, targetExternal, weight)
-
+		err = graph.AddEdge(sourceExternal, targetExternal, weight)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Can't add edge with source_internal_ID = '%d' and target_internal_ID = '%d'", sourceExternal, targetExternal))
+		}
 		if isContractInternal != -1 {
 			if _, ok := graph.contracts[sourceInternal]; !ok {
 				graph.contracts[sourceInternal] = make(map[int64]int64)
@@ -138,7 +145,10 @@ func (g *Graph) ImportRestrictionsFromFile(fname string) error {
 			return err
 		}
 
-		g.AddTurnRestriction(sourceExternal, viaExternal, targetExternal)
+		err = g.AddTurnRestriction(sourceExternal, viaExternal, targetExternal)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("Can't add restriction between source_external_ID = '%d' and target_external_ID = '%d' via via_external_id = '%d'", sourceExternal, targetExternal, viaExternal))
+		}
 	}
 	return nil
 }

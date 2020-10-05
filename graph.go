@@ -2,6 +2,7 @@ package ch
 
 import (
 	"container/heap"
+	"fmt"
 	"log"
 )
 
@@ -24,13 +25,18 @@ type Graph struct {
 
 	contracts    map[int64]map[int64]int64
 	restrictions map[int64]map[int64]int64
+
+	frozen bool
 }
 
 // CreateVertex Creates new vertex and assign internal ID to it
 //
 // label User's definied ID of vertex
 //
-func (graph *Graph) CreateVertex(label int64) {
+func (graph *Graph) CreateVertex(label int64) error {
+	if graph.frozen {
+		return ErrGraphIsFrozen
+	}
 	v := &Vertex{
 		Label:        label,
 		delNeighbors: 0,
@@ -49,6 +55,7 @@ func (graph *Graph) CreateVertex(label int64) {
 		graph.mapping[label] = v.vertexNum
 		graph.Vertices = append(graph.Vertices, v)
 	}
+	return nil
 }
 
 // AddVertex Adds vertex with provided internal ID
@@ -56,7 +63,10 @@ func (graph *Graph) CreateVertex(label int64) {
 // labelExternal User's definied ID of vertex
 // labelInternal internal ID of vertex
 //
-func (graph *Graph) AddVertex(labelExternal, labelInternal int64) {
+func (graph *Graph) AddVertex(labelExternal, labelInternal int64) error {
+	if graph.frozen {
+		return ErrGraphIsFrozen
+	}
 	v := &Vertex{
 		Label:        labelExternal,
 		delNeighbors: 0,
@@ -82,6 +92,7 @@ func (graph *Graph) AddVertex(labelExternal, labelInternal int64) {
 			graph.Vertices[labelInternal] = v
 		}
 	}
+	return nil
 }
 
 // AddEdge Adds new edge between two vertices
@@ -90,7 +101,10 @@ func (graph *Graph) AddVertex(labelExternal, labelInternal int64) {
 // to User's definied ID of last vertex of edge
 // weight User's definied weight of edge
 //
-func (graph *Graph) AddEdge(from, to int64, weight float64) {
+func (graph *Graph) AddEdge(from, to int64, weight float64) error {
+	if graph.frozen {
+		return ErrGraphIsFrozen
+	}
 
 	from = graph.mapping[from]
 	to = graph.mapping[to]
@@ -100,6 +114,7 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) {
 
 	graph.Vertices[to].inEdges = append(graph.Vertices[to].inEdges, from)
 	graph.Vertices[to].inECost = append(graph.Vertices[to].inECost, weight)
+	return nil
 }
 
 // AddTurnRestriction Adds new turn restriction between two vertices via some other vertex
@@ -108,7 +123,10 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) {
 // via User's definied ID of prohibited vertex (between source and target)
 // to User's definied ID of target vertex
 //
-func (graph *Graph) AddTurnRestriction(from, via, to int64) {
+func (graph *Graph) AddTurnRestriction(from, via, to int64) error {
+	if graph.frozen {
+		return ErrGraphIsFrozen
+	}
 
 	from = graph.mapping[from]
 	via = graph.mapping[via]
@@ -125,7 +143,7 @@ func (graph *Graph) AddTurnRestriction(from, via, to int64) {
 		}
 		graph.restrictions[from][via] = to
 	}
-
+	return nil
 }
 
 // computeImportance Compute vertices' importance
@@ -138,10 +156,23 @@ func (graph *Graph) computeImportance() {
 		graph.Vertices[i].importance = graph.Vertices[i].edgeDiff*14 + graph.Vertices[i].shortcutCover*25 + graph.Vertices[i].delNeighbors*10
 		heap.Push(graph.pqImportance, graph.Vertices[i])
 	}
+	graph.Freeze()
 }
 
 // PrepareContracts Compute contraction hierarchies
 func (graph *Graph) PrepareContracts() {
 	graph.computeImportance()
 	graph.nodeOrdering = graph.Preprocess()
+	graph.Freeze()
+}
+
+// Freeze Freeze graph. Should be called after contraction hierarchies had been prepared.
+func (graph *Graph) Freeze() {
+	graph.frozen = true
+}
+
+// Unfreeze Freeze graph. Should be called if graph modification is needed.
+func (graph *Graph) Unfreeze() {
+	fmt.Println("Warning: You will need to call PrepareContracts() or even refresh graph again if you want to modify graph data")
+	graph.frozen = false
 }

@@ -68,8 +68,8 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 		// for each neighbor v of u:
 		for v := range vertexList {
 			neighbor := vertexList[v]
-			if v1, ok_1 := graph.contracts[u.id]; ok_1 {
-				if _, ok_2 := v1[neighbor]; ok_2 {
+			if v1, ok1 := graph.contracts[u.id]; ok1 {
+				if _, ok2 := v1[neighbor]; ok2 {
 					// Ignore contract
 					continue
 				}

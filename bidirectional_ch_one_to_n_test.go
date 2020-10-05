@@ -8,7 +8,11 @@ import (
 
 func TestOneToManyShortestPath(t *testing.T) {
 	g := Graph{}
-	graphFromCSV(&g, "data/pgrouting_osm.csv")
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
+	if err != nil {
+		t.Error(err)
+		return
+	}
 	t.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	t.Log("TestShortestPath is starting...")
@@ -19,11 +23,13 @@ func TestOneToManyShortestPath(t *testing.T) {
 	for i := range path {
 		if len(path[i]) != correctPath[i] {
 			t.Errorf("Num of vertices in path should be %d, but got %d", correctPath[i], len(path[i]))
+			return
 		}
 	}
 	for i := range ans {
 		if Round(ans[i], 0.00005) != Round(correctAns[i], 0.00005) {
 			t.Errorf("Length of path should be %f, but got %f", correctAns[i], ans[i])
+			return
 		}
 	}
 
@@ -32,7 +38,10 @@ func TestOneToManyShortestPath(t *testing.T) {
 
 func BenchmarkShortestPathOneToMany(b *testing.B) {
 	g := Graph{}
-	graphFromCSV(&g, "data/pgrouting_osm.csv")
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
+	if err != nil {
+		b.Error(err)
+	}
 	b.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	b.Log("BenchmarkShortestPathOneToMany is starting...")
@@ -53,7 +62,10 @@ func BenchmarkShortestPathOneToMany(b *testing.B) {
 
 func BenchmarkOldWayShortestPathOneToMany(b *testing.B) {
 	g := Graph{}
-	graphFromCSV(&g, "data/pgrouting_osm.csv")
+	err := graphFromCSV(&g, "data/pgrouting_osm.csv")
+	if err != nil {
+		b.Error(err)
+	}
 	b.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	b.Log("BenchmarkOldWayShortestPathOneToMany is starting...")

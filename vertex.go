@@ -5,6 +5,7 @@ import (
 	"math"
 )
 
+// Vertex All information about vertex
 type Vertex struct {
 	vertexNum int64
 	Label     int64
@@ -23,10 +24,12 @@ type Vertex struct {
 	importance    int
 }
 
-func (v *Vertex) PrintInOut() {
-	fmt.Println(v.outEdges, v.inEdges)
+// PrintInOut Print infromation about out and in edges
+func (vertex *Vertex) PrintInOut() {
+	fmt.Println(vertex.outEdges, vertex.inEdges)
 }
 
+// MakeVertex Create vertex with label
 func MakeVertex(label int64) *Vertex {
 	return &Vertex{
 		Label:        label,
@@ -36,6 +39,7 @@ func MakeVertex(label int64) *Vertex {
 	}
 }
 
+// NewVertex Create vertex with vertex number
 func NewVertex(vertexNum int64) *Vertex {
 	return &Vertex{
 		vertexNum:    vertexNum,
@@ -45,12 +49,14 @@ func NewVertex(vertexNum int64) *Vertex {
 	}
 }
 
+// computeImportance Update importance of vertex
 func (vertex *Vertex) computeImportance() {
 	vertex.edgeDiff = len(vertex.inEdges)*len(vertex.outEdges) - len(vertex.inEdges) - len(vertex.outEdges)
 	vertex.shortcutCover = len(vertex.inEdges) + len(vertex.outEdges)
 	vertex.importance = vertex.edgeDiff*14 + vertex.shortcutCover*25 + vertex.delNeighbors*10
 }
 
+// Distance Information about contraction between source vertex and contraction vertex
 type Distance struct {
 	contractID  int64
 	sourceID    int64
@@ -59,6 +65,7 @@ type Distance struct {
 	revDistance float64
 }
 
+// NewDistance Constructor for Distance
 func NewDistance() *Distance {
 	return &Distance{
 		contractID:  -1,

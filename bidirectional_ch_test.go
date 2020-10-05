@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"log"
 	"math"
 	"math/rand"
 	"os"
@@ -16,7 +15,11 @@ import (
 
 func TestShortestPath(t *testing.T) {
 	g := Graph{}
-	graphFromCSV(&g, "data/pgrouting_osm.csv")
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
+	if err != nil {
+		t.Error(err)
+		return
+	}
 	t.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	t.Log("TestShortestPath is starting...")
@@ -26,16 +29,22 @@ func TestShortestPath(t *testing.T) {
 	ans, path := g.ShortestPath(u, v)
 	if len(path) != 160 {
 		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
+		return
 	}
 	if Round(ans, 0.00005) != Round(19135.6581215226, 0.00005) {
 		t.Errorf("Length of path should be 19135.6581215226, but got %f", ans)
+		return
 	}
 	t.Log("TestShortestPath is Ok!")
 }
 
 func TestBothVanillaAndCH(t *testing.T) {
 	g := Graph{}
-	graphFromCSV(&g, "data/pgrouting_osm.csv")
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
+	if err != nil {
+		t.Error(err)
+		return
+	}
 	t.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	t.Log("TestAndSHVanPath is starting...")
@@ -48,9 +57,11 @@ func TestBothVanillaAndCH(t *testing.T) {
 		ansVanilla, pathVanilla := g.VanillaShortestPath(rndV, rndU)
 		if len(pathCH) != len(pathVanilla) {
 			t.Errorf("Num of vertices in path should be %d, but got %d", len(pathVanilla), len(pathCH))
+			return
 		}
 		if Round(ansCH, 0.00005) != Round(ansVanilla, 0.00005) {
 			t.Errorf("Length of path should be %f, but got %f", ansVanilla, ansCH)
+			return
 		}
 	}
 	t.Log("TestAndSHVanPath is Ok!")
@@ -58,7 +69,10 @@ func TestBothVanillaAndCH(t *testing.T) {
 
 func BenchmarkShortestPath(b *testing.B) {
 	g := Graph{}
-	graphFromCSV(&g, "data/pgrouting_osm.csv")
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
+	if err != nil {
+		b.Error(err)
+	}
 	b.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	b.Log("BenchmarkShortestPath is starting...")
@@ -79,15 +93,19 @@ func BenchmarkShortestPath(b *testing.B) {
 
 func BenchmarkPrepareContracts(b *testing.B) {
 	g := Graph{}
-	graphFromCSV(&g, "pgrouting_osm.csv")
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
+	if err != nil {
+		b.Error(err)
+		return
+	}
 	b.ResetTimer()
 	g.PrepareContracts()
 }
 
-func graphFromCSV(graph *Graph, fname string) {
+func graphFromCSV(graph *Graph, fname string) error {
 	file, err := os.Open(fname)
 	if err != nil {
-		log.Panicln(err)
+		return err
 	}
 	defer file.Close()
 	reader := csv.NewReader(bufio.NewReader(file))
@@ -98,7 +116,7 @@ func graphFromCSV(graph *Graph, fname string) {
 	// Read header
 	_, err = reader.Read()
 	if err != nil {
-		log.Panicln(err)
+		return err
 	}
 
 	for {
@@ -108,11 +126,11 @@ func graphFromCSV(graph *Graph, fname string) {
 		}
 		source, err := strconv.ParseInt(record[0], 10, 64)
 		if err != nil {
-			log.Panicln(err)
+			return err
 		}
 		target, err := strconv.ParseInt(record[1], 10, 64)
 		if err != nil {
-			log.Panicln(err)
+			return err
 		}
 
 		// if intinslice(source, []int{5606, 5607, 255077, 238618}) == false && intinslice(target, []int{5606, 5607, 255077, 238618}) == false {
@@ -122,17 +140,30 @@ func graphFromCSV(graph *Graph, fname string) {
 		oneway := record[2]
 		weight, err := strconv.ParseFloat(record[3], 64)
 		if err != nil {
-			log.Panicln(err)
+			return err
 		}
 
-		graph.CreateVertex(source)
-		graph.CreateVertex(target)
+		err = graph.CreateVertex(source)
+		if err != nil {
+			return err
+		}
+		err = graph.CreateVertex(target)
+		if err != nil {
+			return err
+		}
 
-		graph.AddEdge(source, target, weight)
+		err = graph.AddEdge(source, target, weight)
+		if err != nil {
+			return err
+		}
 		if oneway == "B" {
-			graph.AddEdge(target, source, weight)
+			err = graph.AddEdge(target, source, weight)
+			if err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
 func intinslice(elem int, sl []int) bool {
