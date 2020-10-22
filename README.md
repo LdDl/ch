@@ -95,7 +95,7 @@ And then you are good to go
 		return
     }
     ```
-
+    
 ### If you want to import OSM (Open Street Map) file then follow instructions for [osm2ch](https://github.com/LdDl/osm2ch#osm2ch)
 
 ## Benchmark
