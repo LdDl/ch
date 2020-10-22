@@ -7,7 +7,7 @@
 # ch - Contraction Hierarchies
 ## Contraction Hierarchies - technique for for computing shortest path in graph.
 
-This library provides Contraction Hierarchies preprocessing graph technique for Dijkstra's algorithm. Classic implementation of Dijkstra's algorithm and maneuver restrictions extension are included also.
+This library provides [Contraction Hierarchies](https://en.wikipedia.org/wiki/Contraction_hierarchies) preprocessing graph technique for [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm). Classic implementation of Dijkstra's algorithm, maneuver restrictions extension and [isochrones](https://en.wikipedia.org/wiki/Isochrone_map) estimation are included also.
 
 ## Table of Contents
 
