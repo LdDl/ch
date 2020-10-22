@@ -67,17 +67,34 @@ And then you are good to go
 
 ## Usage
 
-Please see this [test file](bidirectional_ch_test.go#L17)
+* Shortest path
 
-I hope it's pretty clear, but here is little explanation:
-```go
-g := Graph{} // Prepare variable for storing graph
-graphFromCSV(&g, "data/pgrouting_osm.csv") // Import CSV-file file into programm
-g.PrepareContracts() // Compute contraction hierarchies
-u := 144031 // Define source vertex
-v := 452090 // Define target vertex
-ans, path := g.ShortestPath(u, v) // Get shortest path and it's cost between source and target vertex
-```
+    Please see this [test file](bidirectional_ch_test.go#L17)
+
+    I hope it's pretty clear, but here is little explanation:
+    ```go
+    g := Graph{} // Prepare variable for storing graph
+    graphFromCSV(&g, "data/pgrouting_osm.csv") // Import CSV-file file into programm
+    g.PrepareContracts() // Compute contraction hierarchies
+    u := 144031 // Define source vertex
+    v := 452090 // Define target vertex
+    ans, path := g.ShortestPath(u, v) // Get shortest path and it's cost between source and target vertex
+    ```
+
+* Isochrones
+
+    Please see this [test file](isochrones_test.go#L7)
+    ```go
+    g := Graph{} // Prepare variable for storing graph
+    // ...
+    // Fill graph with data (vertices and edges)
+    // ...
+    isochrones, err := graph.Isochrones(sourceVertex, maxCost) // Evaluate isochrones via bread-first search
+	if err != nil {
+		t.Error(err)
+		return
+    }
+    ```
 
 ### If you want to import OSM (Open Street Map) file then follow instructions for [osm2ch](https://github.com/LdDl/osm2ch#osm2ch)
 
