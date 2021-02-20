@@ -28,9 +28,19 @@ func (vertex *Vertex) OrderPos() int {
 	return vertex.orderPos
 }
 
+// SetOrderPos Sets order position (in terms of contraction hierarchies) for vertex
+func (vertex *Vertex) SetOrderPos(orderPos int) {
+	vertex.orderPos = orderPos
+}
+
 // Importance Returns importance (in terms of contraction hierarchies) of vertex
 func (vertex *Vertex) Importance() int {
 	return vertex.importance
+}
+
+// SetImportance Sets order position (in terms of contraction hierarchies) for vertex
+func (vertex *Vertex) SetImportance(importance int) {
+	vertex.importance = importance
 }
 
 // MakeVertex Create vertex with label
