@@ -1,7 +1,6 @@
 package ch
 
 import (
-	"fmt"
 	"math"
 )
 
@@ -24,9 +23,9 @@ type Vertex struct {
 	importance    int
 }
 
-// PrintInOut Print infromation about out and in edges
-func (vertex *Vertex) PrintInOut() {
-	fmt.Println(vertex.outEdges, vertex.inEdges)
+// Importance Returns importance (in term of contraction hierarchies) of vertex
+func (vertex *Vertex) Importance() int {
+	return vertex.importance
 }
 
 // MakeVertex Create vertex with label
