@@ -23,9 +23,14 @@ type Vertex struct {
 	importance    int
 }
 
-// Importance Returns importance (in term of contraction hierarchies) of vertex
+// Importance Returns importance (in terms of contraction hierarchies) of vertex
 func (vertex *Vertex) Importance() int {
 	return vertex.importance
+}
+
+// OrderPos Returns order position (in terms of contraction hierarchies) of vertex
+func (vertex *Vertex) OrderPos() int {
+	return vertex.orderPos
 }
 
 // MakeVertex Create vertex with label
