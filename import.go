@@ -1,7 +1,6 @@
 package ch
 
 import (
-	"container/heap"
 	"encoding/csv"
 	"fmt"
 	"io"
@@ -12,7 +11,7 @@ import (
 )
 
 // ImportFromFile Imports graph from file of CSV-format
-// Header of main CSV-file:
+// Header of main CSV-file containing information about edges:
 // 		from_vertex_id - int64, ID of source vertex
 // 		to_vertex_id - int64, ID of arget vertex
 // 		f_internal - int64, Internal ID of source vertex
@@ -20,13 +19,20 @@ import (
 // 		weight - float64, Weight of an edge
 // 		via_vertex_id - int64, ID of vertex through which the contraction exists (-1 if no contraction)
 // 		v_internal - int64, Internal ID of vertex through which the contraction exists (-1 if no contraction)
-func ImportFromFile(fname string) (*Graph, error) {
-	file, err := os.Open(fname)
+func ImportFromFile(edgesFname, verticesFname string) (*Graph, error) {
+	file, err := os.Open(edgesFname)
 	if err != nil {
 		return nil, err
 	}
 	reader := csv.NewReader(file)
 	reader.Comma = ';'
+
+	fileVertices, err := os.Open(verticesFname)
+	if err != nil {
+		return nil, err
+	}
+	readerVertices := csv.NewReader(fileVertices)
+	readerVertices.Comma = ';'
 
 	graph := Graph{}
 
@@ -91,19 +97,54 @@ func ImportFromFile(fname string) (*Graph, error) {
 		}
 	}
 
-	// Need to calculate order pos for every vertex to make work relaxEdgesBiForward() and relaxEdgesBiBackward() functions in bidirectional_ch.go
-	graph.computeImportance()
-	var extractNum int
-	for graph.pqImportance.Len() != 0 {
-		vertex := heap.Pop(graph.pqImportance).(*Vertex)
-		vertex.computeImportance()
-		if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().(*Vertex).importance {
-			graph.pqImportance.Push(vertex)
-			continue
-		}
-		graph.Vertices[vertex.vertexNum].orderPos = extractNum
-		extractNum = extractNum + 1
+	// skip header
+	_, err = readerVertices.Read()
+	if err != nil {
+		return nil, err
 	}
+
+	for {
+		record, err := readerVertices.Read()
+		if err == io.EOF {
+			break
+		}
+
+		vertexExternal, err := strconv.ParseInt(record[0], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		vertexInternal, err := strconv.ParseInt(record[1], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		vertexOrderPos, err := strconv.Atoi(record[2])
+		if err != nil {
+			return nil, err
+		}
+		vertexImportance, err := strconv.Atoi(record[3])
+		if err != nil {
+			return nil, err
+		}
+
+		if graph.Vertices[vertexInternal].Label != vertexExternal {
+			return nil, fmt.Errorf("Vertex with Label = %d has wrong reference information. Incoming label info is '%d'", graph.Vertices[vertexInternal].Label, vertexExternal)
+		}
+		graph.Vertices[vertexInternal].SetOrderPos(vertexOrderPos)
+		graph.Vertices[vertexInternal].SetImportance(vertexImportance)
+	}
+	// // Need to calculate order pos for every vertex to make work relaxEdgesBiForward() and relaxEdgesBiBackward() functions in bidirectional_ch.go
+	// graph.computeImportance()
+	// var extractNum int
+	// for graph.pqImportance.Len() != 0 {
+	// 	vertex := heap.Pop(graph.pqImportance).(*Vertex)
+	// 	vertex.computeImportance()
+	// 	if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().(*Vertex).importance {
+	// 		graph.pqImportance.Push(vertex)
+	// 		continue
+	// 	}
+	// 	graph.Vertices[vertex.vertexNum].orderPos = extractNum
+	// 	extractNum = extractNum + 1
+	// }
 	return &graph, nil
 }
 

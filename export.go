@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // ExportToFile Exports graph to file of CSV-format
@@ -18,7 +19,8 @@ import (
 // 		v_internal - int64, Internal ID of vertex through which the contraction exists (-1 if no contraction)
 func (graph *Graph) ExportToFile(fname string) error {
 
-	file, err := os.Create(fname)
+	fnamePart := strings.Split(fname, ".csv") // to guarantee proper filename and its extension
+	file, err := os.Create(fnamePart[0] + ".csv")
 	if err != nil {
 		return err
 	}
@@ -32,10 +34,36 @@ func (graph *Graph) ExportToFile(fname string) error {
 		return err
 	}
 
+	fileVertices, err := os.Create(fnamePart[0] + "_vertices.csv")
+	if err != nil {
+		return err
+	}
+	defer fileVertices.Close()
+
+	writerVertices := csv.NewWriter(fileVertices)
+	defer writerVertices.Flush()
+	writerVertices.Comma = ';'
+	err = writerVertices.Write([]string{"vertex_id", "internal_id", "order_pos", "importance"})
+	if err != nil {
+		return err
+	}
+
 	for i := 0; i < len(graph.Vertices); i++ {
 		currentVertexExternal := graph.Vertices[i].Label
 		currentVertexInternal := graph.Vertices[i].vertexNum
 
+		// Write reference information about vertex
+		err = writerVertices.Write([]string{
+			fmt.Sprintf("%d", currentVertexExternal),
+			fmt.Sprintf("%d", currentVertexInternal),
+			fmt.Sprintf("%d", graph.Vertices[i].orderPos),
+			fmt.Sprintf("%d", graph.Vertices[i].importance),
+		})
+		if err != nil {
+			return err
+		}
+
+		// Write reference information about "incoming" adjacent vertices
 		incomingNeighbors := graph.Vertices[i].inEdges
 		incomingCosts := graph.Vertices[i].inECost
 		for j := 0; j < len(incomingNeighbors); j++ {
@@ -62,6 +90,7 @@ func (graph *Graph) ExportToFile(fname string) error {
 			}
 		}
 
+		// Write reference information about "outcoming" adjacent vertices
 		outcomingNeighbors := graph.Vertices[i].outEdges
 		outcomingCosts := graph.Vertices[i].outECost
 		for j := 0; j < len(outcomingNeighbors); j++ {

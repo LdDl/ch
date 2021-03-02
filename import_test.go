@@ -5,7 +5,7 @@ import (
 )
 
 func TestImportedFileShortestPath(t *testing.T) {
-	g, err := ImportFromFile("data/export_pgrouting.csv")
+	g, err := ImportFromFile("data/export_pgrouting.csv", "data/export_pgrouting_vertices.csv")
 	if err != nil {
 		t.Error(err)
 		return
@@ -13,6 +13,15 @@ func TestImportedFileShortestPath(t *testing.T) {
 	t.Log("TestImportedFileShortestPath is starting...")
 	u := int64(69618)
 	v := int64(5924)
+
+	correctNumContractions := 91757
+	correctNumVertices := 187853
+	if len(g.contracts) != correctNumContractions {
+		t.Errorf("Number of contractions should be %d, but got %d", correctNumContractions, len(g.contracts))
+	}
+	if len(g.Vertices) != correctNumVertices {
+		t.Errorf("Number of vertices should be %d, but got %d", correctNumVertices, len(g.Vertices))
+	}
 
 	ans, path := g.ShortestPath(u, v)
 	if len(path) != 160 {
