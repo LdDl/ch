@@ -10,7 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ImportFromFile Imports graph from file of CSV-format
+// ImportFromFile Imports graph (prepared by ExportToFile(fname string) function) from file of CSV-format
 // Header of main CSV-file containing information about edges:
 // 		from_vertex_id - int64, ID of source vertex
 // 		to_vertex_id - int64, ID of arget vertex
@@ -19,7 +19,13 @@ import (
 // 		weight - float64, Weight of an edge
 // 		via_vertex_id - int64, ID of vertex through which the contraction exists (-1 if no contraction)
 // 		v_internal - int64, Internal ID of vertex through which the contraction exists (-1 if no contraction)
+// Header of main CSV-file containing information about vertices:
+// 		vertex_id - int64, ID of vertex
+// 		internal_id - int64, internal ID of arget vertex
+// 		order_pos - int, Position of vertex in hierarchies (evaluted by library)
+// 		importance - int, Importance of vertex in graph (evaluted by library)
 func ImportFromFile(edgesFname, verticesFname string) (*Graph, error) {
+	// Read edges first
 	file, err := os.Open(edgesFname)
 	if err != nil {
 		return nil, err
@@ -27,21 +33,15 @@ func ImportFromFile(edgesFname, verticesFname string) (*Graph, error) {
 	reader := csv.NewReader(file)
 	reader.Comma = ';'
 
-	fileVertices, err := os.Open(verticesFname)
-	if err != nil {
-		return nil, err
-	}
-	readerVertices := csv.NewReader(fileVertices)
-	readerVertices.Comma = ';'
-
 	graph := Graph{}
 
-	// skip header
+	// Fill graph with edges informations
+	// Skip header of CSV-file
 	_, err = reader.Read()
 	if err != nil {
 		return nil, err
 	}
-	// read lines
+	// Read file line by line
 	for {
 		record, err := reader.Read()
 		if err == io.EOF {
@@ -97,12 +97,20 @@ func ImportFromFile(edgesFname, verticesFname string) (*Graph, error) {
 		}
 	}
 
-	// skip header
+	// Read vertices
+	fileVertices, err := os.Open(verticesFname)
+	if err != nil {
+		return nil, err
+	}
+	readerVertices := csv.NewReader(fileVertices)
+	readerVertices.Comma = ';'
+
+	// Skip header of CSV-file
 	_, err = readerVertices.Read()
 	if err != nil {
 		return nil, err
 	}
-
+	// Read file line by line
 	for {
 		record, err := readerVertices.Read()
 		if err == io.EOF {
@@ -132,19 +140,6 @@ func ImportFromFile(edgesFname, verticesFname string) (*Graph, error) {
 		graph.Vertices[vertexInternal].SetOrderPos(vertexOrderPos)
 		graph.Vertices[vertexInternal].SetImportance(vertexImportance)
 	}
-	// // Need to calculate order pos for every vertex to make work relaxEdgesBiForward() and relaxEdgesBiBackward() functions in bidirectional_ch.go
-	// graph.computeImportance()
-	// var extractNum int
-	// for graph.pqImportance.Len() != 0 {
-	// 	vertex := heap.Pop(graph.pqImportance).(*Vertex)
-	// 	vertex.computeImportance()
-	// 	if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().(*Vertex).importance {
-	// 		graph.pqImportance.Push(vertex)
-	// 		continue
-	// 	}
-	// 	graph.Vertices[vertex.vertexNum].orderPos = extractNum
-	// 	extractNum = extractNum + 1
-	// }
 	return &graph, nil
 }
 
