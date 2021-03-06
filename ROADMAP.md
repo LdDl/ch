@@ -13,7 +13,9 @@ New ideas, thought about needed features will be store in this file.
     * OneTwoMany function (contraction hierarchies) **Done, may be some bench comparisons**
     * Replace int with int64 (OSM purposes) **Done**
     * Separate benchmarks to BENCHMARK.md **Done**
+    * Better CSV format or another format (JSON / binary). **W.I.P. Splitting single file to multiple**
 
 ### Planned
-* Better CSV format or another format (JSON / binary)
-* Better heuristics for calculationg importance of each vertex
+* Better heuristics for calculationg importance of each vertex.
+* Max-cost path finder.
+* N-best shortest pathes.
