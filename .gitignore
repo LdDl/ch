@@ -2,6 +2,7 @@
 benchmark_graph.csv
 /osm_data
 /data/export_pgrouting.csv
+/data/export_pgrouting_vertices.csv
 new.txt
 old.txt
 cmd/osm2ch/*.csv
