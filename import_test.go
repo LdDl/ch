@@ -5,7 +5,7 @@ import (
 )
 
 func TestImportedFileShortestPath(t *testing.T) {
-	g, err := ImportFromFile("data/export_pgrouting.csv", "data/export_pgrouting_vertices.csv")
+	g, err := ImportFromFile("data/export_pgrouting.csv", "data/export_pgrouting_vertices.csv", "data/export_pgrouting_contractions.csv")
 	if err != nil {
 		t.Error(err)
 		return
