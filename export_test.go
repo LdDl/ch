@@ -11,8 +11,14 @@ func TestExport(t *testing.T) {
 	t.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContracts()
 	t.Log("TestExport is starting...")
-	// t.Log(len(g.contracts)) // 268420
-	// t.Log(len(g.Vertices))  // 588804
+	correctNumContractions := 91757
+	correctNumVertices := 187853
+	if len(g.contracts) != correctNumContractions {
+		t.Errorf("Number of contractions should be %d, but got %d", correctNumContractions, len(g.contracts))
+	}
+	if len(g.Vertices) != correctNumVertices {
+		t.Errorf("Number of vertices should be %d, but got %d", correctNumVertices, len(g.Vertices))
+	}
 	err := g.ExportToFile("data/export_pgrouting.csv")
 	if err != nil {
 		t.Error(err)
