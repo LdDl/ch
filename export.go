@@ -88,65 +88,15 @@ func (graph *Graph) ExportToFile(fname string) error {
 			return err
 		}
 
-		// Write reference information about "incoming" adjacent vertices
-		incomingNeighbors := graph.Vertices[i].inEdges
-		incomingCosts := graph.Vertices[i].inECost
-		for j := 0; j < len(incomingNeighbors); j++ {
-			fromVertexExternal := graph.Vertices[incomingNeighbors[j]].Label
-			fromVertexInternal := incomingNeighbors[j]
-			cost := incomingCosts[j]
-			if v, ok := graph.contracts[fromVertexInternal][currentVertexInternal]; ok {
-				isContractExternal := graph.Vertices[v].Label
-				isContractInternal := v
-				err = writerContractions.Write([]string{
-					fmt.Sprintf("%d", fromVertexExternal),
-					fmt.Sprintf("%d", currentVertexExternal),
-					fmt.Sprintf("%d", fromVertexInternal),
-					fmt.Sprintf("%d", currentVertexInternal),
-					strconv.FormatFloat(cost, 'f', -1, 64),
-					fmt.Sprintf("%d", isContractExternal),
-					fmt.Sprintf("%d", isContractInternal),
-				})
-				if err != nil {
-					return err
-				}
-			} else {
-				err = writer.Write([]string{
-					fmt.Sprintf("%d", fromVertexExternal),
-					fmt.Sprintf("%d", currentVertexExternal),
-					fmt.Sprintf("%d", fromVertexInternal),
-					fmt.Sprintf("%d", currentVertexInternal),
-					strconv.FormatFloat(cost, 'f', -1, 64),
-				})
-				if err != nil {
-					return err
-				}
-			}
-		}
-
 		// Write reference information about "outcoming" adjacent vertices
+		// Why don't write info about "incoming" adjacent vertices also? Because all edges will be covered due the loop iteration mechanism
 		outcomingNeighbors := graph.Vertices[i].outEdges
 		outcomingCosts := graph.Vertices[i].outECost
 		for j := 0; j < len(outcomingNeighbors); j++ {
 			toVertexExternal := graph.Vertices[outcomingNeighbors[j]].Label
 			toVertexInternal := outcomingNeighbors[j]
 			cost := outcomingCosts[j]
-			if v, ok := graph.contracts[currentVertexInternal][toVertexInternal]; ok {
-				isContractExternal := graph.Vertices[v].Label
-				isContractInternal := v
-				err = writerContractions.Write([]string{
-					fmt.Sprintf("%d", currentVertexExternal),
-					fmt.Sprintf("%d", toVertexExternal),
-					fmt.Sprintf("%d", currentVertexInternal),
-					fmt.Sprintf("%d", toVertexInternal),
-					strconv.FormatFloat(cost, 'f', -1, 64),
-					fmt.Sprintf("%d", isContractExternal),
-					fmt.Sprintf("%d", isContractInternal),
-				})
-				if err != nil {
-					return err
-				}
-			} else {
+			if _, ok := graph.contracts[currentVertexInternal][toVertexInternal]; !ok {
 				err = writer.Write([]string{
 					fmt.Sprintf("%d", currentVertexExternal),
 					fmt.Sprintf("%d", toVertexExternal),
@@ -161,5 +111,25 @@ func (graph *Graph) ExportToFile(fname string) error {
 		}
 	}
 
+	// Write reference information about contractions
+	for sourceVertexInternal, to := range graph.contracts {
+		sourceVertexExternal := graph.Vertices[sourceVertexInternal].Label
+		for targetVertexInternal, viaNodeInternal := range to {
+			targetVertexExternal := graph.Vertices[targetVertexInternal].Label
+			viaNodeExternal := graph.Vertices[viaNodeInternal.ViaVertex].Label
+			err = writerContractions.Write([]string{
+				fmt.Sprintf("%d", sourceVertexExternal),
+				fmt.Sprintf("%d", targetVertexExternal),
+				fmt.Sprintf("%d", sourceVertexInternal),
+				fmt.Sprintf("%d", targetVertexInternal),
+				strconv.FormatFloat(viaNodeInternal.Cost, 'f', -1, 64),
+				fmt.Sprintf("%d", viaNodeExternal),
+				fmt.Sprintf("%d", viaNodeInternal.ViaVertex),
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return err
 }

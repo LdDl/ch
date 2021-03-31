@@ -186,10 +186,16 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 			return nil, errors.Wrap(err, fmt.Sprintf("Can't add edge with source_internal_ID = '%d' and target_internal_ID = '%d'", sourceExternal, targetExternal))
 		}
 		if _, ok := graph.contracts[sourceInternal]; !ok {
-			graph.contracts[sourceInternal] = make(map[int64]int64)
-			graph.contracts[sourceInternal][targetInternal] = contractionInternal
+			graph.contracts[sourceInternal] = make(map[int64]*ContractionPath)
+			graph.contracts[sourceInternal][targetInternal] = &ContractionPath{
+				ViaVertex: contractionInternal,
+				Cost:      weight,
+			}
 		}
-		graph.contracts[sourceInternal][targetInternal] = contractionInternal
+		graph.contracts[sourceInternal][targetInternal] = &ContractionPath{
+			ViaVertex: contractionInternal,
+			Cost:      weight,
+		}
 	}
 	return &graph, nil
 }
