@@ -45,6 +45,16 @@ func (graph *Graph) callNeighbors(inEdges, outEdges []int64) {
 	}
 }
 
+// ContractionPath
+//
+// ViaVertex - ID of vertex through which the contraction exists
+// Cost - summary cost of path between two vertices
+//
+type ContractionPath struct {
+	ViaVertex int64
+	Cost      float64
+}
+
 // contractNode
 //
 // vertex Vertex to be contracted
@@ -96,17 +106,24 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 			if graph.Vertices[outVertex].contracted {
 				continue
 			}
-			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int64(i) || graph.Vertices[outVertex].distance.distance > incost+outcost {
+			summaryCost := incost + outcost
+			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int64(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
 				if _, ok := graph.contracts[inVertex]; !ok {
-					graph.contracts[inVertex] = make(map[int64]int64)
-					graph.contracts[inVertex][outVertex] = vertex.vertexNum
+					graph.contracts[inVertex] = make(map[int64]*ContractionPath)
+					graph.contracts[inVertex][outVertex] = &ContractionPath{
+						ViaVertex: vertex.vertexNum,
+						Cost:      summaryCost,
+					}
 				} else {
-					graph.contracts[inVertex][outVertex] = vertex.vertexNum
+					graph.contracts[inVertex][outVertex] = &ContractionPath{
+						ViaVertex: vertex.vertexNum,
+						Cost:      summaryCost,
+					}
 				}
 				graph.Vertices[inVertex].outEdges = append(graph.Vertices[inVertex].outEdges, outVertex)
-				graph.Vertices[inVertex].outECost = append(graph.Vertices[inVertex].outECost, incost+outcost)
+				graph.Vertices[inVertex].outECost = append(graph.Vertices[inVertex].outECost, summaryCost)
 				graph.Vertices[outVertex].inEdges = append(graph.Vertices[outVertex].inEdges, inVertex)
-				graph.Vertices[outVertex].inECost = append(graph.Vertices[outVertex].inECost, incost+outcost)
+				graph.Vertices[outVertex].inECost = append(graph.Vertices[outVertex].inECost, summaryCost)
 			}
 		}
 	}

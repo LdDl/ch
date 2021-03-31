@@ -23,7 +23,7 @@ type Graph struct {
 	Vertices     []*Vertex
 	nodeOrdering []int64
 
-	contracts    map[int64]map[int64]int64
+	contracts    map[int64]map[int64]*ContractionPath
 	restrictions map[int64]map[int64]int64
 
 	frozen bool
@@ -47,7 +47,7 @@ func (graph *Graph) CreateVertex(label int64) error {
 		graph.mapping = make(map[int64]int64)
 	}
 	if graph.contracts == nil {
-		graph.contracts = make(map[int64]map[int64]int64)
+		graph.contracts = make(map[int64]map[int64]*ContractionPath)
 	}
 
 	if _, ok := graph.mapping[label]; !ok {
@@ -78,7 +78,7 @@ func (graph *Graph) AddVertex(labelExternal, labelInternal int64) error {
 		graph.mapping = make(map[int64]int64)
 	}
 	if graph.contracts == nil {
-		graph.contracts = make(map[int64]map[int64]int64)
+		graph.contracts = make(map[int64]map[int64]*ContractionPath)
 	}
 
 	if _, ok := graph.mapping[labelExternal]; !ok {
