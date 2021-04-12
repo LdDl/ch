@@ -45,12 +45,12 @@ func (graph *Graph) callNeighbors(inEdges, outEdges []int64) {
 	}
 }
 
-// ContractionPath
+// ShortcutInfo Information about shortcut
 //
 // ViaVertex - ID of vertex through which the contraction exists
 // Cost - summary cost of path between two vertices
 //
-type ContractionPath struct {
+type ShortcutInfo struct {
 	ViaVertex int64
 	Cost      float64
 }
@@ -108,14 +108,14 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 			}
 			summaryCost := incost + outcost
 			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int64(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
-				if _, ok := graph.contracts[inVertex]; !ok {
-					graph.contracts[inVertex] = make(map[int64]*ContractionPath)
-					graph.contracts[inVertex][outVertex] = &ContractionPath{
+				if _, ok := graph.shortcuts[inVertex]; !ok {
+					graph.shortcuts[inVertex] = make(map[int64]*ShortcutInfo)
+					graph.shortcuts[inVertex][outVertex] = &ShortcutInfo{
 						ViaVertex: vertex.vertexNum,
 						Cost:      summaryCost,
 					}
 				} else {
-					graph.contracts[inVertex][outVertex] = &ContractionPath{
+					graph.shortcuts[inVertex][outVertex] = &ShortcutInfo{
 						ViaVertex: vertex.vertexNum,
 						Cost:      summaryCost,
 					}

@@ -96,7 +96,7 @@ func (graph *Graph) ExportToFile(fname string) error {
 			toVertexExternal := graph.Vertices[outcomingNeighbors[j]].Label
 			toVertexInternal := outcomingNeighbors[j]
 			cost := outcomingCosts[j]
-			if _, ok := graph.contracts[currentVertexInternal][toVertexInternal]; !ok {
+			if _, ok := graph.shortcuts[currentVertexInternal][toVertexInternal]; !ok {
 				err = writer.Write([]string{
 					fmt.Sprintf("%d", currentVertexExternal),
 					fmt.Sprintf("%d", toVertexExternal),
@@ -112,7 +112,7 @@ func (graph *Graph) ExportToFile(fname string) error {
 	}
 
 	// Write reference information about contractions
-	for sourceVertexInternal, to := range graph.contracts {
+	for sourceVertexInternal, to := range graph.shortcuts {
 		sourceVertexExternal := graph.Vertices[sourceVertexInternal].Label
 		for targetVertexInternal, viaNodeInternal := range to {
 			targetVertexExternal := graph.Vertices[targetVertexInternal].Label

@@ -30,7 +30,7 @@ func (graph *Graph) Isochrones(source int64, maxCost float64) (map[int64]float64
 			costList := graph.Vertices[next.id].outECost
 			for i := range vertexList {
 				neighbor := vertexList[i]
-				if v1, ok1 := graph.contracts[next.id]; ok1 {
+				if v1, ok1 := graph.shortcuts[next.id]; ok1 {
 					if _, ok2 := v1[neighbor]; ok2 {
 						// Ignore contract
 						continue
