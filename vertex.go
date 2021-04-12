@@ -14,13 +14,13 @@ type Vertex struct {
 	outEdges []int
 	outECost []float64
 
-	orderPos      int
-	contracted    bool
-	distance      *Distance
-	edgeDiff      int
-	delNeighbors  int
-	shortcutCover int
-	importance    int
+	orderPos         int
+	contracted       bool
+	distance         *Distance
+	edgeDiff         int
+	deletedNeighbors int
+	shortcutCover    int
+	importance       int
 }
 
 // OrderPos Returns order position (in terms of contraction hierarchies) of vertex
@@ -46,20 +46,20 @@ func (vertex *Vertex) SetImportance(importance int) {
 // MakeVertex Create vertex with label
 func MakeVertex(label int) *Vertex {
 	return &Vertex{
-		Label:        label,
-		delNeighbors: 0,
-		distance:     NewDistance(),
-		contracted:   false,
+		Label:            label,
+		deletedNeighbors: 0,
+		distance:         NewDistance(),
+		contracted:       false,
 	}
 }
 
 // NewVertex Create vertex with vertex number
 func NewVertex(vertexNum int) *Vertex {
 	return &Vertex{
-		vertexNum:    vertexNum,
-		delNeighbors: 0,
-		distance:     NewDistance(),
-		contracted:   false,
+		vertexNum:        vertexNum,
+		deletedNeighbors: 0,
+		distance:         NewDistance(),
+		contracted:       false,
 	}
 }
 
@@ -67,7 +67,7 @@ func NewVertex(vertexNum int) *Vertex {
 func (vertex *Vertex) computeImportance() {
 	vertex.edgeDiff = len(vertex.inEdges)*len(vertex.outEdges) - len(vertex.inEdges) - len(vertex.outEdges)
 	vertex.shortcutCover = len(vertex.inEdges) + len(vertex.outEdges)
-	vertex.importance = vertex.edgeDiff*14 + vertex.shortcutCover*25 + vertex.delNeighbors*10
+	vertex.importance = vertex.edgeDiff*14 + vertex.shortcutCover*25 + vertex.deletedNeighbors*10
 }
 
 // Distance Information about contraction between source vertex and contraction vertex

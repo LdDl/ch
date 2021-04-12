@@ -29,7 +29,7 @@ func (graph *Graph) Preprocess() []int {
 	return nodeOrdering
 }
 
-// callNeighbors
+// callNeighbors Saves uniformity (affects importance of vertex)
 //
 // inEdges Incoming edges from vertex
 // outEdges Outcoming edges from vertex
@@ -37,11 +37,11 @@ func (graph *Graph) Preprocess() []int {
 func (graph *Graph) callNeighbors(inEdges, outEdges []int) {
 	for i := 0; i < len(inEdges); i++ {
 		temp := inEdges[i]
-		graph.Vertices[temp].delNeighbors++
+		graph.Vertices[temp].deletedNeighbors++
 	}
 	for i := 0; i < len(outEdges); i++ {
 		temp := outEdges[i]
-		graph.Vertices[temp].delNeighbors++
+		graph.Vertices[temp].deletedNeighbors++
 	}
 }
 

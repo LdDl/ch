@@ -38,10 +38,10 @@ func (graph *Graph) CreateVertex(label int) error {
 		return ErrGraphIsFrozen
 	}
 	v := &Vertex{
-		Label:        label,
-		delNeighbors: 0,
-		distance:     NewDistance(),
-		contracted:   false,
+		Label:            label,
+		deletedNeighbors: 0,
+		distance:         NewDistance(),
+		contracted:       false,
 	}
 	if graph.mapping == nil {
 		graph.mapping = make(map[int]int)
@@ -68,11 +68,11 @@ func (graph *Graph) AddVertex(labelExternal, labelInternal int) error {
 		return ErrGraphIsFrozen
 	}
 	v := &Vertex{
-		Label:        labelExternal,
-		delNeighbors: 0,
-		distance:     NewDistance(),
-		contracted:   true,
-		vertexNum:    labelInternal,
+		Label:            labelExternal,
+		deletedNeighbors: 0,
+		distance:         NewDistance(),
+		contracted:       true,
+		vertexNum:        labelInternal,
 	}
 	if graph.mapping == nil {
 		graph.mapping = make(map[int]int)
@@ -151,9 +151,9 @@ func (graph *Graph) computeImportance() {
 	graph.pqImportance = &importanceHeap{}
 	heap.Init(graph.pqImportance)
 	for i := 0; i < len(graph.Vertices); i++ {
-		graph.Vertices[i].edgeDiff = len(graph.Vertices[i].inEdges)*len(graph.Vertices[i].outEdges) - len(graph.Vertices[i].inEdges) - len(graph.Vertices[i].outEdges)
 		graph.Vertices[i].shortcutCover = len(graph.Vertices[i].inEdges) + len(graph.Vertices[i].outEdges)
-		graph.Vertices[i].importance = graph.Vertices[i].edgeDiff*14 + graph.Vertices[i].shortcutCover*25 + graph.Vertices[i].delNeighbors*10
+		graph.Vertices[i].edgeDiff = len(graph.Vertices[i].inEdges)*len(graph.Vertices[i].outEdges) - graph.Vertices[i].shortcutCover
+		graph.Vertices[i].importance = graph.Vertices[i].edgeDiff + graph.Vertices[i].shortcutCover + graph.Vertices[i].deletedNeighbors
 		heap.Push(graph.pqImportance, graph.Vertices[i])
 	}
 	graph.Freeze()
