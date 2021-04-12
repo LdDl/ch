@@ -13,10 +13,10 @@ import (
 // source User's definied ID of source vertex
 // target User's definied ID of target vertex
 //
-func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
+func (graph *Graph) ShortestPath(source, target int) (float64, []int) {
 
 	if source == target {
-		return 0, []int64{source}
+		return 0, []int{source}
 	}
 	ok := true
 
@@ -27,8 +27,8 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 		return -1.0, nil
 	}
 
-	prev := make(map[int64]int64)
-	prevReverse := make(map[int64]int64)
+	prev := make(map[int]int)
+	prevReverse := make(map[int]int)
 
 	queryDist := make([]float64, len(graph.Vertices), len(graph.Vertices))
 	revDistance := make([]float64, len(graph.Vertices), len(graph.Vertices))
@@ -69,7 +69,7 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 
 	var iter int
 
-	var middleID int64
+	var middleID int
 
 	for forwQ.Len() != 0 || backwQ.Len() != 0 {
 		iter++
@@ -111,7 +111,7 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 }
 
 // ComputePath Returns slice of IDs (user defined) of computed path
-func (graph *Graph) ComputePath(middleID int64, prevF, prevR map[int64]int64) []int64 {
+func (graph *Graph) ComputePath(middleID int, prevF, prevR map[int]int) []int {
 	l := list.New()
 	l.PushBack(middleID)
 	u := middleID
@@ -135,16 +135,16 @@ func (graph *Graph) ComputePath(middleID int64, prevF, prevR map[int64]int64) []
 	for ok {
 		ok = false
 		for e := l.Front(); e.Next() != nil; e = e.Next() {
-			if contractedNode, ok2 := graph.shortcuts[e.Value.(int64)][e.Next().Value.(int64)]; ok2 {
+			if contractedNode, ok2 := graph.shortcuts[e.Value.(int)][e.Next().Value.(int)]; ok2 {
 				ok = true
 				l.InsertAfter(contractedNode.ViaVertex, e)
 			}
 		}
 	}
 
-	var path []int64
+	var path []int
 	for e := l.Front(); e != nil; e = e.Next() {
-		path = append(path, graph.Vertices[e.Value.(int64)].Label)
+		path = append(path, graph.Vertices[e.Value.(int)].Label)
 	}
 
 	return path

@@ -5,8 +5,8 @@ import (
 )
 
 // Preprocess Computes contraction hierarchies and returns node ordering
-func (graph *Graph) Preprocess() []int64 {
-	nodeOrdering := make([]int64, len(graph.Vertices))
+func (graph *Graph) Preprocess() []int {
+	nodeOrdering := make([]int, len(graph.Vertices))
 	var extractNum int
 	var iter int
 	for graph.pqImportance.Len() != 0 {
@@ -20,7 +20,7 @@ func (graph *Graph) Preprocess() []int64 {
 		nodeOrdering[extractNum] = vertex.vertexNum
 		vertex.orderPos = extractNum
 		extractNum = extractNum + 1
-		graph.contractNode(vertex, int64(extractNum-1))
+		graph.contractNode(vertex, int(extractNum-1))
 		// fmt.Printf(
 		// 	"Contraction of vertex: %v (label %v, order %v, dist %v) | Contraction ID: %v (%v) | Done %v / %v | HeapLength: %v\n",
 		// 	vertex.vertexNum, vertex.Label, vertex.orderPos, vertex.distance.distance, vertex.distance.contractID, vertex.distance.sourceID, iter, len(graph.Vertices), graph.pqImportance.Len(),
@@ -34,7 +34,7 @@ func (graph *Graph) Preprocess() []int64 {
 // inEdges Incoming edges from vertex
 // outEdges Outcoming edges from vertex
 //
-func (graph *Graph) callNeighbors(inEdges, outEdges []int64) {
+func (graph *Graph) callNeighbors(inEdges, outEdges []int) {
 	for i := 0; i < len(inEdges); i++ {
 		temp := inEdges[i]
 		graph.Vertices[temp].delNeighbors++
@@ -51,7 +51,7 @@ func (graph *Graph) callNeighbors(inEdges, outEdges []int64) {
 // Cost - summary cost of path between two vertices
 //
 type ShortcutInfo struct {
-	ViaVertex int64
+	ViaVertex int
 	Cost      float64
 }
 
@@ -60,7 +60,7 @@ type ShortcutInfo struct {
 // vertex Vertex to be contracted
 // contractID ID of contraction
 //
-func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
+func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 	inEdges := vertex.inEdges
 	inECost := vertex.inECost
 	outEdges := vertex.outEdges
@@ -99,7 +99,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 			continue
 		}
 		incost := inECost[i]
-		graph.dijkstra(inVertex, max, contractID, int64(i)) //finds the shortest distances from the inVertex to all the outVertices.
+		graph.dijkstra(inVertex, max, contractID, int(i)) //finds the shortest distances from the inVertex to all the outVertices.
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j]
 			outcost := outECost[j]
@@ -107,9 +107,9 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 				continue
 			}
 			summaryCost := incost + outcost
-			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int64(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
+			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
 				if _, ok := graph.shortcuts[inVertex]; !ok {
-					graph.shortcuts[inVertex] = make(map[int64]*ShortcutInfo)
+					graph.shortcuts[inVertex] = make(map[int]*ShortcutInfo)
 					graph.shortcuts[inVertex][outVertex] = &ShortcutInfo{
 						ViaVertex: vertex.vertexNum,
 						Cost:      summaryCost,

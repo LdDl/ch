@@ -14,10 +14,10 @@ import (
 // target User's definied ID of target vertex
 //
 // https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
-func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64) {
+func (graph *Graph) VanillaShortestPath(source, target int) (float64, []int) {
 
 	if source == target {
-		return 0, []int64{source}
+		return 0, []int{source}
 	}
 	ok := true
 
@@ -34,11 +34,11 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 	Q := &minheapSTD{}
 
 	// dist[source] ← 0
-	distance := make(map[int64]float64, len(graph.Vertices))
+	distance := make(map[int]float64, len(graph.Vertices))
 	distance[source] = 0
 
 	// prev[v] ← UNDEFINED
-	prev := make(map[int64]int64, len(graph.Vertices))
+	prev := make(map[int]int, len(graph.Vertices))
 	// for each vertex v in Graph:
 	for i := range graph.Vertices {
 		// if v ≠ source:
@@ -70,7 +70,7 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 			neighbor := vertexList[v]
 			if v1, ok1 := graph.shortcuts[u.id]; ok1 {
 				if _, ok2 := v1[neighbor]; ok2 {
-					// Ignore contract
+					// Ignore shortuct
 					continue
 				}
 			}
@@ -92,10 +92,10 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 	}
 
 	if distance[target] == math.MaxFloat64 {
-		return -1, []int64{}
+		return -1, []int{}
 	}
 	// path = []
-	var path []int64
+	var path []int
 	// u = target
 	u := target
 
@@ -105,7 +105,7 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 			break
 		}
 		// path.push_front(u)
-		temp := make([]int64, len(path)+1)
+		temp := make([]int, len(path)+1)
 		temp[0] = u
 		copy(temp[1:], path)
 		path = temp
@@ -114,12 +114,12 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 		u = prev[u]
 	}
 
-	temp := make([]int64, len(path)+1)
+	temp := make([]int, len(path)+1)
 	temp[0] = source
 	copy(temp[1:], path)
 	path = temp
 
-	usersLabelsPath := make([]int64, len(path))
+	usersLabelsPath := make([]int, len(path))
 	for e := 0; e < len(usersLabelsPath); e++ {
 		usersLabelsPath[e] = graph.Vertices[path[e]].Label
 	}

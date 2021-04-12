@@ -8,8 +8,8 @@ func TestVanillaShortestPath(t *testing.T) {
 	g := Graph{}
 	graphFromCSV(&g, "data/pgrouting_osm.csv")
 	t.Log("TestShortestPath is starting...")
-	u := int64(69618)
-	v := int64(5924)
+	u := int(69618)
+	v := int(5924)
 	ans, path := g.VanillaShortestPath(u, v)
 	if len(path) != 160 {
 		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
@@ -24,7 +24,7 @@ func TestVanillaShortestPath(t *testing.T) {
 
 func Round(x, unit float64) float64 {
 	if x > 0 {
-		return float64(int64(x/unit+0.5)) * unit
+		return float64(int(x/unit+0.5)) * unit
 	}
-	return float64(int64(x/unit-0.5)) * unit
+	return float64(int(x/unit-0.5)) * unit
 }

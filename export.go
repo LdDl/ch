@@ -10,24 +10,24 @@ import (
 
 // ExportToFile Exports graph to file of CSV-format
 // Header of edges CSV-file:
-// 		from_vertex_id - int64, ID of source vertex
-// 		to_vertex_id - int64, ID of target vertex
-// 		f_internal - int64, Internal ID of source vertex
-// 		t_internal - int64, Internal ID of target vertex
+// 		from_vertex_id - int, ID of source vertex
+// 		to_vertex_id - int, ID of target vertex
+// 		f_internal - int, Internal ID of source vertex
+// 		t_internal - int, Internal ID of target vertex
 // 		weight - float64, Weight of an edge
 // Header of vertices CSV-file:
-// 		vertex_id - int64, ID of vertex
-// 		internal_id - int64, Internal ID of vertex
+// 		vertex_id - int, ID of vertex
+// 		internal_id - int, Internal ID of vertex
 // 		order_pos - int, Position of vertex in hierarchies (evaluted by library)
 // 		importance - int, Importance of vertex in graph (evaluted by library)
 // Header of contractios CSV-file:
-// 		from_vertex_id - int64, ID of source vertex
-// 		to_vertex_id - int64, ID of arget vertex
-// 		f_internal - int64, Internal ID of source vertex
-// 		t_internal - int64, Internal ID of target vertex
+// 		from_vertex_id - int, ID of source vertex
+// 		to_vertex_id - int, ID of arget vertex
+// 		f_internal - int, Internal ID of source vertex
+// 		t_internal - int, Internal ID of target vertex
 // 		weight - float64, Weight of an edge
-// 		via_vertex_id - int64, ID of vertex through which the contraction exists
-// 		v_internal - int64, Internal ID of vertex through which the contraction exists
+// 		via_vertex_id - int, ID of vertex through which the contraction exists
+// 		v_internal - int, Internal ID of vertex through which the contraction exists
 func (graph *Graph) ExportToFile(fname string) error {
 
 	fnamePart := strings.Split(fname, ".csv") // to guarantee proper filename and its extension

@@ -1,0 +1,8 @@
+goos: windows
+goarch: amd64
+pkg: github.com/LdDl/ch
+cpu: Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1/vertices-187853-8         	     100	  10828585 ns/op	 6699832 B/op	   14449 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2/vertices-187853-8         	     100	  11105904 ns/op	 6699797 B/op	   14449 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4/vertices-187853-8         	exit status 3221225786
+FAIL	github.com/LdDl/ch	14.441s

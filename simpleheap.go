@@ -1,7 +1,7 @@
 package ch
 
 type simpleNode struct {
-	id          int64
+	id          int
 	queryDist   float64
 	revDistance float64
 }

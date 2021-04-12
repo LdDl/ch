@@ -5,7 +5,7 @@ import (
 )
 
 func TestIsochrones(t *testing.T) {
-	correctIsochrones := map[int64]float64{
+	correctIsochrones := map[int]float64{
 		5: 0.0,
 		3: 1.0,
 		4: 1.0,
@@ -55,7 +55,7 @@ func TestIsochrones(t *testing.T) {
 
 	graph.PrepareContracts() // This is excess in current example, but just for proof that contraction map isn't used.
 
-	sourceVertex := int64(5)
+	sourceVertex := int(5)
 	maxCost := 5.0
 	isochrones, err := graph.Isochrones(sourceVertex, maxCost)
 	if err != nil {

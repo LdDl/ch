@@ -11,8 +11,8 @@ func TestImportedFileShortestPath(t *testing.T) {
 		return
 	}
 	t.Log("TestImportedFileShortestPath is starting...")
-	u := int64(69618)
-	v := int64(5924)
+	u := int(69618)
+	v := int(5924)
 
 	correctNumContractions := 91757
 	correctNumVertices := 187853

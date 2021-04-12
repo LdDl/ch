@@ -12,24 +12,24 @@ import (
 
 // ImportFromFile Imports graph (prepared by ExportToFile(fname string) function) from file of CSV-format
 // Header of CSV-file containing information about edges:
-// 		from_vertex_id - int64, ID of source vertex
-// 		to_vertex_id - int64, ID of arget vertex
-// 		f_internal - int64, Internal ID of source vertex
-// 		t_internal - int64, Internal ID of target vertex
+// 		from_vertex_id - int, ID of source vertex
+// 		to_vertex_id - int, ID of arget vertex
+// 		f_internal - int, Internal ID of source vertex
+// 		t_internal - int, Internal ID of target vertex
 // 		weight - float64, Weight of an edge
 // Header of CSV-file containing information about vertices:
-// 		vertex_id - int64, ID of vertex
-// 		internal_id - int64, internal ID of target vertex
+// 		vertex_id - int, ID of vertex
+// 		internal_id - int, internal ID of target vertex
 // 		order_pos - int, Position of vertex in hierarchies (evaluted by library)
 // 		importance - int, Importance of vertex in graph (evaluted by library)
 // Header of CSV-file containing information about contractios between vertices:
-// 		from_vertex_id - int64, ID of source vertex
-// 		to_vertex_id - int64, ID of arget vertex
-// 		f_internal - int64, Internal ID of source vertex
-// 		t_internal - int64, Internal ID of target vertex
+// 		from_vertex_id - int, ID of source vertex
+// 		to_vertex_id - int, ID of arget vertex
+// 		f_internal - int, Internal ID of source vertex
+// 		t_internal - int, Internal ID of target vertex
 // 		weight - float64, Weight of an edge
-// 		via_vertex_id - int64, ID of vertex through which the contraction exists
-// 		v_internal - int64, Internal ID of vertex through which the contraction exists
+// 		via_vertex_id - int, ID of vertex through which the contraction exists
+// 		v_internal - int, Internal ID of vertex through which the contraction exists
 func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph, error) {
 	// Read edges first
 	file, err := os.Open(edgesFname)
@@ -53,20 +53,20 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 		if err == io.EOF {
 			break
 		}
-		sourceExternal, err := strconv.ParseInt(record[0], 10, 64)
+		sourceExternal, err := strconv.Atoi(record[0])
 		if err != nil {
 			return nil, err
 		}
-		targetExternal, err := strconv.ParseInt(record[1], 10, 64)
+		targetExternal, err := strconv.Atoi(record[1])
 		if err != nil {
 			return nil, err
 		}
 
-		sourceInternal, err := strconv.ParseInt(record[2], 10, 64)
+		sourceInternal, err := strconv.Atoi(record[2])
 		if err != nil {
 			return nil, err
 		}
-		targetInternal, err := strconv.ParseInt(record[3], 10, 64)
+		targetInternal, err := strconv.Atoi(record[3])
 		if err != nil {
 			return nil, err
 		}
@@ -111,11 +111,11 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 			break
 		}
 
-		vertexExternal, err := strconv.ParseInt(record[0], 10, 64)
+		vertexExternal, err := strconv.Atoi(record[0])
 		if err != nil {
 			return nil, err
 		}
-		vertexInternal, err := strconv.ParseInt(record[1], 10, 64)
+		vertexInternal, err := strconv.Atoi(record[1])
 		if err != nil {
 			return nil, err
 		}
@@ -153,20 +153,20 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 		if err == io.EOF {
 			break
 		}
-		sourceExternal, err := strconv.ParseInt(record[0], 10, 64)
+		sourceExternal, err := strconv.Atoi(record[0])
 		if err != nil {
 			return nil, err
 		}
-		targetExternal, err := strconv.ParseInt(record[1], 10, 64)
+		targetExternal, err := strconv.Atoi(record[1])
 		if err != nil {
 			return nil, err
 		}
 
-		sourceInternal, err := strconv.ParseInt(record[2], 10, 64)
+		sourceInternal, err := strconv.Atoi(record[2])
 		if err != nil {
 			return nil, err
 		}
-		targetInternal, err := strconv.ParseInt(record[3], 10, 64)
+		targetInternal, err := strconv.Atoi(record[3])
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +176,7 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 			return nil, err
 		}
 
-		contractionInternal, err := strconv.ParseInt(record[6], 10, 64)
+		contractionInternal, err := strconv.Atoi(record[6])
 		if err != nil {
 			return nil, err
 		}
@@ -186,7 +186,7 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 			return nil, errors.Wrap(err, fmt.Sprintf("Can't add edge with source_internal_ID = '%d' and target_internal_ID = '%d'", sourceExternal, targetExternal))
 		}
 		if _, ok := graph.shortcuts[sourceInternal]; !ok {
-			graph.shortcuts[sourceInternal] = make(map[int64]*ShortcutInfo)
+			graph.shortcuts[sourceInternal] = make(map[int]*ShortcutInfo)
 			graph.shortcuts[sourceInternal][targetInternal] = &ShortcutInfo{
 				ViaVertex: contractionInternal,
 				Cost:      weight,
@@ -225,15 +225,15 @@ func (g *Graph) ImportRestrictionsFromFile(fname string) error {
 		if err == io.EOF {
 			break
 		}
-		sourceExternal, err := strconv.ParseInt(record[0], 10, 64)
+		sourceExternal, err := strconv.Atoi(record[0])
 		if err != nil {
 			return err
 		}
-		viaExternal, err := strconv.ParseInt(record[1], 10, 64)
+		viaExternal, err := strconv.Atoi(record[1])
 		if err != nil {
 			return err
 		}
-		targetExternal, err := strconv.ParseInt(record[2], 10, 64)
+		targetExternal, err := strconv.Atoi(record[2])
 		if err != nil {
 			return err
 		}

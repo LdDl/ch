@@ -6,12 +6,12 @@ import (
 
 // Vertex All information about vertex
 type Vertex struct {
-	vertexNum int64
-	Label     int64
+	vertexNum int
+	Label     int
 
-	inEdges  []int64
+	inEdges  []int
 	inECost  []float64
-	outEdges []int64
+	outEdges []int
 	outECost []float64
 
 	orderPos      int
@@ -44,7 +44,7 @@ func (vertex *Vertex) SetImportance(importance int) {
 }
 
 // MakeVertex Create vertex with label
-func MakeVertex(label int64) *Vertex {
+func MakeVertex(label int) *Vertex {
 	return &Vertex{
 		Label:        label,
 		delNeighbors: 0,
@@ -54,7 +54,7 @@ func MakeVertex(label int64) *Vertex {
 }
 
 // NewVertex Create vertex with vertex number
-func NewVertex(vertexNum int64) *Vertex {
+func NewVertex(vertexNum int) *Vertex {
 	return &Vertex{
 		vertexNum:    vertexNum,
 		delNeighbors: 0,
@@ -72,8 +72,8 @@ func (vertex *Vertex) computeImportance() {
 
 // Distance Information about contraction between source vertex and contraction vertex
 type Distance struct {
-	contractID  int64
-	sourceID    int64
+	contractID  int
+	sourceID    int
 	distance    float64
 	queryDist   float64
 	revDistance float64

@@ -19,12 +19,12 @@ type Graph struct {
 	pqImportance *importanceHeap
 	pqComparator *distanceHeap
 
-	mapping      map[int64]int64
+	mapping      map[int]int
 	Vertices     []*Vertex
-	nodeOrdering []int64
+	nodeOrdering []int
 
-	shortcuts    map[int64]map[int64]*ShortcutInfo
-	restrictions map[int64]map[int64]int64
+	shortcuts    map[int]map[int]*ShortcutInfo
+	restrictions map[int]map[int]int
 
 	frozen bool
 }
@@ -33,7 +33,7 @@ type Graph struct {
 //
 // label User's definied ID of vertex
 //
-func (graph *Graph) CreateVertex(label int64) error {
+func (graph *Graph) CreateVertex(label int) error {
 	if graph.frozen {
 		return ErrGraphIsFrozen
 	}
@@ -44,14 +44,14 @@ func (graph *Graph) CreateVertex(label int64) error {
 		contracted:   false,
 	}
 	if graph.mapping == nil {
-		graph.mapping = make(map[int64]int64)
+		graph.mapping = make(map[int]int)
 	}
 	if graph.shortcuts == nil {
-		graph.shortcuts = make(map[int64]map[int64]*ShortcutInfo)
+		graph.shortcuts = make(map[int]map[int]*ShortcutInfo)
 	}
 
 	if _, ok := graph.mapping[label]; !ok {
-		v.vertexNum = int64(len(graph.Vertices))
+		v.vertexNum = int(len(graph.Vertices))
 		graph.mapping[label] = v.vertexNum
 		graph.Vertices = append(graph.Vertices, v)
 	}
@@ -63,7 +63,7 @@ func (graph *Graph) CreateVertex(label int64) error {
 // labelExternal User's definied ID of vertex
 // labelInternal internal ID of vertex
 //
-func (graph *Graph) AddVertex(labelExternal, labelInternal int64) error {
+func (graph *Graph) AddVertex(labelExternal, labelInternal int) error {
 	if graph.frozen {
 		return ErrGraphIsFrozen
 	}
@@ -75,18 +75,18 @@ func (graph *Graph) AddVertex(labelExternal, labelInternal int64) error {
 		vertexNum:    labelInternal,
 	}
 	if graph.mapping == nil {
-		graph.mapping = make(map[int64]int64)
+		graph.mapping = make(map[int]int)
 	}
 	if graph.shortcuts == nil {
-		graph.shortcuts = make(map[int64]map[int64]*ShortcutInfo)
+		graph.shortcuts = make(map[int]map[int]*ShortcutInfo)
 	}
 
 	if _, ok := graph.mapping[labelExternal]; !ok {
 		graph.mapping[labelExternal] = labelInternal
-		if labelInternal < int64(len(graph.Vertices)) {
+		if labelInternal < int(len(graph.Vertices)) {
 			graph.Vertices[labelInternal] = v
 		} else {
-			diff := labelInternal - int64(len(graph.Vertices)) + 1
+			diff := labelInternal - int(len(graph.Vertices)) + 1
 			empty := make([]*Vertex, diff)
 			graph.Vertices = append(graph.Vertices, empty...)
 			graph.Vertices[labelInternal] = v
@@ -101,7 +101,7 @@ func (graph *Graph) AddVertex(labelExternal, labelInternal int64) error {
 // to User's definied ID of last vertex of edge
 // weight User's definied weight of edge
 //
-func (graph *Graph) AddEdge(from, to int64, weight float64) error {
+func (graph *Graph) AddEdge(from, to int, weight float64) error {
 	if graph.frozen {
 		return ErrGraphIsFrozen
 	}
@@ -123,7 +123,7 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 // via User's definied ID of prohibited vertex (between source and target)
 // to User's definied ID of target vertex
 //
-func (graph *Graph) AddTurnRestriction(from, via, to int64) error {
+func (graph *Graph) AddTurnRestriction(from, via, to int) error {
 	if graph.frozen {
 		return ErrGraphIsFrozen
 	}
@@ -133,11 +133,11 @@ func (graph *Graph) AddTurnRestriction(from, via, to int64) error {
 	to = graph.mapping[to]
 
 	if graph.restrictions == nil {
-		graph.restrictions = make(map[int64]map[int64]int64)
+		graph.restrictions = make(map[int]map[int]int)
 	}
 
 	if _, ok := graph.restrictions[from]; !ok {
-		graph.restrictions[from] = make(map[int64]int64)
+		graph.restrictions[from] = make(map[int]int)
 		if _, ok := graph.restrictions[from][via]; ok {
 			log.Printf("Warning: Please notice, library supports only one 'from-via' relation currently. From %d Via %d\n", from, via)
 		}
