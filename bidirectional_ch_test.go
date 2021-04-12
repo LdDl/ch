@@ -21,7 +21,7 @@ func TestShortestPath(t *testing.T) {
 		return
 	}
 	t.Log("Please wait until contraction hierarchy is prepared")
-	g.PrepareContracts()
+	g.PrepareContractionHierarchies()
 	t.Log("TestShortestPath is starting...")
 	u := int(69618)
 	v := int(5924)
@@ -46,7 +46,7 @@ func TestBothVanillaAndCH(t *testing.T) {
 		return
 	}
 	t.Log("Please wait until contraction hierarchy is prepared")
-	g.PrepareContracts()
+	g.PrepareContractionHierarchies()
 	t.Log("TestAndSHVanPath is starting...")
 
 	rand.Seed(time.Now().Unix())
@@ -74,7 +74,7 @@ func BenchmarkShortestPath(b *testing.B) {
 		b.Error(err)
 	}
 	b.Log("Please wait until contraction hierarchy is prepared")
-	g.PrepareContracts()
+	g.PrepareContractionHierarchies()
 	b.Log("BenchmarkShortestPath is starting...")
 	b.ResetTimer()
 
@@ -91,7 +91,7 @@ func BenchmarkShortestPath(b *testing.B) {
 	}
 }
 
-func BenchmarkPrepareContracts(b *testing.B) {
+func BenchmarkPrepareContractionHierarchies(b *testing.B) {
 	g := Graph{}
 	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
 	if err != nil {
@@ -99,7 +99,7 @@ func BenchmarkPrepareContracts(b *testing.B) {
 		return
 	}
 	b.ResetTimer()
-	g.PrepareContracts()
+	g.PrepareContractionHierarchies()
 }
 
 func graphFromCSV(graph *Graph, fname string) error {

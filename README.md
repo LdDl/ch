@@ -75,7 +75,7 @@ And then you are good to go
     ```go
     g := Graph{} // Prepare variable for storing graph
     graphFromCSV(&g, "data/pgrouting_osm.csv") // Import CSV-file file into programm
-    g.PrepareContracts() // Compute contraction hierarchies
+    g.PrepareContractionHierarchies() // Compute contraction hierarchies
     u := 144031 // Define source vertex
     v := 452090 // Define target vertex
     ans, path := g.ShortestPath(u, v) // Get shortest path and it's cost between source and target vertex
