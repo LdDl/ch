@@ -67,7 +67,7 @@ func NewVertex(vertexNum int) *Vertex {
 func (vertex *Vertex) computeImportance() {
 	vertex.edgeDiff = len(vertex.inEdges)*len(vertex.outEdges) - len(vertex.inEdges) - len(vertex.outEdges)
 	vertex.shortcutCover = len(vertex.inEdges) + len(vertex.outEdges)
-	vertex.importance = vertex.edgeDiff*14 + vertex.shortcutCover*25 + vertex.deletedNeighbors*10
+	vertex.importance = vertex.edgeDiff + vertex.shortcutCover + vertex.deletedNeighbors
 }
 
 // Distance Information about contraction between source vertex and contraction vertex
