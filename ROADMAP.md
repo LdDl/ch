@@ -11,7 +11,7 @@ New ideas, thought about needed features will be store in this file.
     * Bring OSM parser **Excluded**
     * Bring OSM restrictions **Excluded**
     * OneTwoMany function (contraction hierarchies) **Done, may be some bench comparisons**
-    * Replace int with int (OSM purposes) **Done**
+    * Replace int with int64 (OSM purposes) **NOT NEEDED FOR NOW DUE NATURE OF INT**
     * Separate benchmarks to BENCHMARK.md **Done**
     * Better CSV format or another format (JSON / binary). **W.I.P. Splitting single file to multiple**
 
