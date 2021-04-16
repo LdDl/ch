@@ -18,21 +18,21 @@ func TestIsochrones(t *testing.T) {
 	graph := Graph{}
 
 	vertices := []V{
-		V{from: 5, to: 3, weight: 1.0},
-		V{from: 5, to: 4, weight: 1.0},
-		V{from: 5, to: 6, weight: 1.0},
-		V{from: 5, to: 7, weight: 2.0},
-		V{from: 3, to: 7, weight: 2.0},
-		V{from: 6, to: 9, weight: 1.0},
-		V{from: 7, to: 8, weight: 4.0},
-		V{from: 7, to: 3, weight: 2.0},
-		V{from: 9, to: 8, weight: 2.0},
-		V{from: 8, to: 10, weight: 3.0},
-		V{from: 3, to: 1, weight: 2.0},
-		V{from: 1, to: 2, weight: 3.0},
-		V{from: 4, to: 11, weight: 7.0},
-		V{from: 11, to: 2, weight: 2.0},
-		V{from: 2, to: 11, weight: 2.0},
+		{from: 5, to: 3, weight: 1.0},
+		{from: 5, to: 4, weight: 1.0},
+		{from: 5, to: 6, weight: 1.0},
+		{from: 5, to: 7, weight: 2.0},
+		{from: 3, to: 7, weight: 2.0},
+		{from: 6, to: 9, weight: 1.0},
+		{from: 7, to: 8, weight: 4.0},
+		{from: 7, to: 3, weight: 2.0},
+		{from: 9, to: 8, weight: 2.0},
+		{from: 8, to: 10, weight: 3.0},
+		{from: 3, to: 1, weight: 2.0},
+		{from: 1, to: 2, weight: 3.0},
+		{from: 4, to: 11, weight: 7.0},
+		{from: 11, to: 2, weight: 2.0},
+		{from: 2, to: 11, weight: 2.0},
 	}
 
 	for i := range vertices {

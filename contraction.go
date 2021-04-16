@@ -11,16 +11,50 @@ func (graph *Graph) Preprocess() []int {
 	var iter int
 	for graph.pqImportance.Len() != 0 {
 		iter++
+		// Lazy update heuristc
+		// update Importance of vertex "on demand" as follows:
+		// Before contracting vertex with currently smallest Importance, recompute its Importance and see if it is still the smallest
+		// If not pick next smallest one, recompute its Importance and see if that is the smallest now; If not, continue in same way ...
+
 		vertex := heap.Pop(graph.pqImportance).(*Vertex)
 		vertex.computeImportance()
 		if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().(*Vertex).importance {
 			graph.pqImportance.Push(vertex)
 			continue
 		}
+
 		nodeOrdering[extractNum] = vertex.vertexNum
 		vertex.orderPos = extractNum
 		extractNum = extractNum + 1
 		graph.contractNode(vertex, int(extractNum-1))
+
+		// Neighbours only heuristic:
+		// After each contraction, recompute Importance, but only for the neighbours of the contracted node
+		// for i := 0; i < len(vertex.inEdges); i++ {
+		// 	inVertex := vertex.inEdges[i]
+		// 	if !graph.Vertices[inVertex].contracted {
+		// 		graph.Vertices[inVertex].computeImportance(graph)
+		// 	}
+		// }
+		// for i := 0; i < len(vertex.outEdges); i++ {
+		// 	outVertex := vertex.outEdges[i]
+		// 	if !graph.Vertices[outVertex].contracted {
+		// 		graph.Vertices[outVertex].computeImportance(graph)
+		// 	}
+		// }
+
+		// Periodic update heuristic: Full recomputation every x rounds
+		// if iter > 0 && graph.pqImportance.Len()%10000 == 0 {
+		// 	for i := 0; i < len(graph.Vertices); i++ {
+		// 		if !graph.Vertices[i].contracted {
+		// 			graph.Vertices[i].computeImportance(graph)
+		// 		}
+		// 	}
+		// }
+
+		// if iter > 0 && graph.pqImportance.Len()%1000 == 0 {
+		// fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect contractions: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), len(graph.shortcuts), time.Now())
+		// }
 	}
 	return nodeOrdering
 }
@@ -78,7 +112,6 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 	}
 
 	max := inMax + outMax
-
 	for i := 0; i < len(inEdges); i++ {
 		inVertex := inEdges[i]
 		if graph.Vertices[inVertex].contracted {

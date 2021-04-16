@@ -5,6 +5,11 @@ import (
 )
 
 // Vertex All information about vertex
+//
+//
+// shortcutCover Number of shortcuts that would have to be added if vertex were contracted
+// incidentEdges Number of edges incident to vertex
+//
 type Vertex struct {
 	vertexNum int
 	Label     int
@@ -20,6 +25,7 @@ type Vertex struct {
 	edgeDiff         int
 	deletedNeighbors int
 	shortcutCover    int
+	incidentEdges    int
 	importance       int
 }
 
@@ -65,9 +71,12 @@ func NewVertex(vertexNum int) *Vertex {
 
 // computeImportance Update importance of vertex
 func (vertex *Vertex) computeImportance() {
-	vertex.shortcutCover = len(vertex.inEdges) + len(vertex.outEdges)
-	vertex.edgeDiff = len(vertex.inEdges)*len(vertex.outEdges) - vertex.shortcutCover
-	vertex.importance = vertex.edgeDiff + vertex.shortcutCover + vertex.deletedNeighbors
+	vertex.shortcutCover = len(vertex.inEdges) * len(vertex.outEdges)
+	vertex.incidentEdges = len(vertex.inEdges) + len(vertex.outEdges)
+	vertex.edgeDiff = vertex.shortcutCover - vertex.incidentEdges
+	// Spatial diversity heuristic: for each node maintain a count of the number of neighbors that have already been contracted [vertex.deletedNeighbors], and add this to the Importance
+	// note: the more neighbours have already been contracted, the later this node will be contracted
+	vertex.importance = vertex.edgeDiff + vertex.deletedNeighbors
 }
 
 // Distance Information about contraction between source vertex and contraction vertex
