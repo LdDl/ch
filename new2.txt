@@ -1,0 +1,32 @@
+goos: windows
+goarch: amd64
+pkg: github.com/LdDl/ch
+cpu: Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1/vertices-187853-8         	     900	   1230246 ns/op	 6044681 B/op	     307 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2/vertices-187853-8         	     951	   1419096 ns/op	 6044690 B/op	     307 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4/vertices-187853-8         	     946	   1076205 ns/op	 6044679 B/op	     307 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/8/vertices-187853-8         	     979	   1239692 ns/op	 6044692 B/op	     307 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/16/vertices-187853-8        	     936	   1120196 ns/op	 6044698 B/op	     307 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/32/vertices-187853-8        	     981	   1466957 ns/op	 6044691 B/op	     307 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/64/vertices-187853-8        	     990	   1128495 ns/op	 6044686 B/op	     307 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/128/vertices-187853-8       	     981	   1022383 ns/op	 6044692 B/op	     307 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/256/vertices-187853-8       	    1060	   1051408 ns/op	 6044692 B/op	     307 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/512/vertices-187853-8       	    1004	   1065186 ns/op	 6044689 B/op	     307 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1024/vertices-187853-8      	    1002	   1001668 ns/op	 6044699 B/op	     307 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2048/vertices-187853-8      	    1194	   1019217 ns/op	 6044691 B/op	     307 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4096/vertices-187853-8      	    1065	    996667 ns/op	 6044700 B/op	     307 allocs/op
+BenchmarkShortestPath/CH_shortest_path/1/vertices-187853-8                                	    1225	    993584 ns/op	 3405217 B/op	     251 allocs/op
+BenchmarkShortestPath/CH_shortest_path/2/vertices-187853-8                                	    1180	    974544 ns/op	 3405214 B/op	     251 allocs/op
+BenchmarkShortestPath/CH_shortest_path/4/vertices-187853-8                                	    1222	   1022639 ns/op	 3405211 B/op	     251 allocs/op
+BenchmarkShortestPath/CH_shortest_path/8/vertices-187853-8                                	     960	   1051469 ns/op	 3405215 B/op	     251 allocs/op
+BenchmarkShortestPath/CH_shortest_path/16/vertices-187853-8                               	    1131	   1152080 ns/op	 3405216 B/op	     251 allocs/op
+BenchmarkShortestPath/CH_shortest_path/32/vertices-187853-8                               	    1054	   1054385 ns/op	 3405216 B/op	     251 allocs/op
+BenchmarkShortestPath/CH_shortest_path/64/vertices-187853-8                               	    1128	   1035366 ns/op	 3405219 B/op	     252 allocs/op
+BenchmarkShortestPath/CH_shortest_path/128/vertices-187853-8                              	     980	   1071807 ns/op	 3405210 B/op	     251 allocs/op
+BenchmarkShortestPath/CH_shortest_path/256/vertices-187853-8                              	    1036	   1105956 ns/op	 3405216 B/op	     251 allocs/op
+BenchmarkShortestPath/CH_shortest_path/512/vertices-187853-8                              	    1100	   1053093 ns/op	 3405220 B/op	     251 allocs/op
+BenchmarkShortestPath/CH_shortest_path/1024/vertices-187853-8                             	    1030	   1087362 ns/op	 3405224 B/op	     252 allocs/op
+BenchmarkShortestPath/CH_shortest_path/2048/vertices-187853-8                             	    1024	   1220097 ns/op	 3405213 B/op	     251 allocs/op
+BenchmarkShortestPath/CH_shortest_path/4096/vertices-187853-8                             	    1123	   1049038 ns/op	 3405208 B/op	     251 allocs/op
+PASS
+ok  	github.com/LdDl/ch	45.233s

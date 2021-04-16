@@ -14,7 +14,7 @@ func TestImportedFileShortestPath(t *testing.T) {
 	u := int(69618)
 	v := int(5924)
 
-	correctNumShortcuts := 91925
+	correctNumShortcuts := 25610
 	correctNumVertices := 187853
 	if len(g.shortcuts) != correctNumShortcuts {
 		t.Errorf("Number of contractions should be %d, but got %d", correctNumShortcuts, len(g.shortcuts))

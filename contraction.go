@@ -11,11 +11,10 @@ func (graph *Graph) Preprocess() []int {
 	var iter int
 	for graph.pqImportance.Len() != 0 {
 		iter++
-		// Lazy update heuristc
+		// Lazy update heuristic:
 		// update Importance of vertex "on demand" as follows:
 		// Before contracting vertex with currently smallest Importance, recompute its Importance and see if it is still the smallest
 		// If not pick next smallest one, recompute its Importance and see if that is the smallest now; If not, continue in same way ...
-
 		vertex := heap.Pop(graph.pqImportance).(*Vertex)
 		vertex.computeImportance()
 		if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().(*Vertex).importance {
@@ -53,7 +52,7 @@ func (graph *Graph) Preprocess() []int {
 		// }
 
 		// if iter > 0 && graph.pqImportance.Len()%1000 == 0 {
-		// fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect contractions: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), len(graph.shortcuts), time.Now())
+		// 	fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect contractions: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), len(graph.shortcuts), time.Now())
 		// }
 	}
 	return nodeOrdering
@@ -91,6 +90,9 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 	inMax := 0.0
 	outMax := 0.0
 
+	inMaxVertex := -1
+	outMaxVertex := -1
+
 	graph.markNeighbors(vertex.inEdges, vertex.outEdges)
 
 	for i := 0; i < len(inECost); i++ {
@@ -99,6 +101,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 		}
 		if inMax < inECost[i] {
 			inMax = inECost[i]
+			inMaxVertex = inEdges[i]
 		}
 	}
 
@@ -108,10 +111,16 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 		}
 		if outMax < outECost[i] {
 			outMax = outECost[i]
+			outMaxVertex = outEdges[i]
 		}
 	}
 
 	max := inMax + outMax
+	if inMaxVertex > 0 && outMaxVertex > 0 {
+		if inMaxVertex == outMaxVertex {
+			return
+		}
+	}
 	for i := 0; i < len(inEdges); i++ {
 		inVertex := inEdges[i]
 		if graph.Vertices[inVertex].contracted {
