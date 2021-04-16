@@ -27,6 +27,7 @@ func TestShortestPath(t *testing.T) {
 	v := int(5924)
 
 	ans, path := g.ShortestPath(u, v)
+	fmt.Println(ans, path)
 	if len(path) != 160 {
 		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
 		return

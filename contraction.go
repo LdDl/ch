@@ -2,6 +2,8 @@ package ch
 
 import (
 	"container/heap"
+	"fmt"
+	"time"
 )
 
 // Preprocess Computes contraction hierarchies and returns node ordering
@@ -32,13 +34,13 @@ func (graph *Graph) Preprocess() []int {
 		// for i := 0; i < len(vertex.inEdges); i++ {
 		// 	inVertex := vertex.inEdges[i]
 		// 	if !graph.Vertices[inVertex].contracted {
-		// 		graph.Vertices[inVertex].computeImportance(graph)
+		// 		graph.Vertices[inVertex].computeImportance()
 		// 	}
 		// }
 		// for i := 0; i < len(vertex.outEdges); i++ {
 		// 	outVertex := vertex.outEdges[i]
 		// 	if !graph.Vertices[outVertex].contracted {
-		// 		graph.Vertices[outVertex].computeImportance(graph)
+		// 		graph.Vertices[outVertex].computeImportance()
 		// 	}
 		// }
 
@@ -46,14 +48,14 @@ func (graph *Graph) Preprocess() []int {
 		// if iter > 0 && graph.pqImportance.Len()%10000 == 0 {
 		// 	for i := 0; i < len(graph.Vertices); i++ {
 		// 		if !graph.Vertices[i].contracted {
-		// 			graph.Vertices[i].computeImportance(graph)
+		// 			graph.Vertices[i].computeImportance()
 		// 		}
 		// 	}
 		// }
 
-		// if iter > 0 && graph.pqImportance.Len()%1000 == 0 {
-		// 	fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect contractions: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), len(graph.shortcuts), time.Now())
-		// }
+		if iter > 0 && graph.pqImportance.Len()%1000 == 0 {
+			fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect contractions: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), len(graph.shortcuts), time.Now())
+		}
 	}
 	return nodeOrdering
 }
@@ -121,6 +123,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 			return
 		}
 	}
+
 	for i := 0; i < len(inEdges); i++ {
 		inVertex := inEdges[i]
 		if graph.Vertices[inVertex].contracted {
@@ -130,6 +133,9 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 		graph.dijkstra(inVertex, max, contractID, int(i)) //finds the shortest distances from the inVertex to all the outVertices.
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j]
+			if inVertex == outVertex {
+				continue
+			}
 			outcost := outECost[j]
 			if graph.Vertices[outVertex].contracted {
 				continue
@@ -138,20 +144,21 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
 				if _, ok := graph.shortcuts[inVertex]; !ok {
 					graph.shortcuts[inVertex] = make(map[int]*ShortcutInfo)
-					graph.shortcuts[inVertex][outVertex] = &ShortcutInfo{
-						ViaVertex: vertex.vertexNum,
-						Cost:      summaryCost,
+				}
+				if viaVertex, ok := graph.shortcuts[inVertex][outVertex]; ok {
+					if viaVertex.Cost > summaryCost {
+						graph.shortcuts[inVertex][outVertex].Cost = summaryCost
 					}
 				} else {
 					graph.shortcuts[inVertex][outVertex] = &ShortcutInfo{
 						ViaVertex: vertex.vertexNum,
 						Cost:      summaryCost,
 					}
+					graph.Vertices[inVertex].outEdges = append(graph.Vertices[inVertex].outEdges, outVertex)
+					graph.Vertices[inVertex].outECost = append(graph.Vertices[inVertex].outECost, summaryCost)
+					graph.Vertices[outVertex].inEdges = append(graph.Vertices[outVertex].inEdges, inVertex)
+					graph.Vertices[outVertex].inECost = append(graph.Vertices[outVertex].inECost, summaryCost)
 				}
-				graph.Vertices[inVertex].outEdges = append(graph.Vertices[inVertex].outEdges, outVertex)
-				graph.Vertices[inVertex].outECost = append(graph.Vertices[inVertex].outECost, summaryCost)
-				graph.Vertices[outVertex].inEdges = append(graph.Vertices[outVertex].inEdges, inVertex)
-				graph.Vertices[outVertex].inECost = append(graph.Vertices[outVertex].inECost, summaryCost)
 			}
 		}
 	}
