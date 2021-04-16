@@ -65,8 +65,8 @@ func NewVertex(vertexNum int) *Vertex {
 
 // computeImportance Update importance of vertex
 func (vertex *Vertex) computeImportance() {
-	vertex.edgeDiff = len(vertex.inEdges)*len(vertex.outEdges) - len(vertex.inEdges) - len(vertex.outEdges)
 	vertex.shortcutCover = len(vertex.inEdges) + len(vertex.outEdges)
+	vertex.edgeDiff = len(vertex.inEdges)*len(vertex.outEdges) - vertex.shortcutCover
 	vertex.importance = vertex.edgeDiff + vertex.shortcutCover + vertex.deletedNeighbors
 }
 

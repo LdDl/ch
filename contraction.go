@@ -21,20 +21,16 @@ func (graph *Graph) Preprocess() []int {
 		vertex.orderPos = extractNum
 		extractNum = extractNum + 1
 		graph.contractNode(vertex, int(extractNum-1))
-		// fmt.Printf(
-		// 	"Contraction of vertex: %v (label %v, order %v, dist %v) | Contraction ID: %v (%v) | Done %v / %v | HeapLength: %v\n",
-		// 	vertex.vertexNum, vertex.Label, vertex.orderPos, vertex.distance.distance, vertex.distance.contractID, vertex.distance.sourceID, iter, len(graph.Vertices), graph.pqImportance.Len(),
-		// )
 	}
 	return nodeOrdering
 }
 
-// callNeighbors Saves uniformity (affects importance of vertex)
+// markNeighbors Saves uniformity (affects importance of vertex)
 //
 // inEdges Incoming edges from vertex
 // outEdges Outcoming edges from vertex
 //
-func (graph *Graph) callNeighbors(inEdges, outEdges []int) {
+func (graph *Graph) markNeighbors(inEdges, outEdges []int) {
 	for i := 0; i < len(inEdges); i++ {
 		temp := inEdges[i]
 		graph.Vertices[temp].deletedNeighbors++
@@ -61,7 +57,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 	inMax := 0.0
 	outMax := 0.0
 
-	graph.callNeighbors(vertex.inEdges, vertex.outEdges)
+	graph.markNeighbors(vertex.inEdges, vertex.outEdges)
 
 	for i := 0; i < len(inECost); i++ {
 		if graph.Vertices[inEdges[i]].contracted {
