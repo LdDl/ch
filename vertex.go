@@ -68,7 +68,7 @@ func (vertex *Vertex) computeImportance() {
 	vertex.importance = vertex.edgeDiff*14 + vertex.shortcutCover*25 + vertex.delNeighbors*10
 }
 
-// incidentEdge incident edge to correspondence
+// incidentEdge incident edge for certain vertex
 type incidentEdge struct {
 	vertexID int64
 	cost     float64
