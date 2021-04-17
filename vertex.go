@@ -12,13 +12,14 @@ type Vertex struct {
 	inIncidentEdges  []incidentEdge
 	outIncidentEdges []incidentEdge
 
-	orderPos      int
-	contracted    bool
-	distance      *Distance
-	edgeDiff      int
-	delNeighbors  int
-	shortcutCover int
-	importance    int
+	orderPos         int
+	contracted       bool
+	distance         *Distance
+	incidentEdgesNum int
+	edgeDiff         int
+	delNeighbors     int
+	shortcutCover    int
+	importance       int
 }
 
 // OrderPos Returns order position (in terms of contraction hierarchies) of vertex
@@ -63,9 +64,15 @@ func NewVertex(vertexNum int64) *Vertex {
 
 // computeImportance Update importance of vertex
 func (vertex *Vertex) computeImportance() {
-	vertex.edgeDiff = len(vertex.inIncidentEdges)*len(vertex.outIncidentEdges) - len(vertex.inIncidentEdges) - len(vertex.outIncidentEdges)
-	vertex.shortcutCover = len(vertex.inIncidentEdges) + len(vertex.outIncidentEdges)
-	vertex.importance = vertex.edgeDiff*14 + vertex.shortcutCover*25 + vertex.delNeighbors*10
+	// Worst possible shortcuts number throught the vertex is: NumWorstShortcuts = NumIncomingEdges*NumOutcomingEdges
+	vertex.shortcutCover = len(vertex.inIncidentEdges) * len(vertex.outIncidentEdges)
+	// Number of total incident edges is: NumIncomingEdges+NumOutcomingEdges
+	vertex.incidentEdgesNum = len(vertex.inIncidentEdges) + len(vertex.outIncidentEdges)
+	// Edge difference is between NumWorstShortcuts and TotalIncidentEdgesNum
+	vertex.edgeDiff = vertex.shortcutCover - vertex.incidentEdgesNum
+	// Spatial diversity heuristic: for each node maintain a count of the number of neighbors that have already been contracted [vertex.delNeighbors], and add this to the summary importance
+	// note: the more neighbours have already been contracted, the later this node will be contracted in further
+	vertex.importance = vertex.edgeDiff*14 + vertex.incidentEdgesNum*25 + vertex.delNeighbors*10
 }
 
 // incidentEdge incident edge for certain vertex
