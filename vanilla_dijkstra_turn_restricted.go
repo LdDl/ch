@@ -73,12 +73,11 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 			break
 		}
 
-		vertexList := graph.Vertices[u.id].outEdges
-		costList := graph.Vertices[u.id].outECost
+		vertexList := graph.Vertices[u.id].outIncidentEdges
 
 		// for each neighbor v of u:
 		for v := range vertexList {
-			neighbor := vertexList[v]
+			neighbor := vertexList[v].vertexID
 			if v1, ok1 := graph.contracts[u.id]; ok1 {
 				if _, ok2 := v1[neighbor]; ok2 {
 					// Ignore contract
@@ -90,7 +89,7 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 				distance[u.id] = math.MaxFloat64
 				continue
 			}
-			cost := costList[v]
+			cost := vertexList[v].cost
 			// alt ← dist[u] + length(u, v)
 			alt := distance[u.id] + cost
 			// if alt < dist[v]

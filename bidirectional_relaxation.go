@@ -6,11 +6,10 @@ import (
 
 // relaxEdgesBiForward Edge relaxation in a forward propagation
 func (graph *Graph) relaxEdgesBiForward(vertex *simpleNode, forwQ *forwardPropagationHeap, prev map[int64]int64, queryDist []float64) {
-	vertexList := graph.Vertices[vertex.id].outEdges
-	costList := graph.Vertices[vertex.id].outECost
+	vertexList := graph.Vertices[vertex.id].outIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
-		temp := vertexList[i]
-		cost := costList[i]
+		temp := vertexList[i].vertexID
+		cost := vertexList[i].cost
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
 			alt := queryDist[vertex.id] + cost
 			if queryDist[temp] > alt {
