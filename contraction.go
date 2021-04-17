@@ -11,20 +11,22 @@ func (graph *Graph) Preprocess() []int64 {
 	var iter int
 	for graph.pqImportance.Len() != 0 {
 		iter++
+
+		// Lazy update heuristic:
+		// update Importance of vertex "on demand" as follows:
+		// Before contracting vertex with currently smallest Importance, recompute its Importance and see if it is still the smallest
+		// If not pick next smallest one, recompute its Importance and see if that is the smallest now; If not, continue in same way ...
 		vertex := heap.Pop(graph.pqImportance).(*Vertex)
 		vertex.computeImportance()
 		if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().(*Vertex).importance {
 			graph.pqImportance.Push(vertex)
 			continue
 		}
+
 		nodeOrdering[extractNum] = vertex.vertexNum
 		vertex.orderPos = extractNum
 		extractNum = extractNum + 1
 		graph.contractNode(vertex, int64(extractNum-1))
-		// fmt.Printf(
-		// 	"Contraction of vertex: %v (label %v, order %v, dist %v) | Contraction ID: %v (%v) | Done %v / %v | HeapLength: %v\n",
-		// 	vertex.vertexNum, vertex.Label, vertex.orderPos, vertex.distance.distance, vertex.distance.contractID, vertex.distance.sourceID, iter, len(graph.Vertices), graph.pqImportance.Len(),
-		// )
 	}
 	return nodeOrdering
 }
