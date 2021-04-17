@@ -68,6 +68,36 @@ func TestBothVanillaAndCH(t *testing.T) {
 	t.Log("TestAndSHVanPath is Ok!")
 }
 
+func TestBadSpatialShortestPath(t *testing.T) {
+	rand.Seed(1337)
+	g := Graph{}
+	numVertices := 50000
+	lastVertex := numVertices + 1
+	for i := 0; i < numVertices; i++ {
+		g.CreateVertex(i + 1)
+		g.CreateVertex(i + 2)
+		g.AddEdge(i+1, i+2, rand.Float64())
+	}
+	g.AddEdge(lastVertex, 1, rand.Float64())
+	t.Log("Please wait until contraction hierarchy is prepared")
+	g.PrepareContractionHierarchies()
+	t.Log("TestShortestPath is starting...")
+	u := int(1)
+	v := int(50000)
+
+	ans, path := g.ShortestPath(u, v)
+	fmt.Println(ans)
+	if len(path) != 50000 {
+		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
+		return
+	}
+	if Round(ans, 0.00005) != Round(25030.974746, 0.00005) {
+		t.Errorf("Length of path should be 25030.974746, but got %f", ans)
+		return
+	}
+	t.Log("TestShortestPath is Ok!")
+}
+
 func BenchmarkShortestPath(b *testing.B) {
 	g := Graph{}
 	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")

@@ -2,6 +2,8 @@ package ch
 
 import (
 	"container/heap"
+	"fmt"
+	"time"
 )
 
 // Preprocess Computes contraction hierarchies and returns node ordering
@@ -51,9 +53,9 @@ func (graph *Graph) Preprocess() []int {
 		// 	}
 		// }
 
-		// if iter > 0 && graph.pqImportance.Len()%1000 == 0 {
-		// 	fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect contractions: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), len(graph.shortcuts), time.Now())
-		// }
+		if iter > 0 && graph.pqImportance.Len()%1000 == 0 {
+			fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect contractions: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), graph.shortucsNum(), time.Now())
+		}
 	}
 	return nodeOrdering
 }
@@ -91,7 +93,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 	outMax := 0.0
 
 	inMaxVertex := -1
-	outMaxVertex := -1
+	// outMaxVertex := -1
 
 	graph.markNeighbors(vertex.inEdges, vertex.outEdges)
 
@@ -109,18 +111,18 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 		if graph.Vertices[outEdges[i]].contracted {
 			continue
 		}
-		if outMax < outECost[i] {
+		if outMax < outECost[i] && outEdges[i] != inMaxVertex {
 			outMax = outECost[i]
-			outMaxVertex = outEdges[i]
+			// outMaxVertex = outEdges[i]
 		}
 	}
 
 	max := inMax + outMax
-	if inMaxVertex > 0 && outMaxVertex > 0 {
-		if inMaxVertex == outMaxVertex {
-			// return
-		}
-	}
+	// if inMaxVertex > 0 && outMaxVertex > 0 {
+	// 	if inMaxVertex == outMaxVertex {
+	// 		return
+	// 	}
+	// }
 
 	for i := 0; i < len(inEdges); i++ {
 		inVertex := inEdges[i]
@@ -128,7 +130,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 			continue
 		}
 		incost := inECost[i]
-		// graph.dijkstra(inVertex, max, contractID, int(i)) //finds the shortest distances from the inVertex to all the outVertices.
+		graph.dijkstra(inVertex, max, contractID, int(i)) //finds the shortest distances from the inVertex to all the outVertices.
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j]
 			if inVertex == outVertex {
@@ -139,7 +141,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int) {
 				continue
 			}
 			summaryCost := incost + outcost
-			graph.dijkstraSourceTarget(inVertex, outVertex, max, contractID, int(i))
+			// graph.dijkstraSourceTarget(inVertex, outVertex, max, contractID, int(i))
 			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
 				if _, ok := graph.shortcuts[inVertex]; !ok {
 					graph.shortcuts[inVertex] = make(map[int]*ShortcutInfo)

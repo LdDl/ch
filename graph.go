@@ -174,3 +174,13 @@ func (graph *Graph) Unfreeze() {
 	fmt.Println("Warning: You will need to call PrepareContractionHierarchies() or even refresh graph again if you want to modify graph data")
 	graph.frozen = false
 }
+
+func (graph *Graph) shortucsNum() int {
+	ans := 0
+	for _, i := range graph.shortcuts {
+		for _ = range i {
+			ans++
+		}
+	}
+	return ans
+}
