@@ -135,7 +135,7 @@ func (graph *Graph) ComputePath(middleID int64, prevF, prevR map[int64]int64) []
 	for ok {
 		ok = false
 		for e := l.Front(); e.Next() != nil; e = e.Next() {
-			if contractedNode, ok2 := graph.contracts[e.Value.(int64)][e.Next().Value.(int64)]; ok2 {
+			if contractedNode, ok2 := graph.shortcuts[e.Value.(int64)][e.Next().Value.(int64)]; ok2 {
 				ok = true
 				l.InsertAfter(contractedNode.ViaVertex, e)
 			}

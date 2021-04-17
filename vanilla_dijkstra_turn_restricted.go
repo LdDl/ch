@@ -78,9 +78,9 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 		// for each neighbor v of u:
 		for v := range vertexList {
 			neighbor := vertexList[v].vertexID
-			if v1, ok1 := graph.contracts[u.id]; ok1 {
+			if v1, ok1 := graph.shortcuts[u.id]; ok1 {
 				if _, ok2 := v1[neighbor]; ok2 {
-					// Ignore contract
+					// Ignore shortcut
 					continue
 				}
 			}

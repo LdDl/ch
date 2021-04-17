@@ -13,7 +13,7 @@ import (
 // mapping Internal map for 1:1 relation of internal IDs to user's IDs
 // Vertices Slice of vertices of graph
 // nodeOrdering Ordering of vertices
-// contracts found and stored contraction hierarchies
+// shortcuts Found and stored shortcuts based on contraction hierarchies
 //
 type Graph struct {
 	pqImportance *importanceHeap
@@ -23,7 +23,7 @@ type Graph struct {
 	Vertices     []*Vertex
 	nodeOrdering []int64
 
-	contracts    map[int64]map[int64]*ContractionPath
+	shortcuts    map[int64]map[int64]*ContractionPath
 	restrictions map[int64]map[int64]int64
 
 	frozen bool
@@ -46,8 +46,8 @@ func (graph *Graph) CreateVertex(label int64) error {
 	if graph.mapping == nil {
 		graph.mapping = make(map[int64]int64)
 	}
-	if graph.contracts == nil {
-		graph.contracts = make(map[int64]map[int64]*ContractionPath)
+	if graph.shortcuts == nil {
+		graph.shortcuts = make(map[int64]map[int64]*ContractionPath)
 	}
 
 	if _, ok := graph.mapping[label]; !ok {
@@ -77,8 +77,8 @@ func (graph *Graph) AddVertex(labelExternal, labelInternal int64) error {
 	if graph.mapping == nil {
 		graph.mapping = make(map[int64]int64)
 	}
-	if graph.contracts == nil {
-		graph.contracts = make(map[int64]map[int64]*ContractionPath)
+	if graph.shortcuts == nil {
+		graph.shortcuts = make(map[int64]map[int64]*ContractionPath)
 	}
 
 	if _, ok := graph.mapping[labelExternal]; !ok {

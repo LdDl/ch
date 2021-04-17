@@ -59,7 +59,7 @@ func (graph *Graph) ExportToFile(fname string) error {
 		return err
 	}
 
-	fileContractions, err := os.Create(fnamePart[0] + "_contractions.csv")
+	fileContractions, err := os.Create(fnamePart[0] + "_shortcuts.csv")
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func (graph *Graph) ExportToFile(fname string) error {
 			toVertexExternal := graph.Vertices[outcomingNeighbors[j].vertexID].Label
 			toVertexInternal := outcomingNeighbors[j].vertexID
 			cost := outcomingNeighbors[j].cost
-			if _, ok := graph.contracts[currentVertexInternal][toVertexInternal]; !ok {
+			if _, ok := graph.shortcuts[currentVertexInternal][toVertexInternal]; !ok {
 				err = writer.Write([]string{
 					fmt.Sprintf("%d", currentVertexExternal),
 					fmt.Sprintf("%d", toVertexExternal),
@@ -111,7 +111,7 @@ func (graph *Graph) ExportToFile(fname string) error {
 	}
 
 	// Write reference information about contractions
-	for sourceVertexInternal, to := range graph.contracts {
+	for sourceVertexInternal, to := range graph.shortcuts {
 		sourceVertexExternal := graph.Vertices[sourceVertexInternal].Label
 		for targetVertexInternal, viaNodeInternal := range to {
 			targetVertexExternal := graph.Vertices[targetVertexInternal].Label

@@ -185,14 +185,14 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 		if err != nil {
 			return nil, errors.Wrap(err, fmt.Sprintf("Can't add edge with source_internal_ID = '%d' and target_internal_ID = '%d'", sourceExternal, targetExternal))
 		}
-		if _, ok := graph.contracts[sourceInternal]; !ok {
-			graph.contracts[sourceInternal] = make(map[int64]*ContractionPath)
-			graph.contracts[sourceInternal][targetInternal] = &ContractionPath{
+		if _, ok := graph.shortcuts[sourceInternal]; !ok {
+			graph.shortcuts[sourceInternal] = make(map[int64]*ContractionPath)
+			graph.shortcuts[sourceInternal][targetInternal] = &ContractionPath{
 				ViaVertex: contractionInternal,
 				Cost:      weight,
 			}
 		}
-		graph.contracts[sourceInternal][targetInternal] = &ContractionPath{
+		graph.shortcuts[sourceInternal][targetInternal] = &ContractionPath{
 			ViaVertex: contractionInternal,
 			Cost:      weight,
 		}

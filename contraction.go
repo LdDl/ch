@@ -108,14 +108,14 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 			}
 			summaryCost := incost + outcost
 			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int64(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
-				if _, ok := graph.contracts[inVertex]; !ok {
-					graph.contracts[inVertex] = make(map[int64]*ContractionPath)
-					graph.contracts[inVertex][outVertex] = &ContractionPath{
+				if _, ok := graph.shortcuts[inVertex]; !ok {
+					graph.shortcuts[inVertex] = make(map[int64]*ContractionPath)
+					graph.shortcuts[inVertex][outVertex] = &ContractionPath{
 						ViaVertex: vertex.vertexNum,
 						Cost:      summaryCost,
 					}
 				} else {
-					graph.contracts[inVertex][outVertex] = &ContractionPath{
+					graph.shortcuts[inVertex][outVertex] = &ContractionPath{
 						ViaVertex: vertex.vertexNum,
 						Cost:      summaryCost,
 					}
