@@ -2,7 +2,11 @@ package ch
 
 import (
 	"container/heap"
+	"fmt"
+	"time"
 )
+
+const DEBUG_PREPROCESSING = true
 
 // Preprocess Computes contraction hierarchies and returns node ordering
 func (graph *Graph) Preprocess() []int64 {
@@ -27,6 +31,12 @@ func (graph *Graph) Preprocess() []int64 {
 		vertex.orderPos = extractNum
 		extractNum = extractNum + 1
 		graph.contractNode(vertex, int64(extractNum-1))
+
+		if DEBUG_PREPROCESSING {
+			if iter > 0 && graph.pqImportance.Len()%1000 == 0 {
+				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), graph.shortcutsNum(), time.Now())
+			}
+		}
 	}
 	return nodeOrdering
 }
