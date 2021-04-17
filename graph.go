@@ -148,9 +148,7 @@ func (graph *Graph) computeImportance() {
 	graph.pqImportance = &importanceHeap{}
 	heap.Init(graph.pqImportance)
 	for i := 0; i < len(graph.Vertices); i++ {
-		graph.Vertices[i].edgeDiff = len(graph.Vertices[i].inIncidentEdges)*len(graph.Vertices[i].outIncidentEdges) - len(graph.Vertices[i].inIncidentEdges) - len(graph.Vertices[i].outIncidentEdges)
-		graph.Vertices[i].shortcutCover = len(graph.Vertices[i].inIncidentEdges) + len(graph.Vertices[i].outIncidentEdges)
-		graph.Vertices[i].importance = graph.Vertices[i].edgeDiff*14 + graph.Vertices[i].shortcutCover*25 + graph.Vertices[i].delNeighbors*10
+		graph.Vertices[i].computeImportance()
 		heap.Push(graph.pqImportance, graph.Vertices[i])
 	}
 	graph.Freeze()
