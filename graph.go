@@ -109,11 +109,8 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 	from = graph.mapping[from]
 	to = graph.mapping[to]
 
-	graph.Vertices[from].outEdges = append(graph.Vertices[from].outEdges, to)
-	graph.Vertices[from].outECost = append(graph.Vertices[from].outECost, weight)
-
-	graph.Vertices[to].inEdges = append(graph.Vertices[to].inEdges, from)
-	graph.Vertices[to].inECost = append(graph.Vertices[to].inECost, weight)
+	graph.Vertices[from].outIncidentEdges = append(graph.Vertices[from].outIncidentEdges, incidentEdge{to, weight})
+	graph.Vertices[to].inIncidentEdges = append(graph.Vertices[to].inIncidentEdges, incidentEdge{from, weight})
 	return nil
 }
 
@@ -151,8 +148,8 @@ func (graph *Graph) computeImportance() {
 	graph.pqImportance = &importanceHeap{}
 	heap.Init(graph.pqImportance)
 	for i := 0; i < len(graph.Vertices); i++ {
-		graph.Vertices[i].edgeDiff = len(graph.Vertices[i].inEdges)*len(graph.Vertices[i].outEdges) - len(graph.Vertices[i].inEdges) - len(graph.Vertices[i].outEdges)
-		graph.Vertices[i].shortcutCover = len(graph.Vertices[i].inEdges) + len(graph.Vertices[i].outEdges)
+		graph.Vertices[i].edgeDiff = len(graph.Vertices[i].inIncidentEdges)*len(graph.Vertices[i].outIncidentEdges) - len(graph.Vertices[i].inIncidentEdges) - len(graph.Vertices[i].outIncidentEdges)
+		graph.Vertices[i].shortcutCover = len(graph.Vertices[i].inIncidentEdges) + len(graph.Vertices[i].outIncidentEdges)
 		graph.Vertices[i].importance = graph.Vertices[i].edgeDiff*14 + graph.Vertices[i].shortcutCover*25 + graph.Vertices[i].delNeighbors*10
 		heap.Push(graph.pqImportance, graph.Vertices[i])
 	}

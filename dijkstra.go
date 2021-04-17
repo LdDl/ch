@@ -12,11 +12,10 @@ func (graph *Graph) checkID(source, target int64) bool {
 
 // relaxEdges Edge relaxation
 func (graph *Graph) relaxEdges(vertex, contractID, sourceID int64) {
-	vertexList := graph.Vertices[vertex].outEdges
-	costList := graph.Vertices[vertex].outECost
+	vertexList := graph.Vertices[vertex].outIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
-		temp := vertexList[i]
-		cost := costList[i]
+		temp := vertexList[i].vertexID
+		cost := vertexList[i].cost
 		if graph.Vertices[temp].contracted {
 			continue
 		}

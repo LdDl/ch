@@ -90,12 +90,11 @@ func (graph *Graph) ExportToFile(fname string) error {
 
 		// Write reference information about "outcoming" adjacent vertices
 		// Why don't write info about "incoming" adjacent vertices also? Because all edges will be covered due the loop iteration mechanism
-		outcomingNeighbors := graph.Vertices[i].outEdges
-		outcomingCosts := graph.Vertices[i].outECost
+		outcomingNeighbors := graph.Vertices[i].outIncidentEdges
 		for j := 0; j < len(outcomingNeighbors); j++ {
-			toVertexExternal := graph.Vertices[outcomingNeighbors[j]].Label
-			toVertexInternal := outcomingNeighbors[j]
-			cost := outcomingCosts[j]
+			toVertexExternal := graph.Vertices[outcomingNeighbors[j].vertexID].Label
+			toVertexInternal := outcomingNeighbors[j].vertexID
+			cost := outcomingNeighbors[j].cost
 			if _, ok := graph.contracts[currentVertexInternal][toVertexInternal]; !ok {
 				err = writer.Write([]string{
 					fmt.Sprintf("%d", currentVertexExternal),
