@@ -171,3 +171,12 @@ func (graph *Graph) Unfreeze() {
 	fmt.Println("Warning: You will need to call PrepareContracts() or even refresh graph again if you want to modify graph data")
 	graph.frozen = false
 }
+
+// shortcutsNum Calculate number of shortcuts (useful for debugging purposes)
+func (graph *Graph) shortcutsNum() int {
+	ans := 0
+	for _, i := range graph.shortcuts {
+		ans += len(i)
+	}
+	return ans
+}
