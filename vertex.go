@@ -70,6 +70,12 @@ func (vertex *Vertex) computeImportance() {
 	vertex.importance = vertex.edgeDiff*14 + vertex.shortcutCover*25 + vertex.delNeighbors*10
 }
 
+// incidentEdge incident edge to correspondence
+type incidentEdge struct {
+	vertexID int64
+	cost     float64
+}
+
 // Distance Information about contraction between source vertex and contraction vertex
 type Distance struct {
 	contractID  int64
