@@ -34,10 +34,10 @@ func (graph *Graph) Preprocess() []int64 {
 // inEdges Incoming edges from vertex
 // outEdges Outcoming edges from vertex
 //
-func (graph *Graph) callNeighbors(inEdges, outEdges []int64) {
+func (graph *Graph) callNeighbors(inEdges []incidentEdge, outEdges []int64) {
 	for i := 0; i < len(inEdges); i++ {
 		temp := inEdges[i]
-		graph.Vertices[temp].delNeighbors++
+		graph.Vertices[temp.vertexID].delNeighbors++
 	}
 	for i := 0; i < len(outEdges); i++ {
 		temp := outEdges[i]
@@ -61,8 +61,7 @@ type ContractionPath struct {
 // contractID ID of contraction
 //
 func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
-	inEdges := vertex.inEdges
-	inECost := vertex.inECost
+	inEdges := vertex.inIncidentEdges
 	outEdges := vertex.outEdges
 	outECost := vertex.outECost
 
@@ -71,14 +70,14 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 	inMax := 0.0
 	outMax := 0.0
 
-	graph.callNeighbors(vertex.inEdges, vertex.outEdges)
+	graph.callNeighbors(inEdges, vertex.outEdges)
 
-	for i := 0; i < len(inECost); i++ {
-		if graph.Vertices[inEdges[i]].contracted {
+	for i := 0; i < len(inEdges); i++ {
+		if graph.Vertices[inEdges[i].vertexID].contracted {
 			continue
 		}
-		if inMax < inECost[i] {
-			inMax = inECost[i]
+		if inMax < inEdges[i].cost {
+			inMax = inEdges[i].cost
 		}
 	}
 
@@ -94,11 +93,11 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 	max := inMax + outMax
 
 	for i := 0; i < len(inEdges); i++ {
-		inVertex := inEdges[i]
+		inVertex := inEdges[i].vertexID
 		if graph.Vertices[inVertex].contracted {
 			continue
 		}
-		incost := inECost[i]
+		incost := inEdges[i].cost
 		graph.dijkstra(inVertex, max, contractID, int64(i)) //finds the shortest distances from the inVertex to all the outVertices.
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j]
@@ -122,8 +121,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 				}
 				graph.Vertices[inVertex].outEdges = append(graph.Vertices[inVertex].outEdges, outVertex)
 				graph.Vertices[inVertex].outECost = append(graph.Vertices[inVertex].outECost, summaryCost)
-				graph.Vertices[outVertex].inEdges = append(graph.Vertices[outVertex].inEdges, inVertex)
-				graph.Vertices[outVertex].inECost = append(graph.Vertices[outVertex].inECost, summaryCost)
+				graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
 			}
 		}
 	}

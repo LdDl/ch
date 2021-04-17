@@ -145,11 +145,10 @@ func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *simpleNode, forwQ *forw
 }
 
 func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *simpleNode, backwQ *backwardPropagationHeap, prev map[int64]int64, revDist []float64, cid int64, revProcessed []int64) {
-	vertexList := graph.Vertices[vertex.id].inEdges
-	costList := graph.Vertices[vertex.id].inECost
+	vertexList := graph.Vertices[vertex.id].inIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
-		temp := vertexList[i]
-		cost := costList[i]
+		temp := vertexList[i].vertexID
+		cost := vertexList[i].cost
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
 			alt := revDist[vertex.id] + cost
 			if revProcessed[temp] != cid || revDist[temp] > alt {

@@ -9,10 +9,9 @@ type Vertex struct {
 	vertexNum int64
 	Label     int64
 
-	inEdges  []int64
-	inECost  []float64
-	outEdges []int64
-	outECost []float64
+	inIncidentEdges []incidentEdge
+	outEdges        []int64
+	outECost        []float64
 
 	orderPos      int
 	contracted    bool
@@ -65,8 +64,8 @@ func NewVertex(vertexNum int64) *Vertex {
 
 // computeImportance Update importance of vertex
 func (vertex *Vertex) computeImportance() {
-	vertex.edgeDiff = len(vertex.inEdges)*len(vertex.outEdges) - len(vertex.inEdges) - len(vertex.outEdges)
-	vertex.shortcutCover = len(vertex.inEdges) + len(vertex.outEdges)
+	vertex.edgeDiff = len(vertex.inIncidentEdges)*len(vertex.outEdges) - len(vertex.inIncidentEdges) - len(vertex.outEdges)
+	vertex.shortcutCover = len(vertex.inIncidentEdges) + len(vertex.outEdges)
 	vertex.importance = vertex.edgeDiff*14 + vertex.shortcutCover*25 + vertex.delNeighbors*10
 }
 
