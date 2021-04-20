@@ -14,7 +14,7 @@ func TestOneToManyShortestPath(t *testing.T) {
 		return
 	}
 	t.Log("Please wait until contraction hierarchy is prepared")
-	g.PrepareContracts()
+	g.PrepareContractionHierarchies()
 	t.Log("TestShortestPath is starting...")
 	u := int64(106600)
 	v := []int64{5924, 81611, 69618, 68427, 68490}
@@ -43,7 +43,7 @@ func BenchmarkShortestPathOneToMany(b *testing.B) {
 		b.Error(err)
 	}
 	b.Log("Please wait until contraction hierarchy is prepared")
-	g.PrepareContracts()
+	g.PrepareContractionHierarchies()
 	b.Log("BenchmarkShortestPathOneToMany is starting...")
 	b.ResetTimer()
 
@@ -67,7 +67,7 @@ func BenchmarkOldWayShortestPathOneToMany(b *testing.B) {
 		b.Error(err)
 	}
 	b.Log("Please wait until contraction hierarchy is prepared")
-	g.PrepareContracts()
+	g.PrepareContractionHierarchies()
 	b.Log("BenchmarkOldWayShortestPathOneToMany is starting...")
 	b.ResetTimer()
 

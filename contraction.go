@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const DEBUG_PREPROCESSING = false
+const DEBUG_PREPROCESSING = true
 
 // Preprocess Computes contraction hierarchies and returns node ordering
 func (graph *Graph) Preprocess() []int64 {
