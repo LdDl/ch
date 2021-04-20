@@ -117,17 +117,3 @@ func NewDistance() *Distance {
 		queryDist:   math.MaxFloat64,
 	}
 }
-
-func intersection(s1, s2 []int64) (inter []int64) {
-	hash := make(map[int64]bool)
-	for _, e := range s1 {
-		hash[e] = true
-	}
-	for _, e := range s2 {
-		// If elements present in the hashmap then append intersection list.
-		if hash[e] {
-			inter = append(inter, e)
-		}
-	}
-	return
-}
