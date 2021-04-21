@@ -21,7 +21,7 @@ func TestShortestPath(t *testing.T) {
 		return
 	}
 	t.Log("Please wait until contraction hierarchy is prepared")
-	g.PrepareContracts()
+	g.PrepareContractionHierarchies()
 	t.Log("TestShortestPath is starting...")
 	u := int64(69618)
 	v := int64(5924)
@@ -46,7 +46,7 @@ func TestBothVanillaAndCH(t *testing.T) {
 		return
 	}
 	t.Log("Please wait until contraction hierarchy is prepared")
-	g.PrepareContracts()
+	g.PrepareContractionHierarchies()
 	t.Log("TestAndSHVanPath is starting...")
 
 	rand.Seed(time.Now().Unix())
@@ -74,7 +74,7 @@ func BenchmarkShortestPath(b *testing.B) {
 		b.Error(err)
 	}
 	b.Log("Please wait until contraction hierarchy is prepared")
-	g.PrepareContracts()
+	g.PrepareContractionHierarchies()
 	b.Log("BenchmarkShortestPath is starting...")
 	b.ResetTimer()
 
@@ -99,7 +99,38 @@ func BenchmarkPrepareContracts(b *testing.B) {
 		return
 	}
 	b.ResetTimer()
-	g.PrepareContracts()
+	g.PrepareContractionHierarchies()
+}
+
+func TestBadSpatialShortestPath(t *testing.T) {
+	rand.Seed(1337)
+	g := Graph{}
+	numVertices := 50000
+	lastVertex := int64(numVertices + 1)
+	for i := 0; i < numVertices; i++ {
+		idx := int64(i)
+		g.CreateVertex(idx + 1)
+		g.CreateVertex(idx + 2)
+		g.AddEdge(idx+1, idx+2, rand.Float64())
+	}
+	g.AddEdge(lastVertex, 1, rand.Float64())
+	t.Log("Please wait until contraction hierarchy is prepared")
+	g.PrepareContractionHierarchies()
+	t.Log("TestShortestPath is starting...")
+	u := int64(1)
+	v := int64(50000)
+
+	ans, path := g.ShortestPath(u, v)
+	fmt.Println(ans)
+	if len(path) != 50000 {
+		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
+		return
+	}
+	if Round(ans, 0.00005) != Round(25030.974746, 0.00005) {
+		t.Errorf("Length of path should be 25030.974746, but got %f", ans)
+		return
+	}
+	t.Log("TestShortestPath is Ok!")
 }
 
 func graphFromCSV(graph *Graph, fname string) error {

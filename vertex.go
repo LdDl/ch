@@ -70,9 +70,26 @@ func (vertex *Vertex) computeImportance() {
 	vertex.incidentEdgesNum = len(vertex.inIncidentEdges) + len(vertex.outIncidentEdges)
 	// Edge difference is between NumWorstShortcuts and TotalIncidentEdgesNum
 	vertex.edgeDiff = vertex.shortcutCover - vertex.incidentEdgesNum
-	// Spatial diversity heuristic: for each node maintain a count of the number of neighbors that have already been contracted [vertex.delNeighbors], and add this to the summary importance
-	// note: the more neighbours have already been contracted, the later this node will be contracted in further
-	vertex.importance = vertex.edgeDiff*14 + vertex.incidentEdgesNum*25 + vertex.delNeighbors*10
+	// [+] Spatial diversity heuristic: for each vertex maintain a count of the number of neighbors that have already been contracted [vertex.delNeighbors], and add this to the summary importance
+	// note: the more neighbours have already been contracted, the later this vertex will be contracted in further.
+	// [+] Bidirection edges heuristic: for each vertex check how many bidirected incident edges vertex has.
+	// note: the more bidirected incident edges == less important vertex is.
+	vertex.importance = vertex.edgeDiff*14 + vertex.incidentEdgesNum*25 + vertex.delNeighbors*10 - vertex.bidirectedEdges()
+}
+
+// bidirectedEdges Number of bidirected edges
+func (vertex *Vertex) bidirectedEdges() int {
+	hash := make(map[int64]bool)
+	for _, e := range vertex.inIncidentEdges {
+		hash[e.vertexID] = true
+	}
+	ans := 0
+	for _, e := range vertex.outIncidentEdges {
+		if hash[e.vertexID] {
+			ans++
+		}
+	}
+	return ans
 }
 
 // incidentEdge incident edge for certain vertex

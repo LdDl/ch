@@ -154,8 +154,8 @@ func (graph *Graph) computeImportance() {
 	graph.Freeze()
 }
 
-// PrepareContracts Compute contraction hierarchies
-func (graph *Graph) PrepareContracts() {
+// PrepareContractionHierarchies Compute contraction hierarchies
+func (graph *Graph) PrepareContractionHierarchies() {
 	graph.computeImportance()
 	graph.nodeOrdering = graph.Preprocess()
 	graph.Freeze()
@@ -168,7 +168,7 @@ func (graph *Graph) Freeze() {
 
 // Unfreeze Freeze graph. Should be called if graph modification is needed.
 func (graph *Graph) Unfreeze() {
-	fmt.Println("Warning: You will need to call PrepareContracts() or even refresh graph again if you want to modify graph data")
+	fmt.Println("Warning: You will need to call PrepareContractionHierarchies() or even refresh graph again if you want to modify graph data")
 	graph.frozen = false
 }
 

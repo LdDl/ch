@@ -53,7 +53,7 @@ func TestIsochrones(t *testing.T) {
 		}
 	}
 
-	graph.PrepareContracts() // This is excess in current example, but just for proof that contraction map isn't used.
+	graph.PrepareContractionHierarchies() // This is excess in current example, but just for proof that contraction map isn't used.
 
 	sourceVertex := int64(5)
 	maxCost := 5.0

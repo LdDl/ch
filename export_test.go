@@ -9,9 +9,9 @@ func TestExport(t *testing.T) {
 	g := Graph{}
 	graphFromCSV(&g, "data/pgrouting_osm.csv")
 	t.Log("Please wait until contraction hierarchy is prepared")
-	g.PrepareContracts()
+	g.PrepareContractionHierarchies()
 	t.Log("TestExport is starting...")
-	correctNumShortcuts := 395839
+	correctNumShortcuts := 393690
 	correctNumVertices := 187853
 	evaluatedShortcuts := g.shortcutsNum()
 	if evaluatedShortcuts != correctNumShortcuts {
