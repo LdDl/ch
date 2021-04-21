@@ -161,6 +161,13 @@ func (graph *Graph) PrepareContractionHierarchies() {
 	graph.Freeze()
 }
 
+// PrepareContractionHierarchiesParallel Same as PrepareContractionHierarchies() but with parallelism
+func (graph *Graph) PrepareContractionHierarchiesParallel() {
+	graph.computeImportance()
+	graph.nodeOrdering = graph.PreprocessParallel(8)
+	graph.Freeze()
+}
+
 // Freeze Freeze graph. Should be called after contraction hierarchies had been prepared.
 func (graph *Graph) Freeze() {
 	graph.frozen = true

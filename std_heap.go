@@ -3,8 +3,9 @@ package ch
 import "container/heap"
 
 type minheapNode struct {
-	id       int64
-	distance float64
+	id        int64
+	distance  float64
+	iteration int
 }
 
 type minheapSTD []minheapNode
