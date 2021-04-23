@@ -13,14 +13,14 @@ type V struct {
 func TestVanillaTurnRestrictedShortestPath(t *testing.T) {
 
 	vertices := []V{
-		V{from: 1, to: 2, weight: 1.0},
-		V{from: 2, to: 3, weight: 3.0},
-		V{from: 3, to: 4, weight: 1.0},
-		V{from: 4, to: 5, weight: 1.0},
-		V{from: 5, to: 6, weight: 1.0},
-		V{from: 5, to: 7, weight: 1.0},
-		V{from: 2, to: 5, weight: 1.0},
-		V{from: 8, to: 2, weight: 1.0},
+		{from: 1, to: 2, weight: 1.0},
+		{from: 2, to: 3, weight: 3.0},
+		{from: 3, to: 4, weight: 1.0},
+		{from: 4, to: 5, weight: 1.0},
+		{from: 5, to: 6, weight: 1.0},
+		{from: 5, to: 7, weight: 1.0},
+		{from: 2, to: 5, weight: 1.0},
+		{from: 8, to: 2, weight: 1.0},
 	}
 
 	graph := Graph{}

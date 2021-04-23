@@ -22,7 +22,7 @@ func (graph *Graph) Preprocess() []int64 {
 		// If not pick next smallest one, recompute its Importance and see if that is the smallest now; If not, continue in same way ...
 		vertex := heap.Pop(graph.pqImportance).(*Vertex)
 		vertex.computeImportance()
-		if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().(*Vertex).importance {
+		if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().importance {
 			graph.pqImportance.Push(vertex)
 			continue
 		}

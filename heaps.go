@@ -12,8 +12,8 @@ func (h *importanceHeap) Pop() interface{} {
 	*h = (*h)[0 : heapSize-1]
 	return lastNode
 }
-func (h *importanceHeap) Peek() interface{} {
-	lastNode := (*h)[0]
+func (h importanceHeap) Peek() *Vertex {
+	lastNode := h[0]
 	return lastNode
 }
 
