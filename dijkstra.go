@@ -4,10 +4,7 @@ import "container/heap"
 
 // checkID Checks if both source's and target's contraction ID are not equal
 func (graph *Graph) checkID(source, target int64) bool {
-	if graph.Vertices[source].distance.contractID != graph.Vertices[target].distance.contractID || graph.Vertices[source].distance.sourceID != graph.Vertices[target].distance.sourceID {
-		return true
-	}
-	return false
+	return graph.Vertices[source].distance.contractID != graph.Vertices[target].distance.contractID || graph.Vertices[source].distance.sourceID != graph.Vertices[target].distance.sourceID
 }
 
 // relaxEdges Edge relaxation
