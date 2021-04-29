@@ -13,6 +13,7 @@ func (graph *Graph) relaxEdges(vertex, contractID, sourceID int64) {
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
 		cost := vertexList[i].cost
+		// Skip shortcuts
 		if graph.Vertices[temp].contracted {
 			continue
 		}
