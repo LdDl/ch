@@ -131,25 +131,33 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 						if v.ViaVertex == vertex.vertexNum {
 							bk1 := graph.Vertices[inVertex].updateOutIncidentEdge(outVertex, summaryCost)
 							if !bk1 {
-								panic("what the heck 1")
+								panic("Should not happen [1]")
 							}
 							bk2 := graph.Vertices[outVertex].updateInIncidentEdge(inVertex, summaryCost)
 							if !bk2 {
-								panic("what the heck 2")
+								panic("Should not happen [2]")
 							}
 						} else {
 							dk1 := graph.Vertices[inVertex].deleteOutIncidentEdge(outVertex)
 							if !dk1 {
-								panic("what the heck 3")
+								panic("Should not happen [3]")
 							}
 							dk2 := graph.Vertices[outVertex].deleteInIncidentEdge(inVertex)
 							if !dk2 {
-								panic("what the heck 4")
+								panic("Should not happen [4]")
 							}
 							graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
 							graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
 						}
+						graph.shortcuts[inVertex][outVertex] = &ContractionPath{
+							ViaVertex: vertex.vertexNum,
+							Cost:      summaryCost,
+						}
 					} else {
+						graph.shortcuts[inVertex][outVertex] = &ContractionPath{
+							ViaVertex: vertex.vertexNum,
+							Cost:      summaryCost,
+						}
 						graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
 						graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
 					}
