@@ -16,14 +16,12 @@ func (graph *Graph) relaxEdges(vertex, contractID, sourceID int64) {
 		if graph.Vertices[temp].contracted {
 			continue
 		}
-
 		if graph.checkID(vertex, temp) || graph.Vertices[temp].distance.distance > graph.Vertices[vertex].distance.distance+cost {
 			graph.Vertices[temp].distance.distance = graph.Vertices[vertex].distance.distance + cost
 			graph.Vertices[temp].distance.contractID = contractID
 			graph.Vertices[temp].distance.sourceID = sourceID
 			heap.Push(graph.pqComparator, graph.Vertices[temp])
 		}
-
 	}
 }
 

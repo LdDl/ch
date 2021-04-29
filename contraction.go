@@ -41,12 +41,12 @@ func (graph *Graph) Preprocess() []int64 {
 	return nodeOrdering
 }
 
-// callNeighbors
+// markNeighbors
 //
 // inEdges Incoming edges from vertex
 // outEdges Outcoming edges from vertex
 //
-func (graph *Graph) callNeighbors(inEdges, outEdges []incidentEdge) {
+func (graph *Graph) markNeighbors(inEdges, outEdges []incidentEdge) {
 	for i := 0; i < len(inEdges); i++ {
 		temp := inEdges[i]
 		graph.Vertices[temp.vertexID].delNeighbors++
@@ -81,7 +81,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 	inMax := 0.0
 	outMax := 0.0
 
-	graph.callNeighbors(inEdges, outEdges)
+	graph.markNeighbors(inEdges, outEdges)
 
 	for i := 0; i < len(inEdges); i++ {
 		if graph.Vertices[inEdges[i].vertexID].contracted {
@@ -109,7 +109,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 			continue
 		}
 		incost := inEdges[i].cost
-		graph.dijkstra(inVertex, max, contractID, int64(i)) //finds the shortest distances from the inVertex to all the outVertices.
+		graph.dijkstra(inVertex, max, contractID, int64(i)) // Finds the shortest distances from the inVertex to all outVertices.
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j].vertexID
 			outcost := outEdges[j].cost
@@ -119,6 +119,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 			summaryCost := incost + outcost
 			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int64(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
 				if _, ok := graph.shortcuts[inVertex]; !ok {
+					// If there is no such shortcut add one.
 					graph.shortcuts[inVertex] = make(map[int64]*ContractionPath)
 					graph.shortcuts[inVertex][outVertex] = &ContractionPath{
 						ViaVertex: vertex.vertexNum,
@@ -130,17 +131,16 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 					if v, ok := graph.shortcuts[inVertex][outVertex]; ok {
 						// If shortcut already exists
 						// we should check if the middle vertex is still the same
-
 						if v.ViaVertex == vertex.vertexNum {
 							// If middle vertex is still the same then change cost of shortcut only
 							graph.shortcuts[inVertex][outVertex].Cost = summaryCost
 							bk1 := graph.Vertices[inVertex].updateOutIncidentEdge(outVertex, summaryCost)
 							if !bk1 {
-								panic("Should not happen [1]")
+								panic("Should not happen [1]. Can't update outcoming incident edge")
 							}
 							bk2 := graph.Vertices[outVertex].updateInIncidentEdge(inVertex, summaryCost)
 							if !bk2 {
-								panic("Should not happen [2]")
+								panic("Should not happen [2]/ Can't update incoming incident edge")
 							}
 						} else {
 							// If middle vertex is not optimal for shortcut then change both vertex ID and cost
@@ -149,11 +149,11 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 
 							dk1 := graph.Vertices[inVertex].deleteOutIncidentEdge(outVertex)
 							if !dk1 {
-								panic("Should not happen [3]")
+								panic("Should not happen [3]. Can't delete outcoming incident edge")
 							}
 							dk2 := graph.Vertices[outVertex].deleteInIncidentEdge(inVertex)
 							if !dk2 {
-								panic("Should not happen [4]")
+								panic("Should not happen [4]. Can't delete incoming incident edge")
 							}
 							graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
 							graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
