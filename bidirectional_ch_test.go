@@ -121,7 +121,6 @@ func TestBadSpatialShortestPath(t *testing.T) {
 	v := int64(50000)
 
 	ans, path := g.ShortestPath(u, v)
-	fmt.Println(ans)
 	if len(path) != 50000 {
 		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
 		return
