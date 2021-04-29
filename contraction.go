@@ -129,6 +129,8 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 				} else {
 					if v, ok := graph.shortcuts[inVertex][outVertex]; ok {
 						if v.ViaVertex == vertex.vertexNum {
+							// Changing cost of shortcut only
+							graph.shortcuts[inVertex][outVertex].Cost = summaryCost
 							bk1 := graph.Vertices[inVertex].updateOutIncidentEdge(outVertex, summaryCost)
 							if !bk1 {
 								panic("Should not happen [1]")
@@ -138,6 +140,9 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 								panic("Should not happen [2]")
 							}
 						} else {
+							// Changing both cost and middle vertex of shortcut
+							graph.shortcuts[inVertex][outVertex].ViaVertex = vertex.vertexNum
+							graph.shortcuts[inVertex][outVertex].Cost = summaryCost
 							dk1 := graph.Vertices[inVertex].deleteOutIncidentEdge(outVertex)
 							if !dk1 {
 								panic("Should not happen [3]")
@@ -148,10 +153,6 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 							}
 							graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
 							graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
-						}
-						graph.shortcuts[inVertex][outVertex] = &ContractionPath{
-							ViaVertex: vertex.vertexNum,
-							Cost:      summaryCost,
 						}
 					} else {
 						graph.shortcuts[inVertex][outVertex] = &ContractionPath{
