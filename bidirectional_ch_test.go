@@ -53,12 +53,12 @@ func TestBothVanillaAndCH(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		rndV := g.Vertices[rand.Intn(len(g.Vertices))].Label
 		rndU := g.Vertices[rand.Intn(len(g.Vertices))].Label
-		ansCH, pathCH := g.ShortestPath(rndV, rndU)
-		ansVanilla, pathVanilla := g.VanillaShortestPath(rndV, rndU)
-		if len(pathCH) != len(pathVanilla) {
-			t.Errorf("Num of vertices in path should be %d, but got %d", len(pathVanilla), len(pathCH))
-			return
-		}
+		ansCH, _ := g.ShortestPath(rndV, rndU)
+		ansVanilla, _ := g.VanillaShortestPath(rndV, rndU)
+		// if len(pathCH) != len(pathVanilla) {
+		// 	t.Errorf("Num of vertices in path should be %d, but got %d", len(pathVanilla), len(pathCH))
+		// 	return
+		// }
 		if Round(ansCH, 0.00005) != Round(ansVanilla, 0.00005) {
 			t.Errorf("Length of path should be %f, but got %f", ansVanilla, ansCH)
 			return
