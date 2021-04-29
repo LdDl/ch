@@ -140,11 +140,11 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 						} else {
 							dk1 := graph.Vertices[inVertex].deleteOutIncidentEdge(outVertex)
 							if !dk1 {
-								// panic("what the heck 3")
+								panic("what the heck 3")
 							}
 							dk2 := graph.Vertices[outVertex].deleteInIncidentEdge(inVertex)
 							if !dk2 {
-								// panic("what the heck 4")
+								panic("what the heck 4")
 							}
 							graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
 							graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
