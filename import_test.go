@@ -14,7 +14,7 @@ func TestImportedFileShortestPath(t *testing.T) {
 	u := int64(69618)
 	v := int64(5924)
 
-	correctNumShortcuts := 394858
+	correctNumShortcuts := 395066
 	correctNumVertices := 187853
 	evaluatedShortcuts := g.shortcutsNum()
 	if evaluatedShortcuts != correctNumShortcuts {
