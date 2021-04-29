@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const DEBUG_PREPROCESSING = false
+const DEBUG_PREPROCESSING = true
 
 // Preprocess Computes contraction hierarchies and returns node ordering
 func (graph *Graph) Preprocess() []int64 {
@@ -119,7 +119,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 			summaryCost := incost + outcost
 			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int64(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
 				if _, ok := graph.shortcuts[inVertex]; !ok {
-					// If there is no such shortcut add one.
+					// If there is no such shortcut then add one.
 					graph.shortcuts[inVertex] = make(map[int64]*ContractionPath)
 					graph.shortcuts[inVertex][outVertex] = &ContractionPath{
 						ViaVertex: vertex.vertexNum,
@@ -136,11 +136,11 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 							graph.shortcuts[inVertex][outVertex].Cost = summaryCost
 							bk1 := graph.Vertices[inVertex].updateOutIncidentEdge(outVertex, summaryCost)
 							if !bk1 {
-								panic("Should not happen [1]. Can't update outcoming incident edge")
+								panic(fmt.Sprintf("Should not happen [1]. Can't update outcoming incident edge. %d has no common edge with %d", inVertex, outVertex))
 							}
 							bk2 := graph.Vertices[outVertex].updateInIncidentEdge(inVertex, summaryCost)
 							if !bk2 {
-								panic("Should not happen [2]/ Can't update incoming incident edge")
+								panic(fmt.Sprintf("Should not happen [2]. Can't update incoming incident edge. %d has no common edge with %d", outVertex, inVertex))
 							}
 						} else {
 							// If middle vertex is not optimal for shortcut then change both vertex ID and cost
@@ -149,11 +149,11 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 
 							dk1 := graph.Vertices[inVertex].deleteOutIncidentEdge(outVertex)
 							if !dk1 {
-								panic("Should not happen [3]. Can't delete outcoming incident edge")
+								panic(fmt.Sprintf("Should not happen [3]. Can't delete outcoming incident edge. %d has no common edge with %d", inVertex, outVertex))
 							}
 							dk2 := graph.Vertices[outVertex].deleteInIncidentEdge(inVertex)
 							if !dk2 {
-								panic("Should not happen [4]. Can't delete incoming incident edge")
+								panic(fmt.Sprintf("Should not happen [4]. Can't delete incoming incident edge. %d has no common edge with %d", outVertex, inVertex))
 							}
 							graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
 							graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
