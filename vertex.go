@@ -92,6 +92,60 @@ func (vertex *Vertex) bidirectedEdges() int {
 	return ans
 }
 
+func (vertex *Vertex) updateInIncidentEdge(vertexID int64, cost float64) bool {
+	idx := vertex.findInIncidentEdge(vertexID)
+	if idx < 0 {
+		return false
+	}
+	vertex.inIncidentEdges[idx].cost = cost
+	return true
+}
+
+func (vertex *Vertex) deleteInIncidentEdge(vertexID int64) bool {
+	idx := vertex.findInIncidentEdge(vertexID)
+	if idx < 0 {
+		return false
+	}
+	vertex.inIncidentEdges = append(vertex.inIncidentEdges[:idx], vertex.inIncidentEdges[idx+1:]...)
+	return true
+}
+
+func (vertex *Vertex) findInIncidentEdge(vertexID int64) int {
+	for i := range vertex.inIncidentEdges {
+		if vertex.inIncidentEdges[i].vertexID == vertexID {
+			return i
+		}
+	}
+	return -1
+}
+
+func (vertex *Vertex) updateOutIncidentEdge(vertexID int64, cost float64) bool {
+	idx := vertex.findOutIncidentEdge(vertexID)
+	if idx < 0 {
+		return false
+	}
+	vertex.outIncidentEdges[idx].cost = cost
+	return true
+}
+
+func (vertex *Vertex) deleteOutIncidentEdge(vertexID int64) bool {
+	idx := vertex.findOutIncidentEdge(vertexID)
+	if idx < 0 {
+		return false
+	}
+	vertex.outIncidentEdges = append(vertex.outIncidentEdges[:idx], vertex.outIncidentEdges[idx+1:]...)
+	return true
+}
+
+func (vertex *Vertex) findOutIncidentEdge(vertexID int64) int {
+	for i := range vertex.outIncidentEdges {
+		if vertex.outIncidentEdges[i].vertexID == vertexID {
+			return i
+		}
+	}
+	return -1
+}
+
 // incidentEdge incident edge for certain vertex
 type incidentEdge struct {
 	vertexID int64
