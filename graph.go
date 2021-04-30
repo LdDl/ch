@@ -164,7 +164,7 @@ func (graph *Graph) PrepareContractionHierarchies() {
 // PrepareContractionHierarchiesParallel Same as PrepareContractionHierarchies() but with parallelism
 func (graph *Graph) PrepareContractionHierarchiesParallel() {
 	graph.computeImportance()
-	graph.nodeOrdering = graph.PreprocessParallel(8)
+	graph.nodeOrdering = graph.PreprocessParallel(4)
 	graph.Freeze()
 }
 

@@ -21,7 +21,7 @@ func (graph *Graph) PreprocessParallel(numThreads int) []int64 {
 		iter++
 		vertex := heap.Pop(graph.pqImportance).(*Vertex)
 		vertex.computeImportance()
-		if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().(*Vertex).importance {
+		if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().importance {
 			graph.pqImportance.Push(vertex)
 			continue
 		}
@@ -47,9 +47,19 @@ func (graph *Graph) contractNodeParallel(vertex *Vertex, contractID int64, distC
 
 	vertex.contracted = true
 
+	inMax := 0.0
 	outMax := 0.0
 	outChan := make(chan *distanceParallel, threads)
-	graph.callNeighbors(inEdges, outEdges)
+	graph.markNeighbors(inEdges, outEdges)
+
+	for i := 0; i < len(inEdges); i++ {
+		if graph.Vertices[inEdges[i].vertexID].contracted {
+			continue
+		}
+		if inMax < inEdges[i].cost {
+			inMax = inEdges[i].cost
+		}
+	}
 
 	for i := 0; i < len(outEdges); i++ {
 		if graph.Vertices[outEdges[i].vertexID].contracted {
@@ -60,7 +70,8 @@ func (graph *Graph) contractNodeParallel(vertex *Vertex, contractID int64, distC
 		}
 	}
 
-	max := outMax
+	max := inMax + outMax
+
 	wg := sync.WaitGroup{}
 	counter := 0
 	for i := 0; i < len(inEdges); i++ {
@@ -69,7 +80,7 @@ func (graph *Graph) contractNodeParallel(vertex *Vertex, contractID int64, distC
 		if !graph.Vertices[inVertex].contracted {
 			wg.Add(1)
 			counter++
-			go graph.dijkstraParallel(inVertex, i, int(contractID)+counter, max+incost, distChan, outChan, &wg)
+			go graph.dijkstraParallel(inVertex, i, int(contractID)+counter, max, distChan, outChan, &wg)
 		}
 		if ((counter+1)%threads == 0) || i == len(inEdges)-1 {
 			wg.Wait()
@@ -91,19 +102,59 @@ func (graph *Graph) contractNodeParallel(vertex *Vertex, contractID int64, distC
 							summaryCost := incost + outcost
 							if dist.contract[outVertex] != dist.contractID || distance > incost+outcost {
 								if _, ok := graph.shortcuts[inVertex]; !ok {
+									// If there is no such shortcut then add one.
 									graph.shortcuts[inVertex] = make(map[int64]*ContractionPath)
 									graph.shortcuts[inVertex][outVertex] = &ContractionPath{
 										ViaVertex: vertex.vertexNum,
 										Cost:      summaryCost,
 									}
+									graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
+									graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
 								} else {
-									graph.shortcuts[inVertex][outVertex] = &ContractionPath{
-										ViaVertex: vertex.vertexNum,
-										Cost:      summaryCost,
+									if v, ok := graph.shortcuts[inVertex][outVertex]; ok {
+										// If shortcut already exists
+										// we should check if the middle vertex is still the same
+										if v.ViaVertex == vertex.vertexNum {
+											// If middle vertex is still the same then change cost of shortcut only [Additional conditional: previous estimated cost is less than current one]
+											if summaryCost < graph.shortcuts[inVertex][outVertex].Cost {
+												graph.shortcuts[inVertex][outVertex].Cost = summaryCost
+												bk1 := graph.Vertices[inVertex].updateOutIncidentEdge(outVertex, summaryCost)
+												if !bk1 {
+													panic(fmt.Sprintf("Should not happen [1]. Can't update outcoming incident edge. %d has no common edge with %d", inVertex, outVertex))
+												}
+												bk2 := graph.Vertices[outVertex].updateInIncidentEdge(inVertex, summaryCost)
+												if !bk2 {
+													panic(fmt.Sprintf("Should not happen [2]. Can't update incoming incident edge. %d has no common edge with %d", outVertex, inVertex))
+												}
+												graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
+												graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
+											}
+										} else {
+											// If middle vertex is not optimal for shortcut then change both vertex ID and cost [Additional conditional: previous estimated cost is less than current one]
+											if summaryCost < graph.shortcuts[inVertex][outVertex].Cost {
+												graph.shortcuts[inVertex][outVertex].ViaVertex = vertex.vertexNum
+												graph.shortcuts[inVertex][outVertex].Cost = summaryCost
+												dk1 := graph.Vertices[inVertex].deleteOutIncidentEdge(outVertex)
+												if !dk1 {
+													panic(fmt.Sprintf("Should not happen [3]. Can't delete outcoming incident edge. %d has no common edge with %d", inVertex, outVertex))
+												}
+												dk2 := graph.Vertices[outVertex].deleteInIncidentEdge(inVertex)
+												if !dk2 {
+													panic(fmt.Sprintf("Should not happen [4]. Can't delete incoming incident edge. %d has no common edge with %d", outVertex, inVertex))
+												}
+												graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
+												graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
+											}
+										}
+									} else {
+										graph.shortcuts[inVertex][outVertex] = &ContractionPath{
+											ViaVertex: vertex.vertexNum,
+											Cost:      summaryCost,
+										}
+										graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
+										graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
 									}
 								}
-								graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
-								graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
 							}
 						}
 						distChan <- dist
