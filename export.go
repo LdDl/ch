@@ -130,15 +130,15 @@ func (graph *Graph) ExportVerticesToFile(fname string) error {
 // 	weight - float64, Weight of an shortcut
 // 	via_vertex_id - int64, ID of vertex through which the shortcut exists
 func (graph *Graph) ExportShortcutsToFile(fname string) error {
-	fileContractions, err := os.Create(fname)
+	fileShortcuts, err := os.Create(fname)
 	if err != nil {
 		return errors.Wrap(err, "Can't create shortcuts file")
 	}
-	defer fileContractions.Close()
-	writerContractions := csv.NewWriter(fileContractions)
-	defer writerContractions.Flush()
-	writerContractions.Comma = ';'
-	err = writerContractions.Write([]string{"from_vertex_id", "to_vertex_id", "weight", "via_vertex_id"})
+	defer fileShortcuts.Close()
+	writerShortcuts := csv.NewWriter(fileShortcuts)
+	defer writerShortcuts.Flush()
+	writerShortcuts.Comma = ';'
+	err = writerShortcuts.Write([]string{"from_vertex_id", "to_vertex_id", "weight", "via_vertex_id"})
 	if err != nil {
 		return errors.Wrap(err, "Can't write header to shortucts file")
 	}
@@ -147,7 +147,7 @@ func (graph *Graph) ExportShortcutsToFile(fname string) error {
 		for targetVertexInternal, viaNodeInternal := range to {
 			targetVertexExternal := graph.Vertices[targetVertexInternal].Label
 			viaNodeExternal := graph.Vertices[viaNodeInternal.ViaVertex].Label
-			err = writerContractions.Write([]string{
+			err = writerShortcuts.Write([]string{
 				fmt.Sprintf("%d", sourceVertexExternal),
 				fmt.Sprintf("%d", targetVertexExternal),
 				strconv.FormatFloat(viaNodeInternal.Cost, 'f', -1, 64),

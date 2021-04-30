@@ -30,6 +30,7 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 	reader := csv.NewReader(file)
 	reader.Comma = ';'
 
@@ -81,6 +82,7 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 	if err != nil {
 		return nil, err
 	}
+	defer fileVertices.Close()
 	readerVertices := csv.NewReader(fileVertices)
 	readerVertices.Comma = ';'
 
@@ -118,20 +120,21 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 	}
 
 	// Read contractions
-	fileContractions, err := os.Open(contractionsFname)
+	fileShortcuts, err := os.Open(contractionsFname)
 	if err != nil {
 		return nil, err
 	}
-	readerContractions := csv.NewReader(fileContractions)
-	readerContractions.Comma = ';'
+	defer fileShortcuts.Close()
+	readerShortcuts := csv.NewReader(fileShortcuts)
+	readerShortcuts.Comma = ';'
 	// Skip header of CSV-file
-	_, err = readerContractions.Read()
+	_, err = readerShortcuts.Read()
 	if err != nil {
 		return nil, err
 	}
 	// Read file line by line
 	for {
-		record, err := readerContractions.Read()
+		record, err := readerShortcuts.Read()
 		if err == io.EOF {
 			break
 		}

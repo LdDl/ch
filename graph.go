@@ -116,9 +116,10 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 
 // AddShortcut Adds new shortcut between two vertices
 //
-// from User's definied ID of first vertex of shortcut
-// to User's definied ID of last vertex of shortcut
-// weight User's definied weight of shortcut
+// from - User's definied ID of first vertex of shortcut
+// to - User's definied ID of last vertex of shortcut
+// via - User's defined ID of vertex through which the shortcut exists
+// weight - User's definied weight of shortcut
 //
 func (graph *Graph) AddShortcut(from, to, via int64, weight float64) error {
 	if graph.frozen {
