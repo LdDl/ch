@@ -114,6 +114,33 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 	return nil
 }
 
+// AddShortcut Adds new shortcut between two vertices
+//
+// from User's definied ID of first vertex of shortcut
+// to User's definied ID of last vertex of shortcut
+// weight User's definied weight of shortcut
+//
+func (graph *Graph) AddShortcut(from, to, via int64, weight float64) error {
+	if graph.frozen {
+		return ErrGraphIsFrozen
+	}
+	fromInternal := graph.mapping[from]
+	toInternal := graph.mapping[to]
+	viaInternal := graph.mapping[via]
+	if _, ok := graph.shortcuts[fromInternal]; !ok {
+		graph.shortcuts[fromInternal] = make(map[int64]*ContractionPath)
+		graph.shortcuts[fromInternal][toInternal] = &ContractionPath{
+			ViaVertex: viaInternal,
+			Cost:      weight,
+		}
+	}
+	graph.shortcuts[fromInternal][toInternal] = &ContractionPath{
+		ViaVertex: viaInternal,
+		Cost:      weight,
+	}
+	return nil
+}
+
 // AddTurnRestriction Adds new turn restriction between two vertices via some other vertex
 //
 // from User's definied ID of source vertex

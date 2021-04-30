@@ -59,7 +59,7 @@ func (graph *Graph) markNeighbors(inEdges, outEdges []incidentEdge) {
 
 // ContractionPath
 //
-// ViaVertex - ID of vertex through which the contraction exists
+// ViaVertex - ID of vertex through which the shortcut exists
 // Cost - summary cost of path between two vertices
 //
 type ContractionPath struct {

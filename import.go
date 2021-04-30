@@ -14,22 +14,16 @@ import (
 // Header of CSV-file containing information about edges:
 // 		from_vertex_id - int64, ID of source vertex
 // 		to_vertex_id - int64, ID of arget vertex
-// 		f_internal - int64, Internal ID of source vertex
-// 		t_internal - int64, Internal ID of target vertex
 // 		weight - float64, Weight of an edge
 // Header of CSV-file containing information about vertices:
 // 		vertex_id - int64, ID of vertex
-// 		internal_id - int64, internal ID of target vertex
 // 		order_pos - int, Position of vertex in hierarchies (evaluted by library)
 // 		importance - int, Importance of vertex in graph (evaluted by library)
-// Header of CSV-file containing information about contractios between vertices:
+// Header of CSV-file containing information about shortcuts between vertices:
 // 		from_vertex_id - int64, ID of source vertex
-// 		to_vertex_id - int64, ID of arget vertex
-// 		f_internal - int64, Internal ID of source vertex
-// 		t_internal - int64, Internal ID of target vertex
-// 		weight - float64, Weight of an edge
-// 		via_vertex_id - int64, ID of vertex through which the contraction exists
-// 		v_internal - int64, Internal ID of vertex through which the contraction exists
+// 		to_vertex_id - int64, ID of target vertex
+// 		weight - float64, Weight of an shortcut
+// 		via_vertex_id - int64, ID of vertex through which the shortcut exists
 func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph, error) {
 	// Read edges first
 	file, err := os.Open(edgesFname)
@@ -62,27 +56,18 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 			return nil, err
 		}
 
-		sourceInternal, err := strconv.ParseInt(record[2], 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		targetInternal, err := strconv.ParseInt(record[3], 10, 64)
+		weight, err := strconv.ParseFloat(record[2], 64)
 		if err != nil {
 			return nil, err
 		}
 
-		weight, err := strconv.ParseFloat(record[4], 64)
+		err = graph.CreateVertex(sourceExternal)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, fmt.Sprintf("Can't add source vertex with external_ID = '%d'", sourceExternal))
 		}
-
-		err = graph.AddVertex(sourceExternal, sourceInternal)
+		err = graph.CreateVertex(targetExternal)
 		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("Can't add source vertex with external_ID = '%d' and internal_ID = '%d'", sourceExternal, sourceInternal))
-		}
-		err = graph.AddVertex(targetExternal, targetInternal)
-		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("Can't add target vertex with external_ID = '%d' and internal_ID = '%d'", targetExternal, targetInternal))
+			return nil, errors.Wrap(err, fmt.Sprintf("Can't add target vertex with external_ID = '%d'", targetExternal))
 		}
 
 		err = graph.AddEdge(sourceExternal, targetExternal, weight)
@@ -115,21 +100,18 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 		if err != nil {
 			return nil, err
 		}
-		vertexInternal, err := strconv.ParseInt(record[1], 10, 64)
+		vertexOrderPos, err := strconv.Atoi(record[1])
 		if err != nil {
 			return nil, err
 		}
-		vertexOrderPos, err := strconv.Atoi(record[2])
-		if err != nil {
-			return nil, err
-		}
-		vertexImportance, err := strconv.Atoi(record[3])
+		vertexImportance, err := strconv.Atoi(record[2])
 		if err != nil {
 			return nil, err
 		}
 
-		if graph.Vertices[vertexInternal].Label != vertexExternal {
-			return nil, fmt.Errorf("Vertex with Label = %d has wrong reference information. Incoming label info is '%d'", graph.Vertices[vertexInternal].Label, vertexExternal)
+		vertexInternal, vertexFound := graph.FindVertex(vertexExternal)
+		if !vertexFound {
+			return nil, fmt.Errorf("Vertex with Label = %d is not found in graph", vertexExternal)
 		}
 		graph.Vertices[vertexInternal].SetOrderPos(vertexOrderPos)
 		graph.Vertices[vertexInternal].SetImportance(vertexImportance)
@@ -162,39 +144,23 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 			return nil, err
 		}
 
-		sourceInternal, err := strconv.ParseInt(record[2], 10, 64)
+		weight, err := strconv.ParseFloat(record[2], 64)
 		if err != nil {
 			return nil, err
 		}
-		targetInternal, err := strconv.ParseInt(record[3], 10, 64)
-		if err != nil {
-			return nil, err
-		}
-
-		weight, err := strconv.ParseFloat(record[4], 64)
-		if err != nil {
-			return nil, err
-		}
-
-		contractionInternal, err := strconv.ParseInt(record[6], 10, 64)
+		contractionExternal, err := strconv.ParseInt(record[3], 10, 64)
 		if err != nil {
 			return nil, err
 		}
 
 		err = graph.AddEdge(sourceExternal, targetExternal, weight)
 		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("Can't add edge with source_internal_ID = '%d' and target_internal_ID = '%d'", sourceExternal, targetExternal))
+			return nil, errors.Wrap(err, fmt.Sprintf("Can't add shortcut with source_internal_ID = '%d' and target_internal_ID = '%d'", sourceExternal, targetExternal))
 		}
-		if _, ok := graph.shortcuts[sourceInternal]; !ok {
-			graph.shortcuts[sourceInternal] = make(map[int64]*ContractionPath)
-			graph.shortcuts[sourceInternal][targetInternal] = &ContractionPath{
-				ViaVertex: contractionInternal,
-				Cost:      weight,
-			}
-		}
-		graph.shortcuts[sourceInternal][targetInternal] = &ContractionPath{
-			ViaVertex: contractionInternal,
-			Cost:      weight,
+
+		err = graph.AddShortcut(sourceExternal, targetExternal, contractionExternal, weight)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Can't add shortcut with source_internal_ID = '%d' and target_internal_ID = '%d' to internal map", sourceExternal, targetExternal))
 		}
 	}
 	return &graph, nil

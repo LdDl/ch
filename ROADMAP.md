@@ -15,6 +15,9 @@ New ideas, thought about needed features will be store in this file.
     * Separate benchmarks to BENCHMARK.md **Done**
     * Better CSV format or another format (JSON / binary). **W.I.P. Splitting single file to multiple**
 
+### WIP
+* Separate export functions
+
 ### Planned
 * Better heuristics for calculationg importance of each vertex.
 * Max-cost path finder.
