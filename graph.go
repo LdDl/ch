@@ -180,3 +180,9 @@ func (graph *Graph) shortcutsNum() int {
 	}
 	return ans
 }
+
+// IsShortcut Returns true if edge is a shortcut (edge defined as two vertices)
+func (graph *Graph) IsShortcut(labelFromVertex, labelToVertex int64) (ok bool) {
+	_, ok = graph.shortcuts[labelFromVertex][labelToVertex]
+	return ok
+}
