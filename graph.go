@@ -181,8 +181,23 @@ func (graph *Graph) shortcutsNum() int {
 	return ans
 }
 
-// IsShortcut Returns true if edge is a shortcut (edge defined as two vertices)
-func (graph *Graph) IsShortcut(labelFromVertex, labelToVertex int64) (ok bool) {
-	_, ok = graph.shortcuts[labelFromVertex][labelToVertex]
-	return ok
+// IsShortcut Returns (vertex_id; true) if edge is a shortcut (edge defined as two vertices)
+//
+// If source or taget vertex is not found then returns (-1; false)
+// If edge is not a shortcut then returns (-1; false)
+//
+func (graph *Graph) IsShortcut(labelFromVertex, labelToVertex int64) (int64, bool) {
+	source, ok := graph.mapping[labelFromVertex]
+	if !ok {
+		return -1, ok
+	}
+	target, ok := graph.mapping[labelToVertex]
+	if !ok {
+		return -1, ok
+	}
+	shortcut, ok := graph.shortcuts[source][target]
+	if !ok {
+		return -1, ok
+	}
+	return graph.Vertices[shortcut.ViaVertex].Label, ok
 }
