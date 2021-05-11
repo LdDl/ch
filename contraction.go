@@ -125,8 +125,8 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 						ViaVertex: vertex.vertexNum,
 						Cost:      summaryCost,
 					}
-					graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
-					graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
+					graph.Vertices[inVertex].addOutIncidentEdge(outVertex, summaryCost)
+					graph.Vertices[outVertex].addInIncidentEdge(inVertex, summaryCost)
 				} else {
 					if v, ok := graph.shortcuts[inVertex][outVertex]; ok {
 						// If shortcut already exists
@@ -143,8 +143,8 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 								if !bk2 {
 									panic(fmt.Sprintf("Should not happen [2]. Can't update incoming incident edge. %d has no common edge with %d", outVertex, inVertex))
 								}
-								graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
-								graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
+								graph.Vertices[inVertex].addOutIncidentEdge(outVertex, summaryCost)
+								graph.Vertices[outVertex].addInIncidentEdge(inVertex, summaryCost)
 							}
 						} else {
 							// If middle vertex is not optimal for shortcut then change both vertex ID and cost [Additional conditional: previous estimated cost is less than current one]
@@ -159,8 +159,8 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 								if !dk2 {
 									panic(fmt.Sprintf("Should not happen [4]. Can't delete incoming incident edge. %d has no common edge with %d", outVertex, inVertex))
 								}
-								graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
-								graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
+								graph.Vertices[inVertex].addOutIncidentEdge(outVertex, summaryCost)
+								graph.Vertices[outVertex].addInIncidentEdge(inVertex, summaryCost)
 							}
 						}
 					} else {
@@ -168,8 +168,8 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 							ViaVertex: vertex.vertexNum,
 							Cost:      summaryCost,
 						}
-						graph.Vertices[inVertex].outIncidentEdges = append(graph.Vertices[inVertex].outIncidentEdges, incidentEdge{outVertex, summaryCost})
-						graph.Vertices[outVertex].inIncidentEdges = append(graph.Vertices[outVertex].inIncidentEdges, incidentEdge{inVertex, summaryCost})
+						graph.Vertices[inVertex].addOutIncidentEdge(outVertex, summaryCost)
+						graph.Vertices[outVertex].addInIncidentEdge(inVertex, summaryCost)
 					}
 				}
 			}
