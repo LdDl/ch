@@ -4,6 +4,7 @@ import (
 	"container/heap"
 	"fmt"
 	"log"
+	"sync"
 )
 
 // Graph Graph object
@@ -23,10 +24,14 @@ type Graph struct {
 	Vertices     []*Vertex
 	nodeOrdering []int64
 
-	shortcuts    map[int64]map[int64]*ContractionPath
 	restrictions map[int64]map[int64]int64
 
 	frozen bool
+
+	sync.Mutex
+	shortcuts map[int64]map[int64]*ContractionPath
+
+	pqComparators []*distanceHeap
 }
 
 // CreateVertex Creates new vertex and assign internal ID to it

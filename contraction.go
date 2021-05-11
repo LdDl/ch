@@ -30,6 +30,7 @@ func (graph *Graph) Preprocess() []int64 {
 		nodeOrdering[extractNum] = vertex.vertexNum
 		vertex.orderPos = extractNum
 		extractNum = extractNum + 1
+
 		graph.contractNode(vertex, int64(extractNum-1))
 
 		if DEBUG_PREPROCESSING {
@@ -132,6 +133,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 // summaryCost - Travel path of a shortcut
 //
 func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64, summaryCost float64) {
+	// graph.Lock()
 	if _, ok := graph.shortcuts[fromVertex]; !ok {
 		// If there is no such shortcut then add one.
 		graph.shortcuts[fromVertex] = make(map[int64]*ContractionPath)
@@ -186,4 +188,5 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 			graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
 		}
 	}
+	// graph.Unlock()
 }
