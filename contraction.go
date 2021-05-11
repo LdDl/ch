@@ -124,7 +124,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 	}
 }
 
-// createOrUpdateShortcut Create (or update: depends on conditions) shortcut
+// createOrUpdateShortcut Creates (or updates: it depends on conditions) shortcut
 //
 // fromVertex - Library defined ID of source vertex where shortcut starts from
 // fromVertex - Library defined ID of target vertex where shortcut leads to
@@ -149,12 +149,12 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 				// If middle vertex is still the same then change cost of shortcut only [Additional conditional: previous estimated cost is less than current one]
 				if summaryCost < graph.shortcuts[fromVertex][toVertex].Cost {
 					graph.shortcuts[fromVertex][toVertex].Cost = summaryCost
-					bk1 := graph.Vertices[fromVertex].updateOutIncidentEdge(toVertex, summaryCost)
-					if !bk1 {
+					updatedOutSuccess := graph.Vertices[fromVertex].updateOutIncidentEdge(toVertex, summaryCost)
+					if !updatedOutSuccess {
 						panic(fmt.Sprintf("Should not happen [1]. Can't update outcoming incident edge. %d has no common edge with %d", fromVertex, toVertex))
 					}
-					bk2 := graph.Vertices[toVertex].updateInIncidentEdge(fromVertex, summaryCost)
-					if !bk2 {
+					updatedInSuccess := graph.Vertices[toVertex].updateInIncidentEdge(fromVertex, summaryCost)
+					if !updatedInSuccess {
 						panic(fmt.Sprintf("Should not happen [2]. Can't update incoming incident edge. %d has no common edge with %d", toVertex, fromVertex))
 					}
 					graph.Vertices[fromVertex].addOutIncidentEdge(toVertex, summaryCost)
@@ -165,12 +165,12 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 				if summaryCost < graph.shortcuts[fromVertex][toVertex].Cost {
 					graph.shortcuts[fromVertex][toVertex].ViaVertex = viaVertex
 					graph.shortcuts[fromVertex][toVertex].Cost = summaryCost
-					dk1 := graph.Vertices[fromVertex].deleteOutIncidentEdge(toVertex)
-					if !dk1 {
+					deletedOutSuccess := graph.Vertices[fromVertex].deleteOutIncidentEdge(toVertex)
+					if !deletedOutSuccess {
 						panic(fmt.Sprintf("Should not happen [3]. Can't delete outcoming incident edge. %d has no common edge with %d", fromVertex, toVertex))
 					}
-					dk2 := graph.Vertices[toVertex].deleteInIncidentEdge(fromVertex)
-					if !dk2 {
+					deletedInSuccess := graph.Vertices[toVertex].deleteInIncidentEdge(fromVertex)
+					if !deletedInSuccess {
 						panic(fmt.Sprintf("Should not happen [4]. Can't delete incoming incident edge. %d has no common edge with %d", toVertex, fromVertex))
 					}
 					graph.Vertices[fromVertex].addOutIncidentEdge(toVertex, summaryCost)
