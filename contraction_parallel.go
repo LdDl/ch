@@ -51,6 +51,7 @@ func (graph *Graph) contractNodeParallel(vertex *Vertex, contractID int64, distC
 
 	inMax := 0.0
 	outMax := 0.0
+
 	outChan := make(chan *distanceParallel, threads)
 	graph.markNeighbors(inEdges, outEdges)
 
@@ -102,7 +103,7 @@ func (graph *Graph) contractNodeParallel(vertex *Vertex, contractID int64, distC
 							}
 							distance := dist.distance[outVertex]
 							summaryCost := incost + outcost
-							if dist.contract[outVertex] != dist.contractID || distance > incost+outcost {
+							if dist.contract[outVertex] != dist.contractID || distance > summaryCost {
 								graph.createOrUpdateShortcut(inVertex, outVertex, vertex.vertexNum, summaryCost)
 							}
 						}
