@@ -183,3 +183,16 @@ func (vertex *Vertex) deleteOutIncidentEdge(vertexID int64) bool {
 	vertex.outIncidentEdges = append(vertex.outIncidentEdges[:idx], vertex.outIncidentEdges[idx+1:]...)
 	return true
 }
+
+// FindVertex Returns index of vertex in graph
+//
+// labelExternal - User defined ID of vertex
+// If vertex is not found then returns (-1; false)
+//
+func (graph *Graph) FindVertex(labelExternal int64) (idx int64, ok bool) {
+	idx, ok = graph.mapping[labelExternal]
+	if !ok {
+		return -1, ok
+	}
+	return
+}
