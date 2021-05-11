@@ -120,18 +120,16 @@ type incidentEdge struct {
 
 // addInIncidentEdge Adds incident edge's to pool of "incoming" edges of given vertex.
 // Just an alias to append() function
-// incomingVertexID - Library defined vertex
+// incomingVertexID - Library defined ID of vertex
 // cost - Travel cost of incoming edge
-//
 func (vertex *Vertex) addInIncidentEdge(incomingVertexID int64, cost float64) {
 	vertex.inIncidentEdges = append(vertex.inIncidentEdges, incidentEdge{incomingVertexID, cost})
 }
 
 // addOutIncidentEdge Adds incident edge's to pool of "outcoming" edges of given vertex.
 // Just an alias to append() function
-// outcomingVertexID - Library defined vertex
+// outcomingVertexID - Library defined ID of vertex
 // cost - Travel cost of outcoming edge
-//
 func (vertex *Vertex) addOutIncidentEdge(outcomingVertexID int64, cost float64) {
 	vertex.outIncidentEdges = append(vertex.outIncidentEdges, incidentEdge{outcomingVertexID, cost})
 }
