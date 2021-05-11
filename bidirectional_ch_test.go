@@ -15,7 +15,7 @@ import (
 
 func TestShortestPath(t *testing.T) {
 	g := Graph{}
-	err := graphFromCSV(&g, "./data/transit_trips.csv")
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
 	if err != nil {
 		t.Error(err)
 		return
@@ -40,7 +40,7 @@ func TestShortestPath(t *testing.T) {
 
 func TestParallelShortestPath(t *testing.T) {
 	g := Graph{}
-	err := graphFromCSV(&g, "./data/complex_graph.csv")
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
 	if err != nil {
 		t.Error(err)
 		return

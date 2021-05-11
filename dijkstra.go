@@ -43,5 +43,4 @@ func (graph *Graph) dijkstra(source int64, maxcost float64, contractID, sourceID
 		}
 		graph.relaxEdges(vertex.vertexNum, contractID, sourceID)
 	}
-
 }

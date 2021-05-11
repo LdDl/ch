@@ -1,7 +1,9 @@
 package ch
 
 import (
+	"fmt"
 	"log"
+	"runtime"
 	"testing"
 )
 
@@ -26,4 +28,7 @@ func TestExport(t *testing.T) {
 		return
 	}
 	log.Println("TestExport is Ok!")
+
+	n := runtime.GOMAXPROCS(0)
+	fmt.Println(n)
 }
