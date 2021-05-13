@@ -19,25 +19,26 @@ func (graph *Graph) dijkstra_v2(source int64, maxcost float64, contractID, sourc
 		if graph.Vertices[vertex.vertexNum].distance_v2[threadID].distance > maxcost {
 			return
 		}
-		graph.relaxEdges_v2(graph.pqComparators[threadID], vertex.vertexNum, contractID, sourceID, threadID)
+		graph.relaxEdges_v2(vertex, contractID, sourceID, threadID)
 	}
 }
 
 // relaxEdges_v2 Same as relaxEdges() but with but with parallelism
-func (graph *Graph) relaxEdges_v2(pqComparator *distanceHeap, vertex, contractID, sourceID int64, threadID int) {
-	vertexList := graph.Vertices[vertex].outIncidentEdges
+func (graph *Graph) relaxEdges_v2(vertexInfo *Vertex, contractID, sourceID int64, threadID int) {
+	vertexList := vertexInfo.outIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
 		cost := vertexList[i].cost
+		tempPtr := graph.Vertices[temp]
 		// Skip shortcuts
-		if graph.Vertices[temp].contracted {
+		if tempPtr.contracted {
 			continue
 		}
-		if graph.Vertices[temp].distance_v2[threadID].distance > graph.Vertices[vertex].distance_v2[threadID].distance+cost {
-			graph.Vertices[temp].distance_v2[threadID].distance = graph.Vertices[vertex].distance_v2[threadID].distance + cost
-			graph.Vertices[temp].distance_v2[threadID].contractID = contractID
-			graph.Vertices[temp].distance_v2[threadID].sourceID = sourceID
-			heap.Push(pqComparator, graph.Vertices[temp])
+		if graph.checkID_v2(vertexInfo.vertexNum, temp, threadID) || tempPtr.distance_v2[threadID].distance > vertexInfo.distance_v2[threadID].distance+cost {
+			tempPtr.distance_v2[threadID].distance = vertexInfo.distance_v2[threadID].distance + cost
+			tempPtr.distance_v2[threadID].contractID = contractID
+			tempPtr.distance_v2[threadID].sourceID = sourceID
+			heap.Push(graph.pqComparators[threadID], tempPtr)
 		}
 	}
 
@@ -45,5 +46,7 @@ func (graph *Graph) relaxEdges_v2(pqComparator *distanceHeap, vertex, contractID
 
 // checkID_v2 Same as checkID() but with but with parallelism
 func (graph *Graph) checkID_v2(source, target int64, threadID int) bool {
-	return graph.Vertices[source].distance_v2[threadID].contractID != graph.Vertices[target].distance_v2[threadID].contractID || graph.Vertices[source].distance_v2[threadID].sourceID != graph.Vertices[target].distance_v2[threadID].sourceID
+	s := graph.Vertices[source].distance_v2[threadID]
+	t := graph.Vertices[target].distance_v2[threadID]
+	return s.contractID != t.contractID || s.sourceID != t.sourceID
 }
