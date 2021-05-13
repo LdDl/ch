@@ -6,16 +6,13 @@ import (
 	"time"
 )
 
-const DEBUG_PREPROCESSING = true
+const DEBUG_PREPROCESSING = false
 
 // Preprocess Computes contraction hierarchies and returns node ordering
 func (graph *Graph) Preprocess() []int64 {
 	nodeOrdering := make([]int64, len(graph.Vertices))
 	var extractNum int
-	var iter int
 	for graph.pqImportance.Len() != 0 {
-		iter++
-
 		// Lazy update heuristic:
 		// update Importance of vertex "on demand" as follows:
 		// Before contracting vertex with currently smallest Importance, recompute its Importance and see if it is still the smallest
@@ -26,17 +23,15 @@ func (graph *Graph) Preprocess() []int64 {
 			graph.pqImportance.Push(vertex)
 			continue
 		}
-
 		nodeOrdering[extractNum] = vertex.vertexNum
 		vertex.orderPos = extractNum
-		extractNum = extractNum + 1
-		graph.contractNode(vertex, int64(extractNum-1))
-
+		graph.contractNode(vertex)
 		if DEBUG_PREPROCESSING {
-			if iter > 0 && graph.pqImportance.Len()%1 == 0 {
+			if extractNum > 0 && graph.pqImportance.Len()%1000 == 0 {
 				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), graph.shortcutsNum(), time.Now())
 			}
 		}
+		extractNum++
 	}
 	return nodeOrdering
 }
@@ -70,9 +65,8 @@ type ContractionPath struct {
 // contractNode
 //
 // vertex Vertex to be contracted
-// contractID ID of contraction
 //
-func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
+func (graph *Graph) contractNode(vertex *Vertex) {
 	inEdges := vertex.inIncidentEdges
 	outEdges := vertex.outIncidentEdges
 
@@ -103,27 +97,24 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 
 	max := inMax + outMax
 
-	// fmt.Println("CONTRACTION PROCESS", vertex.vertexNum)
+	contractionID := int64(vertex.orderPos - 1)
 	for i := 0; i < len(inEdges); i++ {
 		inVertex := inEdges[i].vertexID
 		if graph.Vertices[inVertex].contracted {
 			continue
 		}
 		incost := inEdges[i].cost
-		graph.dijkstra(inVertex, max, contractID, int64(i)) // Finds the shortest distances from the inVertex to all outVertices.
-		// graph.dijkstra_v2(inVertex, max)
+		graph.dijkstra(inVertex, max, contractionID, int64(i)) // Finds the shortest distances from the inVertex to all outVertices.
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j].vertexID
 			outcost := outEdges[j].cost
-			if graph.Vertices[outVertex].contracted {
+			outVertexPtr := graph.Vertices[outVertex]
+
+			if outVertexPtr.contracted {
 				continue
 			}
 			summaryCost := incost + outcost
-
-			// if dist_u[outVertex] > summaryCost {
-			// graph.createOrUpdateShortcut(inVertex, outVertex, vertex.vertexNum, summaryCost)
-			// }
-			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int64(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
+			if outVertexPtr.distance.contractID != contractionID || outVertexPtr.distance.sourceID != int64(i) || outVertexPtr.distance.distance > summaryCost {
 				graph.createOrUpdateShortcut(inVertex, outVertex, vertex.vertexNum, summaryCost)
 			}
 		}
