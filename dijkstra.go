@@ -6,24 +6,27 @@ import (
 
 // checkID Checks if both source's and target's contraction ID are not equal
 func (graph *Graph) checkID(source, target int64) bool {
-	return graph.Vertices[source].distance.contractID != graph.Vertices[target].distance.contractID || graph.Vertices[source].distance.sourceID != graph.Vertices[target].distance.sourceID
+	s := graph.Vertices[source].distance
+	t := graph.Vertices[target].distance
+	return s.contractID != t.contractID || s.sourceID != t.sourceID
 }
 
 // relaxEdges Edge relaxation
-func (graph *Graph) relaxEdges(vertex, contractID, sourceID int64) {
-	vertexList := graph.Vertices[vertex].outIncidentEdges
+func (graph *Graph) relaxEdges(vertexInfo *Vertex, contractID, sourceID int64) {
+	vertexList := vertexInfo.outIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
 		cost := vertexList[i].cost
+		tempPtr := graph.Vertices[temp]
 		// Skip shortcuts
-		if graph.Vertices[temp].contracted {
+		if tempPtr.contracted {
 			continue
 		}
-		if graph.checkID(vertex, temp) || graph.Vertices[temp].distance.distance > graph.Vertices[vertex].distance.distance+cost {
-			graph.Vertices[temp].distance.distance = graph.Vertices[vertex].distance.distance + cost
-			graph.Vertices[temp].distance.contractID = contractID
-			graph.Vertices[temp].distance.sourceID = sourceID
-			heap.Push(graph.pqComparator, graph.Vertices[temp])
+		if graph.checkID(vertexInfo.vertexNum, temp) || tempPtr.distance.distance > vertexInfo.distance.distance+cost {
+			tempPtr.distance.distance = vertexInfo.distance.distance + cost
+			tempPtr.distance.contractID = contractID
+			tempPtr.distance.sourceID = sourceID
+			heap.Push(graph.pqComparator, tempPtr)
 		}
 	}
 }
@@ -43,6 +46,6 @@ func (graph *Graph) dijkstra(source int64, maxcost float64, contractID, sourceID
 		if vertex.distance.distance > maxcost {
 			return
 		}
-		graph.relaxEdges(vertex.vertexNum, contractID, sourceID)
+		graph.relaxEdges(vertex, contractID, sourceID)
 	}
 }
