@@ -153,12 +153,13 @@ func (graph *Graph) callShortcuts(inEdges []incidentEdge, outEdges []incidentEdg
 		incost := inEdges[i].cost
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j].vertexID
-			outcost := outEdges[j].cost
-			if graph.Vertices[outVertex].contracted {
+			outVertexPtr := graph.Vertices[outVertex]
+			if outVertexPtr.contracted {
 				continue
 			}
+			outcost := outEdges[j].cost
 			summaryCost := incost + outcost
-			if graph.Vertices[outVertex].distance_v2[threadID].distance > summaryCost {
+			if outVertexPtr.distance_v2[threadID].distance > summaryCost {
 				graph.createOrUpdateShortcut(inVertex, outVertex, vertexID, summaryCost)
 			}
 		}
