@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const DEBUG_PREPROCESSING = false
+const DEBUG_PREPROCESSING = true
 
 // Preprocess Computes contraction hierarchies and returns node ordering
 func (graph *Graph) Preprocess() []int64 {
@@ -33,7 +33,7 @@ func (graph *Graph) Preprocess() []int64 {
 		graph.contractNode(vertex, int64(extractNum-1))
 
 		if DEBUG_PREPROCESSING {
-			if iter > 0 && graph.pqImportance.Len()%1000 == 0 {
+			if iter > 0 && graph.pqImportance.Len()%1 == 0 {
 				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), graph.shortcutsNum(), time.Now())
 			}
 		}
@@ -103,6 +103,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 
 	max := inMax + outMax
 
+	// fmt.Println("CONTRACTION PROCESS", vertex.vertexNum)
 	for i := 0; i < len(inEdges); i++ {
 		inVertex := inEdges[i].vertexID
 		if graph.Vertices[inVertex].contracted {
@@ -110,6 +111,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 		}
 		incost := inEdges[i].cost
 		graph.dijkstra(inVertex, max, contractID, int64(i)) // Finds the shortest distances from the inVertex to all outVertices.
+		// graph.dijkstra_v2(inVertex, max)
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j].vertexID
 			outcost := outEdges[j].cost
@@ -117,6 +119,10 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 				continue
 			}
 			summaryCost := incost + outcost
+
+			// if dist_u[outVertex] > summaryCost {
+			// graph.createOrUpdateShortcut(inVertex, outVertex, vertex.vertexNum, summaryCost)
+			// }
 			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int64(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
 				graph.createOrUpdateShortcut(inVertex, outVertex, vertex.vertexNum, summaryCost)
 			}

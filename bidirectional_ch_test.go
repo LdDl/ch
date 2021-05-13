@@ -105,7 +105,7 @@ func BenchmarkPrepareContracts(b *testing.B) {
 func TestBadSpatialShortestPath(t *testing.T) {
 	rand.Seed(1337)
 	g := Graph{}
-	numVertices := 50000
+	numVertices := 5
 	lastVertex := int64(numVertices + 1)
 	for i := 0; i < numVertices; i++ {
 		idx := int64(i)
@@ -116,20 +116,67 @@ func TestBadSpatialShortestPath(t *testing.T) {
 	g.AddEdge(lastVertex, 1, rand.Float64())
 	t.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContractionHierarchies()
-	t.Log("TestShortestPath is starting...")
+	t.Log("TestBadSpatialShortestPath is starting...")
 	u := int64(1)
-	v := int64(50000)
+	v := int64(5)
 
 	ans, path := g.ShortestPath(u, v)
-	if len(path) != 50000 {
-		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
+	if len(path) != 5 {
+		t.Errorf("Num of vertices in path should be 5, but got %d", len(path))
 		return
 	}
-	if Round(ans, 0.00005) != Round(25030.974746, 0.00005) {
-		t.Errorf("Length of path should be 25030.974746, but got %f", ans)
+	if Round(ans, 0.00005) != Round(2.348720, 0.00005) {
+		t.Errorf("Length of path should be 2.348720, but got %f", ans)
 		return
 	}
-	t.Log("TestShortestPath is Ok!")
+	t.Log("TestBadSpatialShortestPath is Ok!")
+}
+
+func TestLittleShortestPath(t *testing.T) {
+	g := Graph{}
+	g.CreateVertex(0)
+	g.CreateVertex(1)
+	g.CreateVertex(2)
+	g.CreateVertex(3)
+	g.CreateVertex(4)
+	g.CreateVertex(5)
+	g.CreateVertex(6)
+	g.CreateVertex(7)
+	g.CreateVertex(8)
+	g.CreateVertex(9)
+	g.AddEdge(0, 1, 6.0)
+	g.AddEdge(1, 0, 5.0)
+	g.AddEdge(1, 9, 3.0)
+	g.AddEdge(1, 2, 4.0)
+	g.AddEdge(2, 3, 2.0)
+	g.AddEdge(3, 2, 2.0)
+	g.AddEdge(3, 4, 2.0)
+	g.AddEdge(4, 3, 1.0)
+	g.AddEdge(0, 4, 0.5)
+	g.AddEdge(0, 4, 3.0)
+	g.AddEdge(9, 8, 2.0)
+	g.AddEdge(4, 8, 13.0)
+	g.AddEdge(8, 5, 6.5)
+	g.AddEdge(5, 4, 3.5)
+	g.AddEdge(7, 8, 1.0)
+	g.AddEdge(6, 7, 1.0)
+	g.AddEdge(5, 6, 2.0)
+	g.AddEdge(5, 6, 4.0)
+
+	g.PrepareContractionHierarchies()
+	t.Log("TestLittleShortestPath is starting...")
+	u := int64(0)
+	v := int64(7)
+	//
+	ans, path := g.ShortestPath(u, v)
+	if len(path) != 7 {
+		t.Errorf("Num of vertices in path should be 7, but got %d", len(path))
+	}
+	if Round(ans, 0.00005) != Round(20.5, 0.00005) {
+		t.Errorf("Length of path should be 20.0, but got %f", ans)
+	}
+	fmt.Println(path)
+	t.Log("TestLittleShortestPath is Ok!")
 }
 
 func graphFromCSV(graph *Graph, fname string) error {
