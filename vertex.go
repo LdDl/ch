@@ -12,9 +12,12 @@ type Vertex struct {
 	inIncidentEdges  []incidentEdge
 	outIncidentEdges []incidentEdge
 
-	orderPos         int
-	contracted       bool
-	distance         *Distance
+	orderPos   int
+	contracted bool
+	distance   *Distance
+
+	distance_v2 []*Distance
+
 	incidentEdgesNum int
 	edgeDiff         int
 	delNeighbors     int

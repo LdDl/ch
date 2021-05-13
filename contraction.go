@@ -111,6 +111,7 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 		}
 		incost := inEdges[i].cost
 		graph.dijkstra(inVertex, max, contractID, int64(i)) // Finds the shortest distances from the inVertex to all outVertices.
+
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j].vertexID
 			outcost := outEdges[j].cost
@@ -133,7 +134,6 @@ func (graph *Graph) contractNode(vertex *Vertex, contractID int64) {
 // summaryCost - Travel path of a shortcut
 //
 func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64, summaryCost float64) {
-	// graph.Lock()
 	if _, ok := graph.shortcuts[fromVertex]; !ok {
 		// If there is no such shortcut then add one.
 		graph.shortcuts[fromVertex] = make(map[int64]*ContractionPath)
@@ -188,5 +188,4 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 			graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
 		}
 	}
-	// graph.Unlock()
 }

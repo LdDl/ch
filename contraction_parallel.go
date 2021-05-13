@@ -4,7 +4,6 @@ import (
 	"container/heap"
 	"fmt"
 	"runtime"
-	"sync"
 	"time"
 )
 
@@ -15,11 +14,12 @@ func (graph *Graph) PreprocessParallel() []int64 {
 	var extractNum int
 	var iter int
 
-	// distChan := make(chan *distanceParallel, numThreads)
-	// for i := 0; i < numThreads; i++ {
-	// 	buf := createDistanceParallel(graph)
-	// 	distChan <- &buf
-	// }
+	for i := range graph.Vertices {
+		graph.Vertices[i].distance_v2 = make([]*Distance, numThreads)
+		for threadID := 0; threadID < numThreads; threadID++ {
+			graph.Vertices[i].distance_v2[threadID] = NewDistance()
+		}
+	}
 
 	for graph.pqImportance.Len() != 0 {
 		iter++
@@ -42,6 +42,10 @@ func (graph *Graph) PreprocessParallel() []int64 {
 		}
 	}
 	return nodeOrdering
+}
+
+type chunk struct {
+	fromIdx, toIdx int
 }
 
 // contractNodeParallel_v2 Same as contractNode() but with but with parallelism
@@ -70,50 +74,78 @@ func (graph *Graph) contractNodeParallel_v2(vertex *Vertex, contractID int64, th
 	}
 	max := inMax + outMax
 
-	res := make(chan bool, threads)
+	res := make(chan chunk, threads)
 	limit := len(inEdges)
 	lastIdx := 0
-	done := false
-	graph.pqComparators = make([]*distanceHeap, threads)
-	if threads < limit {
-		fmt.Printf("Here threading for %d pathes\n", limit)
-		for i := 0; i < threads; i++ {
-			// fmt.Println("Start thread #", i)
-			go func(i int, r chan<- bool) {
-				start := (limit / threads) * i
+
+	chunkDone := chunk{}
+
+	if limit < 2 {
+		// When goroutines are not necessary;
+		graph.workWithIncidentEdgesSingle(inEdges, outEdges, max, contractID, vertex.vertexNum)
+	} else if limit >= 2 && threads < limit {
+		// When number of goroutines is less then number of incoming edges
+		// we should do batch processing
+		graph.pqComparators = make([]*distanceHeap, threads)
+		// fmt.Printf("Here threading for %d pathes\n", limit)
+		for threadID := 0; threadID < threads; threadID++ {
+			go func(thread int, r chan<- chunk) {
+				start := (limit / threads) * thread
 				end := start + (limit / threads)
 				edgesSet := inEdges[start:end]
-
 				lastIdx = end
-				// fmt.Println(i, start, end, limit, threads, edgesSet)
-				graph.workWithIncidentEdges(edgesSet, outEdges, max, contractID, vertex.vertexNum, i)
-				// fmt.Println("Done thread #", i)
-				r <- true
-			}(i, res)
+				graph.callDijkstra(edgesSet, outEdges, max, contractID, vertex.vertexNum, thread)
+				r <- chunk{start, end}
+			}(threadID, res)
 		}
-		for i := 0; i < threads; i++ {
-			done = <-res
+		for threadID := 0; threadID < threads; threadID++ {
+			chunkDone = <-res
+			edgesSet := inEdges[chunkDone.fromIdx:chunkDone.toIdx]
+			graph.callShortcuts(edgesSet, outEdges, contractID, vertex.vertexNum, threadID)
 		}
-		_ = done
 		if lastIdx < len(inEdges) {
-			graph.workWithIncidentEdges(inEdges[lastIdx:], outEdges, max, contractID, vertex.vertexNum, 0)
+			graph.callDijkstra(inEdges[lastIdx:], outEdges, max, contractID, vertex.vertexNum, 0)
+			graph.callShortcuts(inEdges[lastIdx:], outEdges, contractID, vertex.vertexNum, 0)
 		}
 	} else {
-		graph.workWithIncidentEdgesSingle(inEdges, outEdges, max, contractID, vertex.vertexNum)
+		// When number of goroutines is greater-or-equal to number of incoming edges
+		// we should do batch processing with batch size = 1
+		graph.pqComparators = make([]*distanceHeap, limit)
+		for threadID := 0; threadID < limit; threadID++ {
+			go func(thread int, r chan<- chunk) {
+				start := thread
+				end := start + 1
+				edgesSet := inEdges[start:end]
+				lastIdx = end
+				graph.callDijkstra(edgesSet, outEdges, max, contractID, vertex.vertexNum, thread)
+				r <- chunk{start, end}
+			}(threadID, res)
+		}
+		for threadID := 0; threadID < limit; threadID++ {
+			chunkDone = <-res
+			edgesSet := inEdges[chunkDone.fromIdx:chunkDone.toIdx]
+			graph.callShortcuts(edgesSet, outEdges, contractID, vertex.vertexNum, threadID)
+		}
 	}
-
-	// fmt.Println("`231")
-	// panic("done")
 }
 
-func (graph *Graph) workWithIncidentEdges(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractID, vertexID int64, threadID int) {
+func (graph *Graph) callDijkstra(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractID, vertexID int64, threadID int) {
+	for i := 0; i < len(inEdges); i++ {
+		inVertex := inEdges[i].vertexID
+		if graph.Vertices[inVertex].contracted {
+			continue
+		}
+		graph.dijkstra_v2(inVertex, max, contractID, int64(i), threadID) // Finds the shortest distances from the inVertex to all outVertices.
+	}
+}
+
+func (graph *Graph) callShortcuts(inEdges []incidentEdge, outEdges []incidentEdge, contractID, vertexID int64, threadID int) {
 	for i := 0; i < len(inEdges); i++ {
 		inVertex := inEdges[i].vertexID
 		if graph.Vertices[inVertex].contracted {
 			continue
 		}
 		incost := inEdges[i].cost
-		graph.dijkstra_v2(inVertex, max, contractID, int64(i), threadID) // Finds the shortest distances from the inVertex to all outVertices.
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j].vertexID
 			outcost := outEdges[j].cost
@@ -121,84 +153,8 @@ func (graph *Graph) workWithIncidentEdges(inEdges []incidentEdge, outEdges []inc
 				continue
 			}
 			summaryCost := incost + outcost
-			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int64(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
+			if graph.Vertices[outVertex].distance_v2[threadID].distance > summaryCost {
 				graph.createOrUpdateShortcut(inVertex, outVertex, vertexID, summaryCost)
-			}
-		}
-	}
-}
-
-// contractNodeParallel Same as contractNode() but with but with parallelism
-func (graph *Graph) contractNodeParallel(vertex *Vertex, contractID int64, distChan chan *distanceParallel, threads int) {
-
-	inEdges := vertex.inIncidentEdges
-	outEdges := vertex.outIncidentEdges
-
-	vertex.contracted = true
-
-	inMax := 0.0
-	outMax := 0.0
-
-	outChan := make(chan *distanceParallel, threads)
-	graph.markNeighbors(inEdges, outEdges)
-
-	for i := 0; i < len(inEdges); i++ {
-		if graph.Vertices[inEdges[i].vertexID].contracted {
-			continue
-		}
-		if inMax < inEdges[i].cost {
-			inMax = inEdges[i].cost
-		}
-	}
-
-	for i := 0; i < len(outEdges); i++ {
-		if graph.Vertices[outEdges[i].vertexID].contracted {
-			continue
-		}
-		if outMax < outEdges[i].cost {
-			outMax = outEdges[i].cost
-		}
-	}
-
-	max := inMax + outMax
-
-	wg := sync.WaitGroup{}
-	counter := 0
-	for i := 0; i < len(inEdges); i++ {
-		inVertex := inEdges[i].vertexID
-		incost := inEdges[i].cost
-		if !graph.Vertices[inVertex].contracted {
-			wg.Add(1)
-			counter++
-			go graph.dijkstraParallel(inVertex, i, int(contractID)+counter, max, distChan, outChan, &wg)
-		}
-		if ((counter+1)%threads == 0) || i == len(inEdges)-1 {
-			wg.Wait()
-		outloop:
-			for {
-				var dist *distanceParallel
-				select {
-				case dist = <-outChan:
-					{
-						inVertex = dist.sourceID
-						incost = inEdges[dist.edgeID].cost
-						for j := 0; j < len(outEdges); j++ {
-							outVertex := outEdges[j].vertexID
-							outcost := outEdges[j].cost
-							if graph.Vertices[outVertex].contracted {
-								continue
-							}
-							distance := dist.distance[outVertex]
-							summaryCost := incost + outcost
-							if dist.contract[outVertex] != dist.contractID || distance > summaryCost {
-								graph.createOrUpdateShortcut(inVertex, outVertex, vertex.vertexNum, summaryCost)
-							}
-						}
-						distChan <- dist
-					}
-				default:
-					break outloop
-				}
 			}
 		}
 	}
