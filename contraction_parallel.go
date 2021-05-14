@@ -44,10 +44,6 @@ func (graph *Graph) PreprocessParallel() []int64 {
 	return nodeOrdering
 }
 
-type chunk struct {
-	fromIdx, toIdx int
-}
-
 // contractNodeParallel_v2 Same as contractNode() but with but with parallelism
 func (graph *Graph) contractNodeParallel_v2(vertexInfo *Vertex, threads int) {
 	inEdges := vertexInfo.inIncidentEdges
@@ -88,7 +84,6 @@ func (graph *Graph) contractNodeParallel_v2(vertexInfo *Vertex, threads int) {
 	limit := len(inEdgesForProcess)
 	lastIdx := 0
 
-	// chunkDone := chunk{}
 	chunkDone := []*ShortcutPath{}
 	finalShortcuts := []*ShortcutPath{}
 
