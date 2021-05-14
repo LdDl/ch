@@ -161,7 +161,7 @@ func (graph *Graph) callDijkstra(inEdges []incidentEdge, outEdges []incidentEdge
 				continue
 			}
 			summaryCost := incost + outcost
-			if outVertexPtr.distance.contractID != contractionID || outVertexPtr.distance.sourceID != int64(i) || outVertexPtr.distance.distance > summaryCost {
+			if outVertexPtr.distance_v2[threadID].contractID != contractionID || outVertexPtr.distance_v2[threadID].sourceID != int64(i) || outVertexPtr.distance_v2[threadID].distance > summaryCost {
 				shortcuts = append(shortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertexID, Cost: summaryCost})
 			}
 		}
