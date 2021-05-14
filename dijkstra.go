@@ -33,7 +33,8 @@ func (graph *Graph) relaxEdges(vertexInfo *Vertex, contractID, sourceID int64) {
 
 // dijkstra Internal dijkstra algorithm to compute contraction hierarchies
 func (graph *Graph) dijkstra(source int64, maxcost float64, contractID, sourceID int64) {
-	graph.pqComparator = &distanceHeap{}
+	h := distanceHeap{importanceHeap: importanceHeap{}}
+	graph.pqComparator = &h
 	heap.Init(graph.pqComparator)
 	heap.Push(graph.pqComparator, graph.Vertices[source])
 

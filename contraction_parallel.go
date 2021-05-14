@@ -74,7 +74,7 @@ func (graph *Graph) contractNodeParallel_v2(vertexInfo *Vertex, threads int) {
 	}
 	max := inMax + outMax
 
-	res := make(chan chunk, threads)
+	res := make(chan []*ShortcutPath, threads)
 
 	inEdgesForProcess := []incidentEdge{}
 	for i := 0; i < len(inEdges); i++ {
@@ -88,7 +88,9 @@ func (graph *Graph) contractNodeParallel_v2(vertexInfo *Vertex, threads int) {
 	limit := len(inEdgesForProcess)
 	lastIdx := 0
 
-	chunkDone := chunk{}
+	// chunkDone := chunk{}
+	chunkDone := []*ShortcutPath{}
+	finalShortcuts := []*ShortcutPath{}
 
 	contractionID := int64(vertexInfo.orderPos - 1)
 	if limit < 2 {
@@ -100,70 +102,72 @@ func (graph *Graph) contractNodeParallel_v2(vertexInfo *Vertex, threads int) {
 		graph.pqComparators = make([]*distanceHeap, threads)
 		// fmt.Printf("Here threading for %d pathes\n", limit)
 		for threadID := 0; threadID < threads; threadID++ {
-			go func(thread int, r chan<- chunk) {
+			go func(thread int, r chan<- []*ShortcutPath) {
 				start := (limit / threads) * thread
 				end := start + (limit / threads)
 				edgesSet := inEdgesForProcess[start:end]
 				lastIdx = end
-				graph.callDijkstra(edgesSet, outEdges, max, contractionID, vertexInfo.vertexNum, thread)
-				r <- chunk{start, end}
+				shortcuts := graph.callDijkstra(edgesSet, outEdges, max, contractionID, vertexInfo.vertexNum, thread)
+				r <- shortcuts
 			}(threadID, res)
 		}
 		for threadID := 0; threadID < threads; threadID++ {
 			chunkDone = <-res
-			edgesSet := inEdgesForProcess[chunkDone.fromIdx:chunkDone.toIdx]
-			graph.callShortcuts(edgesSet, outEdges, contractionID, vertexInfo.vertexNum, threadID)
+			finalShortcuts = append(finalShortcuts, chunkDone...)
 		}
 		if lastIdx < len(inEdgesForProcess) {
-			graph.callDijkstra(inEdgesForProcess[lastIdx:], outEdges, max, contractionID, vertexInfo.vertexNum, 0)
-			graph.callShortcuts(inEdgesForProcess[lastIdx:], outEdges, contractionID, vertexInfo.vertexNum, 0)
+			shortcuts := graph.callDijkstra(inEdgesForProcess[lastIdx:], outEdges, max, contractionID, vertexInfo.vertexNum, 0)
+			finalShortcuts = append(finalShortcuts, shortcuts...)
 		}
 	} else {
 		// When number of goroutines is greater-or-equal to number of incoming edges
 		// we should do batch processing with batch size = 1
 		graph.pqComparators = make([]*distanceHeap, limit)
 		for threadID := 0; threadID < limit; threadID++ {
-			go func(thread int, r chan<- chunk) {
+			go func(thread int, r chan<- []*ShortcutPath) {
 				start := thread
 				end := start + 1
 				edgesSet := inEdgesForProcess[start:end]
 				lastIdx = end
-				graph.callDijkstra(edgesSet, outEdges, max, contractionID, vertexInfo.vertexNum, thread)
-				r <- chunk{start, end}
+				shortcuts := graph.callDijkstra(edgesSet, outEdges, max, contractionID, vertexInfo.vertexNum, thread)
+				r <- shortcuts
 			}(threadID, res)
 		}
 		for threadID := 0; threadID < limit; threadID++ {
 			chunkDone = <-res
-			edgesSet := inEdgesForProcess[chunkDone.fromIdx:chunkDone.toIdx]
-			graph.callShortcuts(edgesSet, outEdges, contractionID, vertexInfo.vertexNum, threadID)
+			finalShortcuts = append(finalShortcuts, chunkDone...)
 		}
 	}
-}
-
-func (graph *Graph) callDijkstra(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractID, vertexID int64, threadID int) {
-	for i := 0; i < len(inEdges); i++ {
-		inVertex := inEdges[i].vertexID
-		graph.dijkstra_v2(inVertex, max, contractID, int64(i), threadID) // Finds the shortest distances from the inVertex to all outVertices.
+	for i := range finalShortcuts {
+		d := finalShortcuts[i]
+		graph.createOrUpdateShortcut(d.From, d.To, d.Via, d.Cost)
 	}
 }
 
-func (graph *Graph) callShortcuts(inEdges []incidentEdge, outEdges []incidentEdge, contractID, vertexID int64, threadID int) {
+func (graph *Graph) callDijkstra(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractionID, vertexID int64, threadID int) []*ShortcutPath {
+	shortcuts := []*ShortcutPath{}
 	for i := 0; i < len(inEdges); i++ {
 		inVertex := inEdges[i].vertexID
+		if graph.Vertices[inVertex].contracted {
+			continue
+		}
 		incost := inEdges[i].cost
+		graph.dijkstra_v2(inVertex, max, contractionID, int64(i), threadID) // Finds the shortest distances from the inVertex to all outVertices.
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j].vertexID
+			outcost := outEdges[j].cost
 			outVertexPtr := graph.Vertices[outVertex]
 			if outVertexPtr.contracted {
 				continue
 			}
-			outcost := outEdges[j].cost
 			summaryCost := incost + outcost
-			if outVertexPtr.distance_v2[threadID].distance > summaryCost {
-				graph.createOrUpdateShortcut(inVertex, outVertex, vertexID, summaryCost)
+			if outVertexPtr.distance.contractID != contractionID || outVertexPtr.distance.sourceID != int64(i) || outVertexPtr.distance.distance > summaryCost {
+				shortcuts = append(shortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertexID, Cost: summaryCost})
 			}
 		}
+
 	}
+	return shortcuts
 }
 
 func (graph *Graph) workWithIncidentEdgesSingle(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractID, vertexID int64) {

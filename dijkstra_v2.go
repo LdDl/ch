@@ -34,6 +34,13 @@ func (graph *Graph) relaxEdges_v2(vertexInfo *Vertex, contractID, sourceID int64
 		if tempPtr.contracted {
 			continue
 		}
+		// if !graph.checkID_v2(vertexInfo.vertexNum, temp, threadID) {
+		// 	fmt.Println(vertexInfo.vertexNum, temp, threadID)
+		// 	s := graph.Vertices[vertexInfo.vertexNum].distance_v2[threadID]
+		// 	t := graph.Vertices[temp].distance_v2[threadID]
+		// 	fmt.Println(s.contractID, t.contractID, s.sourceID, t.sourceID)
+		// 	panic("1")
+		// }
 		if graph.checkID_v2(vertexInfo.vertexNum, temp, threadID) || tempPtr.distance_v2[threadID].distance > vertexInfo.distance_v2[threadID].distance+cost {
 			tempPtr.distance_v2[threadID].distance = vertexInfo.distance_v2[threadID].distance + cost
 			tempPtr.distance_v2[threadID].contractID = contractID

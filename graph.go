@@ -178,7 +178,8 @@ func (graph *Graph) AddTurnRestriction(from, via, to int64) error {
 
 // computeImportance Compute vertices' importance
 func (graph *Graph) computeImportance() {
-	graph.pqImportance = &importanceHeap{}
+	h := make(importanceHeap, 0, len(graph.Vertices))
+	graph.pqImportance = &h
 	heap.Init(graph.pqImportance)
 	for i := 0; i < len(graph.Vertices); i++ {
 		graph.Vertices[i].computeImportance()

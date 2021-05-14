@@ -98,6 +98,8 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 	max := inMax + outMax
 
 	contractionID := int64(vertex.orderPos - 1)
+	finalShortcuts := []*ShortcutPath{}
+
 	for i := 0; i < len(inEdges); i++ {
 		inVertex := inEdges[i].vertexID
 		if graph.Vertices[inVertex].contracted {
@@ -115,10 +117,22 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 			}
 			summaryCost := incost + outcost
 			if outVertexPtr.distance.contractID != contractionID || outVertexPtr.distance.sourceID != int64(i) || outVertexPtr.distance.distance > summaryCost {
-				graph.createOrUpdateShortcut(inVertex, outVertex, vertex.vertexNum, summaryCost)
+				// graph.createOrUpdateShortcut(inVertex, outVertex, vertex.vertexNum, summaryCost)
+				finalShortcuts = append(finalShortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertex.vertexNum, Cost: summaryCost})
 			}
 		}
 	}
+	for i := range finalShortcuts {
+		d := finalShortcuts[i]
+		graph.createOrUpdateShortcut(d.From, d.To, d.Via, d.Cost)
+	}
+}
+
+type ShortcutPath struct {
+	From int64
+	To   int64
+	Via  int64
+	Cost float64
 }
 
 // createOrUpdateShortcut Creates (or updates: it depends on conditions) shortcut
