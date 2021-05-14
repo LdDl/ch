@@ -70,7 +70,7 @@ func (graph *Graph) contractNodeParallel_v2(vertexInfo *Vertex, threads int) {
 	}
 	max := inMax + outMax
 
-	res := make(chan []*ShortcutPath, threads)
+	res := make(chan *ShortcutPathChannel, threads)
 
 	inEdgesForProcess := []incidentEdge{}
 	for i := 0; i < len(inEdges); i++ {
@@ -84,7 +84,7 @@ func (graph *Graph) contractNodeParallel_v2(vertexInfo *Vertex, threads int) {
 	limit := len(inEdgesForProcess)
 	lastIdx := 0
 
-	chunkDone := []*ShortcutPath{}
+	chunkDone := &ShortcutPathChannel{data: []*ShortcutPath{}, processed: 0}
 	finalShortcuts := []*ShortcutPath{}
 
 	contractionID := int64(vertexInfo.orderPos - 1)
@@ -97,46 +97,68 @@ func (graph *Graph) contractNodeParallel_v2(vertexInfo *Vertex, threads int) {
 		graph.pqComparators = make([]*distanceHeap, threads)
 		// fmt.Printf("Here threading for %d pathes\n", limit)
 		for threadID := 0; threadID < threads; threadID++ {
-			go func(thread int, r chan<- []*ShortcutPath) {
+			go func(thread int, r chan<- *ShortcutPathChannel) {
 				start := (limit / threads) * thread
 				end := start + (limit / threads)
 				edgesSet := inEdgesForProcess[start:end]
-				lastIdx = end
 				shortcuts := graph.callDijkstra(edgesSet, outEdges, max, contractionID, vertexInfo.vertexNum, thread)
-				r <- shortcuts
+				r <- &ShortcutPathChannel{shortcuts, len(edgesSet)}
 			}(threadID, res)
 		}
 		for threadID := 0; threadID < threads; threadID++ {
 			chunkDone = <-res
-			finalShortcuts = append(finalShortcuts, chunkDone...)
+			lastIdx += chunkDone.processed
+			finalShortcuts = append(finalShortcuts, chunkDone.data...)
 		}
 		if lastIdx < len(inEdgesForProcess) {
-			shortcuts := graph.callDijkstra(inEdgesForProcess[lastIdx:], outEdges, max, contractionID, vertexInfo.vertexNum, 0)
-			finalShortcuts = append(finalShortcuts, shortcuts...)
+			// When there is last batch with size < number of threads
+			// we should do batch processing with batch size = 1
+			remainingInEdges := inEdgesForProcess[lastIdx:]
+			limit = len(remainingInEdges)
+			graph.pqComparators = make([]*distanceHeap, limit)
+			for threadID := 0; threadID < limit; threadID++ {
+				go func(thread int, r chan<- *ShortcutPathChannel) {
+					start := thread
+					end := start + 1
+					edgesSet := remainingInEdges[start:end]
+					lastIdx = end
+					shortcuts := graph.callDijkstra(edgesSet, outEdges, max, contractionID, vertexInfo.vertexNum, thread)
+					r <- &ShortcutPathChannel{shortcuts, len(edgesSet)}
+				}(threadID, res)
+			}
+			for threadID := 0; threadID < limit; threadID++ {
+				chunkDone = <-res
+				finalShortcuts = append(finalShortcuts, chunkDone.data...)
+			}
 		}
 	} else {
 		// When number of goroutines is greater-or-equal to number of incoming edges
 		// we should do batch processing with batch size = 1
 		graph.pqComparators = make([]*distanceHeap, limit)
 		for threadID := 0; threadID < limit; threadID++ {
-			go func(thread int, r chan<- []*ShortcutPath) {
+			go func(thread int, r chan<- *ShortcutPathChannel) {
 				start := thread
 				end := start + 1
 				edgesSet := inEdgesForProcess[start:end]
 				lastIdx = end
 				shortcuts := graph.callDijkstra(edgesSet, outEdges, max, contractionID, vertexInfo.vertexNum, thread)
-				r <- shortcuts
+				r <- &ShortcutPathChannel{shortcuts, len(edgesSet)}
 			}(threadID, res)
 		}
 		for threadID := 0; threadID < limit; threadID++ {
 			chunkDone = <-res
-			finalShortcuts = append(finalShortcuts, chunkDone...)
+			finalShortcuts = append(finalShortcuts, chunkDone.data...)
 		}
 	}
 	for i := range finalShortcuts {
 		d := finalShortcuts[i]
 		graph.createOrUpdateShortcut(d.From, d.To, d.Via, d.Cost)
 	}
+}
+
+type ShortcutPathChannel struct {
+	data      []*ShortcutPath
+	processed int
 }
 
 func (graph *Graph) callDijkstra(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractionID, vertexID int64, threadID int) []*ShortcutPath {
