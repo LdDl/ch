@@ -90,7 +90,8 @@ func (graph *Graph) contractNodeParallel_v2(vertexInfo *Vertex, threads int) {
 	contractionID := int64(vertexInfo.orderPos - 1)
 	if limit < 2 {
 		// When goroutines are not necessary;
-		graph.workWithIncidentEdgesSingle(inEdgesForProcess, outEdges, max, contractionID, vertexInfo.vertexNum)
+		shortcuts := graph.workWithIncidentEdgesSingle(inEdgesForProcess, outEdges, max, contractionID, vertexInfo.vertexNum)
+		finalShortcuts = append(finalShortcuts, shortcuts...)
 	} else if limit >= 2 && threads < limit {
 		// When number of goroutines is less then number of incoming edges
 		// we should do batch processing
@@ -186,7 +187,8 @@ func (graph *Graph) callDijkstra(inEdges []incidentEdge, outEdges []incidentEdge
 	return shortcuts
 }
 
-func (graph *Graph) workWithIncidentEdgesSingle(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractID, vertexID int64) {
+func (graph *Graph) workWithIncidentEdgesSingle(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractID, vertexID int64) []*ShortcutPath {
+	shortcuts := []*ShortcutPath{}
 	for i := 0; i < len(inEdges); i++ {
 		inVertex := inEdges[i].vertexID
 		if graph.Vertices[inVertex].contracted {
@@ -202,8 +204,9 @@ func (graph *Graph) workWithIncidentEdgesSingle(inEdges []incidentEdge, outEdges
 			}
 			summaryCost := incost + outcost
 			if graph.Vertices[outVertex].distance.contractID != contractID || graph.Vertices[outVertex].distance.sourceID != int64(i) || graph.Vertices[outVertex].distance.distance > summaryCost {
-				graph.createOrUpdateShortcut(inVertex, outVertex, vertexID, summaryCost)
+				shortcuts = append(shortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertexID, Cost: summaryCost})
 			}
 		}
 	}
+	return shortcuts
 }
