@@ -182,7 +182,6 @@ func (graph *Graph) callDijkstra(inEdges []incidentEdge, outEdges []incidentEdge
 				shortcuts = append(shortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertexID, Cost: summaryCost})
 			}
 		}
-
 	}
 	return shortcuts
 }
