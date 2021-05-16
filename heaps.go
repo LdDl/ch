@@ -16,11 +16,3 @@ func (h importanceHeap) Peek() *Vertex {
 	lastNode := h[0]
 	return lastNode
 }
-
-type distanceHeap struct {
-	importanceHeap
-}
-
-func (h distanceHeap) Less(i, j int) bool {
-	return h.importanceHeap[i].distance.distance < h.importanceHeap[j].distance.distance
-}

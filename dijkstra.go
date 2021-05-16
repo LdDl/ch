@@ -1,9 +1,5 @@
 package ch
 
-import (
-	"container/heap"
-)
-
 // checkID Checks if both source's and target's contraction ID are not equal
 func (graph *Graph) checkID(source, target int64) bool {
 	s := graph.Vertices[source].distance
@@ -26,7 +22,8 @@ func (graph *Graph) relaxEdges(vertexInfo *Vertex, contractID, sourceID int64) {
 			tempPtr.distance.distance = vertexInfo.distance.distance + cost
 			tempPtr.distance.contractID = contractID
 			tempPtr.distance.sourceID = sourceID
-			heap.Push(graph.pqComparator, tempPtr)
+			graph.pqComparator.Push(tempPtr)
+			// graph.pqComparator.Push(tempPtr)
 		}
 	}
 }
@@ -34,15 +31,14 @@ func (graph *Graph) relaxEdges(vertexInfo *Vertex, contractID, sourceID int64) {
 // dijkstra Internal dijkstra algorithm to compute contraction hierarchies
 func (graph *Graph) dijkstra(source int64, maxcost float64, contractID, sourceID int64) {
 	graph.pqComparator = &distanceHeap{}
-	heap.Init(graph.pqComparator)
-	heap.Push(graph.pqComparator, graph.Vertices[source])
+	graph.pqComparator.Push(graph.Vertices[source])
 
 	graph.Vertices[source].distance.distance = 0
 	graph.Vertices[source].distance.contractID = contractID
 	graph.Vertices[source].distance.sourceID = sourceID
 
 	for graph.pqComparator.Len() != 0 {
-		vertex := heap.Pop(graph.pqComparator).(*Vertex)
+		vertex := graph.pqComparator.Pop()
 		if vertex.distance.distance > maxcost {
 			return
 		}
