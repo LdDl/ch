@@ -94,7 +94,7 @@ func (graph *Graph) contractNodeParallel_v2(vertexInfo *Vertex, threads int) {
 	} else if limit >= 2 && threads < limit {
 		// When number of goroutines is less then number of incoming edges
 		// we should do batch processing
-		graph.pqComparators = make([]*distanceHeap, threads)
+		graph.pqComparators = make([]*potatoHeapParallel, threads)
 		// fmt.Printf("Here threading for %d pathes\n", limit)
 		for threadID := 0; threadID < threads; threadID++ {
 			go func(thread int, r chan<- *ShortcutPathChannel) {
@@ -115,7 +115,7 @@ func (graph *Graph) contractNodeParallel_v2(vertexInfo *Vertex, threads int) {
 			// we should do batch processing with batch size = 1
 			remainingInEdges := inEdgesForProcess[lastIdx:]
 			limit = len(remainingInEdges)
-			graph.pqComparators = make([]*distanceHeap, limit)
+			graph.pqComparators = make([]*potatoHeapParallel, limit)
 			for threadID := 0; threadID < limit; threadID++ {
 				go func(thread int, r chan<- *ShortcutPathChannel) {
 					start := thread
@@ -134,7 +134,7 @@ func (graph *Graph) contractNodeParallel_v2(vertexInfo *Vertex, threads int) {
 	} else {
 		// When number of goroutines is greater-or-equal to number of incoming edges
 		// we should do batch processing with batch size = 1
-		graph.pqComparators = make([]*distanceHeap, limit)
+		graph.pqComparators = make([]*potatoHeapParallel, limit)
 		for threadID := 0; threadID < limit; threadID++ {
 			go func(thread int, r chan<- *ShortcutPathChannel) {
 				start := thread
@@ -169,7 +169,7 @@ func (graph *Graph) callDijkstra(inEdges []incidentEdge, outEdges []incidentEdge
 			continue
 		}
 		incost := inEdges[i].cost
-		graph.dijkstra_v2(inVertex, max, contractionID, int64(i), threadID) // Finds the shortest distances from the inVertex to all outVertices.
+		graph.dijkstra_v3(inVertex, max, contractionID, int64(i), threadID) // Finds the shortest distances from the inVertex to all outVertices.
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j].vertexID
 			outcost := outEdges[j].cost
@@ -181,6 +181,9 @@ func (graph *Graph) callDijkstra(inEdges []incidentEdge, outEdges []incidentEdge
 			if outVertexPtr.distance_v2[threadID].contractID != contractionID || outVertexPtr.distance_v2[threadID].sourceID != int64(i) || outVertexPtr.distance_v2[threadID].distance > summaryCost {
 				shortcuts = append(shortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertexID, Cost: summaryCost})
 			}
+			// if outVertexPtr.distance_v2[threadID].distance > summaryCost {
+			// 	shortcuts = append(shortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertexID, Cost: summaryCost})
+			// }
 		}
 	}
 	return shortcuts
