@@ -93,7 +93,7 @@ func TestParallelDijkstraPath(t *testing.T) {
 
 	st = time.Now()
 	threads := runtime.GOMAXPROCS(0)
-	g.pqComparators = make([]*potatoHeapParallel, threads)
+	g.pqComparators = make([]*distanceHeapParallel, threads)
 	res := make(chan bool, threads)
 	limit := len(inEdges)
 	lastIdx := 0
@@ -305,7 +305,7 @@ func BenchmarkMultiCore(b *testing.B) {
 	b.Log("BenchmarkSingleCore is starting...")
 	b.ResetTimer()
 	threads := runtime.GOMAXPROCS(0)
-	g.pqComparators = make([]*potatoHeapParallel, threads)
+	g.pqComparators = make([]*distanceHeapParallel, threads)
 	for k := 0.; k <= 12; k++ {
 		n := int(math.Pow(2, k))
 		b.Run(fmt.Sprintf("%s/%d/vertices-%d", "CH shortest path", n, len(g.Vertices)), func(b *testing.B) {

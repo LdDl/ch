@@ -18,7 +18,7 @@ import (
 //
 type Graph struct {
 	pqImportance *importanceHeap
-	pqComparator *potatoHeap
+	pqComparator *distanceHeap
 
 	mapping      map[int64]int64
 	Vertices     []*Vertex
@@ -31,7 +31,7 @@ type Graph struct {
 	sync.Mutex
 	shortcuts map[int64]map[int64]*ContractionPath
 
-	pqComparators []*potatoHeapParallel
+	pqComparators []*distanceHeapParallel
 }
 
 // CreateVertex Creates new vertex and assign internal ID to it
