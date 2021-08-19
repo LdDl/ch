@@ -11,7 +11,7 @@ func TestExport(t *testing.T) {
 	t.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContractionHierarchies()
 	t.Log("TestExport is starting...")
-	correctNumShortcuts := 395066
+	correctNumShortcuts := 394604
 	correctNumVertices := 187853
 	evaluatedShortcuts := g.shortcutsNum()
 	if evaluatedShortcuts != correctNumShortcuts {

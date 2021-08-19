@@ -175,7 +175,6 @@ func TestLittleShortestPath(t *testing.T) {
 	if Round(ans, 0.00005) != Round(20.5, 0.00005) {
 		t.Errorf("Length of path should be 20.0, but got %f", ans)
 	}
-	fmt.Println(path)
 	t.Log("TestLittleShortestPath is Ok!")
 }
 

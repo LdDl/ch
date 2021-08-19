@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const DEBUG_PREPROCESSING = false
+const DEBUG_PREPROCESSING = true
 
 // Preprocess Computes contraction hierarchies and returns node ordering
 func (graph *Graph) Preprocess() []int64 {
@@ -98,6 +98,18 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 	max := inMax + outMax
 
 	contractionID := int64(vertex.orderPos - 1)
+
+	graph.processIncidentEdges(inEdges, outEdges, max, contractionID, vertex.vertexNum)
+}
+
+// processIncidentEdges Returns evaluated shorcuts
+//
+// inEdges - incoming [to provided vertex] incident edges
+// outEdges - outcoming [from provided vertex] incident edges
+// max - path cost restriction
+// contractID - identifier of contraction
+// vertexID - identifier of provided vertex
+func (graph *Graph) processIncidentEdges(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractionID, vertexID int64) {
 	for i := 0; i < len(inEdges); i++ {
 		inVertex := inEdges[i].vertexID
 		if graph.Vertices[inVertex].contracted {
@@ -109,15 +121,23 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 			outVertex := outEdges[j].vertexID
 			outcost := outEdges[j].cost
 			outVertexPtr := graph.Vertices[outVertex]
-
 			if outVertexPtr.contracted {
 				continue
 			}
 			summaryCost := incost + outcost
 			if outVertexPtr.distance.contractID != contractionID || outVertexPtr.distance.sourceID != int64(i) || outVertexPtr.distance.distance > summaryCost {
-				graph.createOrUpdateShortcut(inVertex, outVertex, vertex.vertexNum, summaryCost)
+				graph.createOrUpdateShortcut(inVertex, outVertex, vertexID, summaryCost)
 			}
 		}
+	}
+}
+
+// insertShortcuts Creates (or updates: it depends on conditions) multiple shortcuts in graph structure
+// @todo: workaround for parent calls (results are different from each other, which is strange)
+func (graph *Graph) insertShortcuts(shortucts []*ShortcutPath) {
+	for i := range shortucts {
+		d := shortucts[i]
+		graph.createOrUpdateShortcut(d.From, d.To, d.Via, d.Cost)
 	}
 }
 
@@ -132,6 +152,9 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 	if _, ok := graph.shortcuts[fromVertex]; !ok {
 		// If there is no such shortcut then add one.
 		graph.shortcuts[fromVertex] = make(map[int64]*ContractionPath)
+	}
+	if v, ok := graph.shortcuts[fromVertex][toVertex]; !ok {
+		// Prepare shorcut pointer if there is no From-To-Via combo
 		graph.shortcuts[fromVertex][toVertex] = &ContractionPath{
 			ViaVertex: viaVertex,
 			Cost:      summaryCost,
@@ -139,48 +162,37 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 		graph.Vertices[fromVertex].addOutIncidentEdge(toVertex, summaryCost)
 		graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
 	} else {
-		if v, ok := graph.shortcuts[fromVertex][toVertex]; ok {
-			// If shortcut already exists
-			// we should check if the middle vertex is still the same
-			if v.ViaVertex == viaVertex {
-				// If middle vertex is still the same then change cost of shortcut only [Additional conditional: previous estimated cost is less than current one]
-				if summaryCost < graph.shortcuts[fromVertex][toVertex].Cost {
-					graph.shortcuts[fromVertex][toVertex].Cost = summaryCost
-					updatedOutSuccess := graph.Vertices[fromVertex].updateOutIncidentEdge(toVertex, summaryCost)
-					if !updatedOutSuccess {
-						panic(fmt.Sprintf("Should not happen [1]. Can't update outcoming incident edge. %d has no common edge with %d", fromVertex, toVertex))
-					}
-					updatedInSuccess := graph.Vertices[toVertex].updateInIncidentEdge(fromVertex, summaryCost)
-					if !updatedInSuccess {
-						panic(fmt.Sprintf("Should not happen [2]. Can't update incoming incident edge. %d has no common edge with %d", toVertex, fromVertex))
-					}
-					graph.Vertices[fromVertex].addOutIncidentEdge(toVertex, summaryCost)
-					graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
+		// If shortcut already exists
+		// we should check if the middle vertex is still the same
+		if v.ViaVertex == viaVertex {
+			// If middle vertex is still the same then change cost of shortcut only [Additional conditional: previous estimated cost is less than current one]
+			if summaryCost < graph.shortcuts[fromVertex][toVertex].Cost {
+				graph.shortcuts[fromVertex][toVertex].Cost = summaryCost
+				updatedOutSuccess := graph.Vertices[fromVertex].updateOutIncidentEdge(toVertex, summaryCost)
+				if !updatedOutSuccess {
+					panic(fmt.Sprintf("Should not happen [1]. Can't update outcoming incident edge. %d has no common edge with %d", fromVertex, toVertex))
 				}
-			} else {
-				// If middle vertex is not optimal for shortcut then change both vertex ID and cost [Additional conditional: previous estimated cost is less than current one]
-				if summaryCost < graph.shortcuts[fromVertex][toVertex].Cost {
-					graph.shortcuts[fromVertex][toVertex].ViaVertex = viaVertex
-					graph.shortcuts[fromVertex][toVertex].Cost = summaryCost
-					deletedOutSuccess := graph.Vertices[fromVertex].deleteOutIncidentEdge(toVertex)
-					if !deletedOutSuccess {
-						panic(fmt.Sprintf("Should not happen [3]. Can't delete outcoming incident edge. %d has no common edge with %d", fromVertex, toVertex))
-					}
-					deletedInSuccess := graph.Vertices[toVertex].deleteInIncidentEdge(fromVertex)
-					if !deletedInSuccess {
-						panic(fmt.Sprintf("Should not happen [4]. Can't delete incoming incident edge. %d has no common edge with %d", toVertex, fromVertex))
-					}
-					graph.Vertices[fromVertex].addOutIncidentEdge(toVertex, summaryCost)
-					graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
+				updatedInSuccess := graph.Vertices[toVertex].updateInIncidentEdge(fromVertex, summaryCost)
+				if !updatedInSuccess {
+					panic(fmt.Sprintf("Should not happen [2]. Can't update incoming incident edge. %d has no common edge with %d", toVertex, fromVertex))
 				}
 			}
 		} else {
-			graph.shortcuts[fromVertex][toVertex] = &ContractionPath{
-				ViaVertex: viaVertex,
-				Cost:      summaryCost,
+			// If middle vertex is not optimal for shortcut then change both vertex ID and cost [Additional conditional: previous estimated cost is less than current one]
+			if summaryCost < graph.shortcuts[fromVertex][toVertex].Cost {
+				graph.shortcuts[fromVertex][toVertex].ViaVertex = viaVertex
+				graph.shortcuts[fromVertex][toVertex].Cost = summaryCost
+				deletedOutSuccess := graph.Vertices[fromVertex].deleteOutIncidentEdge(toVertex)
+				if !deletedOutSuccess {
+					panic(fmt.Sprintf("Should not happen [3]. Can't delete outcoming incident edge. %d has no common edge with %d", fromVertex, toVertex))
+				}
+				deletedInSuccess := graph.Vertices[toVertex].deleteInIncidentEdge(fromVertex)
+				if !deletedInSuccess {
+					panic(fmt.Sprintf("Should not happen [4]. Can't delete incoming incident edge. %d has no common edge with %d", toVertex, fromVertex))
+				}
+				graph.Vertices[fromVertex].addOutIncidentEdge(toVertex, summaryCost)
+				graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
 			}
-			graph.Vertices[fromVertex].addOutIncidentEdge(toVertex, summaryCost)
-			graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
 		}
 	}
 }
