@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const DEBUG_PREPROCESSING = true
+const DEBUG_PREPROCESSING = false
 
 // Preprocess Computes contraction hierarchies and returns node ordering
 func (graph *Graph) Preprocess() []int64 {
@@ -107,7 +107,7 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 // inEdges - incoming [to provided vertex] incident edges
 // outEdges - outcoming [from provided vertex] incident edges
 // max - path cost restriction
-// contractID - identifier of contraction
+// contracttionID - identifier of contraction
 // vertexID - identifier of provided vertex
 func (graph *Graph) processIncidentEdges(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractionID, vertexID int64) {
 	for i := 0; i < len(inEdges); i++ {
@@ -117,6 +117,7 @@ func (graph *Graph) processIncidentEdges(inEdges []incidentEdge, outEdges []inci
 		}
 		incost := inEdges[i].cost
 		graph.dijkstra(inVertex, max, contractionID, int64(i)) // Finds the shortest distances from the inVertex to all outVertices.
+		batchShortcuts := []*ShortcutPath{}
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j].vertexID
 			outcost := outEdges[j].cost
@@ -125,10 +126,11 @@ func (graph *Graph) processIncidentEdges(inEdges []incidentEdge, outEdges []inci
 				continue
 			}
 			summaryCost := incost + outcost
-			if outVertexPtr.distance.contractID != contractionID || outVertexPtr.distance.sourceID != int64(i) || outVertexPtr.distance.distance > summaryCost {
-				graph.createOrUpdateShortcut(inVertex, outVertex, vertexID, summaryCost)
+			if outVertexPtr.distance.contracttionID != contractionID || outVertexPtr.distance.sourceID != int64(i) || outVertexPtr.distance.distance > summaryCost {
+				batchShortcuts = append(batchShortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertexID, Cost: summaryCost})
 			}
 		}
+		graph.insertShortcuts(batchShortcuts)
 	}
 }
 
@@ -153,7 +155,7 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 		// If there is no such shortcut then add one.
 		graph.shortcuts[fromVertex] = make(map[int64]*ContractionPath)
 	}
-	if v, ok := graph.shortcuts[fromVertex][toVertex]; !ok {
+	if existing, ok := graph.shortcuts[fromVertex][toVertex]; !ok {
 		// Prepare shorcut pointer if there is no From-To-Via combo
 		graph.shortcuts[fromVertex][toVertex] = &ContractionPath{
 			ViaVertex: viaVertex,
@@ -164,10 +166,10 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 	} else {
 		// If shortcut already exists
 		// we should check if the middle vertex is still the same
-		if v.ViaVertex == viaVertex {
+		if existing.ViaVertex == viaVertex {
 			// If middle vertex is still the same then change cost of shortcut only [Additional conditional: previous estimated cost is less than current one]
-			if summaryCost < graph.shortcuts[fromVertex][toVertex].Cost {
-				graph.shortcuts[fromVertex][toVertex].Cost = summaryCost
+			if summaryCost < existing.Cost {
+				existing.Cost = summaryCost
 				updatedOutSuccess := graph.Vertices[fromVertex].updateOutIncidentEdge(toVertex, summaryCost)
 				if !updatedOutSuccess {
 					panic(fmt.Sprintf("Should not happen [1]. Can't update outcoming incident edge. %d has no common edge with %d", fromVertex, toVertex))
@@ -179,9 +181,9 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 			}
 		} else {
 			// If middle vertex is not optimal for shortcut then change both vertex ID and cost [Additional conditional: previous estimated cost is less than current one]
-			if summaryCost < graph.shortcuts[fromVertex][toVertex].Cost {
-				graph.shortcuts[fromVertex][toVertex].ViaVertex = viaVertex
-				graph.shortcuts[fromVertex][toVertex].Cost = summaryCost
+			if summaryCost < existing.Cost {
+				existing.ViaVertex = viaVertex
+				existing.Cost = summaryCost
 				deletedOutSuccess := graph.Vertices[fromVertex].deleteOutIncidentEdge(toVertex)
 				if !deletedOutSuccess {
 					panic(fmt.Sprintf("Should not happen [3]. Can't delete outcoming incident edge. %d has no common edge with %d", fromVertex, toVertex))
