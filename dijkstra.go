@@ -14,7 +14,7 @@ func (graph *Graph) relaxEdges(vertexInfo *Vertex, contractionID, sourceID int64
 		temp := vertexList[i].vertexID
 		cost := vertexList[i].cost
 		tempPtr := graph.Vertices[temp]
-		// Skip shortcuts
+		// Skip contracted vertices
 		if tempPtr.contracted {
 			continue
 		}
