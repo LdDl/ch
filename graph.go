@@ -23,7 +23,7 @@ type Graph struct {
 	Vertices     []*Vertex
 	nodeOrdering []int64
 
-	shortcuts    map[int64]map[int64]*ContractionPath
+	shortcuts    map[int64]map[int64]*ShortcutPath
 	restrictions map[int64]map[int64]int64
 
 	frozen bool
@@ -47,7 +47,7 @@ func (graph *Graph) CreateVertex(label int64) error {
 		graph.mapping = make(map[int64]int64)
 	}
 	if graph.shortcuts == nil {
-		graph.shortcuts = make(map[int64]map[int64]*ContractionPath)
+		graph.shortcuts = make(map[int64]map[int64]*ShortcutPath)
 	}
 
 	if _, ok := graph.mapping[label]; !ok {
@@ -78,7 +78,7 @@ func (graph *Graph) AddVertex(labelExternal, labelInternal int64) error {
 		graph.mapping = make(map[int64]int64)
 	}
 	if graph.shortcuts == nil {
-		graph.shortcuts = make(map[int64]map[int64]*ContractionPath)
+		graph.shortcuts = make(map[int64]map[int64]*ShortcutPath)
 	}
 
 	if _, ok := graph.mapping[labelExternal]; !ok {
@@ -129,15 +129,19 @@ func (graph *Graph) AddShortcut(from, to, via int64, weight float64) error {
 	toInternal := graph.mapping[to]
 	viaInternal := graph.mapping[via]
 	if _, ok := graph.shortcuts[fromInternal]; !ok {
-		graph.shortcuts[fromInternal] = make(map[int64]*ContractionPath)
-		graph.shortcuts[fromInternal][toInternal] = &ContractionPath{
-			ViaVertex: viaInternal,
-			Cost:      weight,
+		graph.shortcuts[fromInternal] = make(map[int64]*ShortcutPath)
+		graph.shortcuts[fromInternal][toInternal] = &ShortcutPath{
+			From: fromInternal,
+			To:   toInternal,
+			Via:  viaInternal,
+			Cost: weight,
 		}
 	}
-	graph.shortcuts[fromInternal][toInternal] = &ContractionPath{
-		ViaVertex: viaInternal,
-		Cost:      weight,
+	graph.shortcuts[fromInternal][toInternal] = &ShortcutPath{
+		From: fromInternal,
+		To:   toInternal,
+		Via:  viaInternal,
+		Cost: weight,
 	}
 	return nil
 }
@@ -227,5 +231,5 @@ func (graph *Graph) IsShortcut(labelFromVertex, labelToVertex int64) (int64, boo
 	if !ok {
 		return -1, ok
 	}
-	return graph.Vertices[shortcut.ViaVertex].Label, ok
+	return graph.Vertices[shortcut.Via].Label, ok
 }

@@ -52,16 +52,6 @@ func (graph *Graph) markNeighbors(inEdges, outEdges []incidentEdge) {
 	}
 }
 
-// ContractionPath
-//
-// ViaVertex - ID of vertex through which the shortcut exists
-// Cost - summary cost of path between two vertices
-//
-type ContractionPath struct {
-	ViaVertex int64
-	Cost      float64
-}
-
 // contractNode
 //
 // vertex Vertex to be contracted
@@ -153,13 +143,15 @@ func (graph *Graph) insertShortcuts(shortcuts []*ShortcutPath) {
 func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64, summaryCost float64) {
 	if _, ok := graph.shortcuts[fromVertex]; !ok {
 		// If there is no such shortcut then add one.
-		graph.shortcuts[fromVertex] = make(map[int64]*ContractionPath)
+		graph.shortcuts[fromVertex] = make(map[int64]*ShortcutPath)
 	}
 	if existing, ok := graph.shortcuts[fromVertex][toVertex]; !ok {
 		// Prepare shorcut pointer if there is no From-To-Via combo
-		graph.shortcuts[fromVertex][toVertex] = &ContractionPath{
-			ViaVertex: viaVertex,
-			Cost:      summaryCost,
+		graph.shortcuts[fromVertex][toVertex] = &ShortcutPath{
+			From: fromVertex,
+			To:   toVertex,
+			Via:  viaVertex,
+			Cost: summaryCost,
 		}
 		graph.Vertices[fromVertex].addOutIncidentEdge(toVertex, summaryCost)
 		graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
@@ -178,8 +170,8 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 			}
 			// We should check if the middle vertex is still the same
 			// We could just do existing.ViaVertex = viaVertex, but it could be helpful for debugging purposes.
-			if existing.ViaVertex != viaVertex {
-				existing.ViaVertex = viaVertex
+			if existing.Via != viaVertex {
+				existing.Via = viaVertex
 			}
 		}
 	}

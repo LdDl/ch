@@ -146,7 +146,7 @@ func (graph *Graph) ExportShortcutsToFile(fname string) error {
 		sourceVertexExternal := graph.Vertices[sourceVertexInternal].Label
 		for targetVertexInternal, viaNodeInternal := range to {
 			targetVertexExternal := graph.Vertices[targetVertexInternal].Label
-			viaNodeExternal := graph.Vertices[viaNodeInternal.ViaVertex].Label
+			viaNodeExternal := graph.Vertices[viaNodeInternal.Via].Label
 			err = writerShortcuts.Write([]string{
 				fmt.Sprintf("%d", sourceVertexExternal),
 				fmt.Sprintf("%d", targetVertexExternal),
