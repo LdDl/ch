@@ -94,21 +94,21 @@ func (vertex *Vertex) bidirectedEdges() int {
 
 // Distance Information about contraction between source vertex and contraction vertex
 type Distance struct {
-	contracttionID int64
-	sourceID       int64
-	distance       float64
-	queryDist      float64
-	revDistance    float64
+	contractionID int64
+	sourceID      int64
+	distance      float64
+	queryDist     float64
+	revDistance   float64
 }
 
 // NewDistance Constructor for Distance
 func NewDistance() *Distance {
 	return &Distance{
-		contracttionID: -1,
-		sourceID:       -1,
-		distance:       math.MaxFloat64,
-		revDistance:    math.MaxFloat64,
-		queryDist:      math.MaxFloat64,
+		contractionID: -1,
+		sourceID:      -1,
+		distance:      math.MaxFloat64,
+		revDistance:   math.MaxFloat64,
+		queryDist:     math.MaxFloat64,
 	}
 }
 

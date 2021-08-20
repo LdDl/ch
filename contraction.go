@@ -107,7 +107,7 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 // inEdges - incoming [to provided vertex] incident edges
 // outEdges - outcoming [from provided vertex] incident edges
 // max - path cost restriction
-// contracttionID - identifier of contraction
+// contractionID - identifier of contraction
 // vertexID - identifier of provided vertex
 func (graph *Graph) processIncidentEdges(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractionID, vertexID int64) {
 	for i := 0; i < len(inEdges); i++ {
@@ -126,7 +126,7 @@ func (graph *Graph) processIncidentEdges(inEdges []incidentEdge, outEdges []inci
 				continue
 			}
 			summaryCost := incost + outcost
-			if outVertexPtr.distance.contracttionID != contractionID || outVertexPtr.distance.sourceID != int64(i) || outVertexPtr.distance.distance > summaryCost {
+			if outVertexPtr.distance.contractionID != contractionID || outVertexPtr.distance.sourceID != int64(i) || outVertexPtr.distance.distance > summaryCost {
 				batchShortcuts = append(batchShortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertexID, Cost: summaryCost})
 			}
 		}
