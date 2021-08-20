@@ -165,35 +165,21 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 		graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
 	} else {
 		// If shortcut already exists
-		// we should check if the middle vertex is still the same
-		if existing.ViaVertex == viaVertex {
-			// If middle vertex is still the same then change cost of shortcut only [Additional conditional: previous estimated cost is less than current one]
-			if summaryCost < existing.Cost {
-				existing.Cost = summaryCost
-				updatedOutSuccess := graph.Vertices[fromVertex].updateOutIncidentEdge(toVertex, summaryCost)
-				if !updatedOutSuccess {
-					panic(fmt.Sprintf("Should not happen [1]. Can't update outcoming incident edge. %d has no common edge with %d", fromVertex, toVertex))
-				}
-				updatedInSuccess := graph.Vertices[toVertex].updateInIncidentEdge(fromVertex, summaryCost)
-				if !updatedInSuccess {
-					panic(fmt.Sprintf("Should not happen [2]. Can't update incoming incident edge. %d has no common edge with %d", toVertex, fromVertex))
-				}
+		if summaryCost < existing.Cost {
+			// If middle vertex is not optimal for shortcut then change cost
+			existing.Cost = summaryCost
+			updatedOutSuccess := graph.Vertices[fromVertex].updateOutIncidentEdge(toVertex, summaryCost)
+			if !updatedOutSuccess {
+				panic(fmt.Sprintf("Should not happen [1]. Can't update outcoming incident edge. %d has no common edge with %d", fromVertex, toVertex))
 			}
-		} else {
-			// If middle vertex is not optimal for shortcut then change both vertex ID and cost [Additional conditional: previous estimated cost is less than current one]
-			if summaryCost < existing.Cost {
+			updatedInSuccess := graph.Vertices[toVertex].updateInIncidentEdge(fromVertex, summaryCost)
+			if !updatedInSuccess {
+				panic(fmt.Sprintf("Should not happen [2]. Can't update incoming incident edge. %d has no common edge with %d", toVertex, fromVertex))
+			}
+			// We should check if the middle vertex is still the same
+			// We could just do existing.ViaVertex = viaVertex, but it could be helpful for debugging purposes.
+			if existing.ViaVertex != viaVertex {
 				existing.ViaVertex = viaVertex
-				existing.Cost = summaryCost
-				deletedOutSuccess := graph.Vertices[fromVertex].deleteOutIncidentEdge(toVertex)
-				if !deletedOutSuccess {
-					panic(fmt.Sprintf("Should not happen [3]. Can't delete outcoming incident edge. %d has no common edge with %d", fromVertex, toVertex))
-				}
-				deletedInSuccess := graph.Vertices[toVertex].deleteInIncidentEdge(fromVertex)
-				if !deletedInSuccess {
-					panic(fmt.Sprintf("Should not happen [4]. Can't delete incoming incident edge. %d has no common edge with %d", toVertex, fromVertex))
-				}
-				graph.Vertices[fromVertex].addOutIncidentEdge(toVertex, summaryCost)
-				graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
 			}
 		}
 	}
