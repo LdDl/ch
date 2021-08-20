@@ -134,9 +134,9 @@ func (graph *Graph) processIncidentEdges(inEdges []incidentEdge, outEdges []inci
 
 // insertShortcuts Creates (or updates: it depends on conditions) multiple shortcuts in graph structure
 // @todo: workaround for parent calls (results are different from each other, which is strange)
-func (graph *Graph) insertShortcuts(shortucts []*ShortcutPath) {
-	for i := range shortucts {
-		d := shortucts[i]
+func (graph *Graph) insertShortcuts(shortcuts []*ShortcutPath) {
+	for i := range shortcuts {
+		d := shortcuts[i]
 		graph.createOrUpdateShortcut(d.From, d.To, d.Via, d.Cost)
 	}
 }
