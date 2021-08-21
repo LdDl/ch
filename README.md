@@ -5,7 +5,7 @@
 [![GitHub tag](https://img.shields.io/github/tag/LdDl/ch.svg)](https://github.com/LdDl/ch/releases)
 
 # ch - Contraction Hierarchies
-## Contraction Hierarchies - technique for for computing shortest path in graph.
+## Contraction Hierarchies - technique for speed up of computing shortest path in graph.
 
 This library provides [Contraction Hierarchies](https://en.wikipedia.org/wiki/Contraction_hierarchies) preprocessing graph technique for [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm). Classic implementation of Dijkstra's algorithm, maneuver restrictions extension and [isochrones](https://en.wikipedia.org/wiki/Isochrone_map) estimation are included also.
 
