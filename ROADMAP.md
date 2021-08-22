@@ -14,9 +14,10 @@ New ideas, thought about needed features will be store in this file.
     * Replace int with int64 (OSM purposes) **Done**
     * Separate benchmarks to BENCHMARK.md **Done**
     * Better CSV format or another format (JSON / binary). **W.I.P. Splitting single file to multiple**
+    * Separate export functions
 
 ### WIP
-* Separate export functions
+* Parallel version as optional feature (See branch [optional-parallelism](https://github.com/LdDl/ch/tree/)). Status update: 22.08.2021
 
 ### Planned
 * Better heuristics for calculationg importance of each vertex.
