@@ -18,6 +18,7 @@ New ideas, thought about needed features will be store in this file.
 
 ### WIP
 * Parallel version as optional feature (See branch [optional-parallelism](https://github.com/LdDl/ch/tree/)). Status update: 22.08.2021
+* Refactor code completely. May be add some simple variation of algorithm (or add docs/wiki, the best I've found so far: https://jlazarsfeld.github.io/ch.150.project/sections/1-intro/)
 
 ### Planned
 * Better heuristics for calculationg importance of each vertex.
