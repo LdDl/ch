@@ -1,9 +1,9 @@
 package ch
 
 type simpleNode struct {
-	id          int64
-	queryDist   float64
-	revDistance float64
+	id               int64
+	queryDist        float64
+	revQueryDistance float64
 }
 
 type forwardHeap []*simpleNode

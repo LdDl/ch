@@ -20,7 +20,7 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 	prevReverse := make(map[int64]int64)
 
 	queryDist := make([]float64, len(graph.Vertices), len(graph.Vertices))
-	revDistance := make([]float64, len(graph.Vertices), len(graph.Vertices))
+	revQueryDist := make([]float64, len(graph.Vertices), len(graph.Vertices))
 
 	forwProcessed := make([]int64, len(graph.Vertices), len(graph.Vertices))
 	revProcessed := make([]int64, len(graph.Vertices), len(graph.Vertices))
@@ -50,7 +50,7 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 		revProcessed[target] = nextQueue
 
 		queryDist[source] = 0
-		revDistance[target] = 0
+		revQueryDist[target] = 0
 
 		forwQ := &forwardHeap{}
 		backwQ := &backwardHeap{}
@@ -59,14 +59,14 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 		heap.Init(backwQ)
 
 		heapSource := &simpleNode{
-			id:          source,
-			queryDist:   0,
-			revDistance: math.MaxFloat64,
+			id:               source,
+			queryDist:        0,
+			revQueryDistance: math.MaxFloat64,
 		}
 		heapTarget := &simpleNode{
-			id:          target,
-			queryDist:   math.MaxFloat64,
-			revDistance: 0,
+			id:               target,
+			queryDist:        math.MaxFloat64,
+			revQueryDistance: 0,
 		}
 
 		heap.Push(forwQ, heapSource)
@@ -84,24 +84,24 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 					graph.relaxEdgesBiForwardOneToMany(vertex1, forwQ, prev, queryDist, nextQueue, forwProcessed)
 				}
 				if revProcessed[vertex1.id] == nextQueue {
-					if vertex1.queryDist+revDistance[vertex1.id] < estimate {
+					if vertex1.queryDist+revQueryDist[vertex1.id] < estimate {
 						middleID = vertex1.id
-						estimate = vertex1.queryDist + revDistance[vertex1.id]
+						estimate = vertex1.queryDist + revQueryDist[vertex1.id]
 					}
 				}
 			}
 
 			if backwQ.Len() != 0 {
 				vertex2 := heap.Pop(backwQ).(*simpleNode)
-				if vertex2.revDistance <= estimate {
+				if vertex2.revQueryDistance <= estimate {
 					revProcessed[vertex2.id] = nextQueue
-					graph.relaxEdgesBiBackwardOneToMany(vertex2, backwQ, prevReverse, revDistance, nextQueue, revProcessed)
+					graph.relaxEdgesBiBackwardOneToMany(vertex2, backwQ, prevReverse, revQueryDist, nextQueue, revProcessed)
 				}
 
 				if forwProcessed[vertex2.id] == nextQueue {
-					if vertex2.revDistance+queryDist[vertex2.id] < estimate {
+					if vertex2.revQueryDistance+queryDist[vertex2.id] < estimate {
 						middleID = vertex2.id
-						estimate = vertex2.revDistance + queryDist[vertex2.id]
+						estimate = vertex2.revQueryDistance + queryDist[vertex2.id]
 					}
 				}
 			}
@@ -143,20 +143,20 @@ func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *simpleNode, forwQ *forw
 	}
 }
 
-func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *simpleNode, backwQ *backwardHeap, prev map[int64]int64, revDist []float64, cid int64, revProcessed []int64) {
+func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *simpleNode, backwQ *backwardHeap, prev map[int64]int64, revQueryDist []float64, cid int64, revProcessed []int64) {
 	vertexList := graph.Vertices[vertex.id].inIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
 		cost := vertexList[i].cost
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
-			alt := revDist[vertex.id] + cost
-			if revProcessed[temp] != cid || revDist[temp] > alt {
-				revDist[temp] = alt
+			alt := revQueryDist[vertex.id] + cost
+			if revProcessed[temp] != cid || revQueryDist[temp] > alt {
+				revQueryDist[temp] = alt
 				prev[temp] = vertex.id
 				revProcessed[temp] = cid
 				node := &simpleNode{
-					id:          temp,
-					revDistance: alt,
+					id:               temp,
+					revQueryDistance: alt,
 				}
 				heap.Push(backwQ, node)
 			}

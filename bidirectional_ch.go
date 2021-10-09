@@ -31,7 +31,7 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	prevReverse := make(map[int64]int64)
 
 	queryDist := make([]float64, len(graph.Vertices), len(graph.Vertices))
-	revDistance := make([]float64, len(graph.Vertices), len(graph.Vertices))
+	revQueryDist := make([]float64, len(graph.Vertices), len(graph.Vertices))
 
 	forwProcessed := make([]bool, len(graph.Vertices), len(graph.Vertices))
 	revProcessed := make([]bool, len(graph.Vertices), len(graph.Vertices))
@@ -40,10 +40,10 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 
 	for i := range queryDist {
 		queryDist[i] = math.MaxFloat64
-		revDistance[i] = math.MaxFloat64
+		revQueryDist[i] = math.MaxFloat64
 	}
 	queryDist[source] = 0
-	revDistance[target] = 0
+	revQueryDist[target] = 0
 
 	forwQ := &forwardHeap{}
 	backwQ := &backwardHeap{}
@@ -52,14 +52,14 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	heap.Init(backwQ)
 
 	heapSource := &simpleNode{
-		id:          source,
-		queryDist:   0,
-		revDistance: math.MaxFloat64,
+		id:               source,
+		queryDist:        0,
+		revQueryDistance: math.MaxFloat64,
 	}
 	heapTarget := &simpleNode{
-		id:          target,
-		queryDist:   math.MaxFloat64,
-		revDistance: 0,
+		id:               target,
+		queryDist:        math.MaxFloat64,
+		revQueryDistance: 0,
 	}
 
 	heap.Push(forwQ, heapSource)
@@ -80,24 +80,24 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 				graph.relaxEdgesBiForward(vertex1, forwQ, prev, queryDist)
 			}
 			if revProcessed[vertex1.id] {
-				if vertex1.queryDist+revDistance[vertex1.id] < estimate {
+				if vertex1.queryDist+revQueryDist[vertex1.id] < estimate {
 					middleID = vertex1.id
-					estimate = vertex1.queryDist + revDistance[vertex1.id]
+					estimate = vertex1.queryDist + revQueryDist[vertex1.id]
 				}
 			}
 		}
 
 		if backwQ.Len() != 0 {
 			vertex2 := heap.Pop(backwQ).(*simpleNode)
-			if vertex2.revDistance <= estimate {
+			if vertex2.revQueryDistance <= estimate {
 				revProcessed[vertex2.id] = true
-				graph.relaxEdgesBiBackward(vertex2, backwQ, prevReverse, revDistance)
+				graph.relaxEdgesBiBackward(vertex2, backwQ, prevReverse, revQueryDist)
 			}
 
 			if forwProcessed[vertex2.id] {
-				if vertex2.revDistance+queryDist[vertex2.id] < estimate {
+				if vertex2.revQueryDistance+queryDist[vertex2.id] < estimate {
 					middleID = vertex2.id
-					estimate = vertex2.revDistance + queryDist[vertex2.id]
+					estimate = vertex2.revQueryDistance + queryDist[vertex2.id]
 				}
 			}
 		}

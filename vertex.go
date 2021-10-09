@@ -98,7 +98,7 @@ type Distance struct {
 	sourceID      int64
 	distance      float64
 	queryDist     float64
-	revDistance   float64
+	revQueryDist  float64
 }
 
 // NewDistance Constructor for Distance
@@ -107,7 +107,7 @@ func NewDistance() *Distance {
 		contractionID: -1,
 		sourceID:      -1,
 		distance:      math.MaxFloat64,
-		revDistance:   math.MaxFloat64,
+		revQueryDist:  math.MaxFloat64,
 		queryDist:     math.MaxFloat64,
 	}
 }

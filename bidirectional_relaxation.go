@@ -26,19 +26,19 @@ func (graph *Graph) relaxEdgesBiForward(vertex *simpleNode, forwQ *forwardHeap, 
 }
 
 // relaxEdgesBiForward Edge relaxation in a backward propagation
-func (graph *Graph) relaxEdgesBiBackward(vertex *simpleNode, backwQ *backwardHeap, prev map[int64]int64, revDist []float64) {
+func (graph *Graph) relaxEdgesBiBackward(vertex *simpleNode, backwQ *backwardHeap, prev map[int64]int64, revQueryDist []float64) {
 	vertexList := graph.Vertices[vertex.id].inIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
 		cost := vertexList[i].cost
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
-			alt := revDist[vertex.id] + cost
-			if revDist[temp] > alt {
-				revDist[temp] = alt
+			alt := revQueryDist[vertex.id] + cost
+			if revQueryDist[temp] > alt {
+				revQueryDist[temp] = alt
 				prev[temp] = vertex.id
 				node := &simpleNode{
-					id:          temp,
-					revDistance: alt,
+					id:               temp,
+					revQueryDistance: alt,
 				}
 				heap.Push(backwQ, node)
 			}
