@@ -21,6 +21,8 @@ type Graph struct {
 
 	mapping      map[int64]int64
 	Vertices     []*Vertex
+	edgesNum     int64
+	shortcutsNum int64
 	nodeOrdering []int64
 
 	shortcuts    map[int64]map[int64]*ShortcutPath
@@ -68,7 +70,7 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 	if graph.frozen {
 		return ErrGraphIsFrozen
 	}
-
+	graph.edgesNum++
 	from = graph.mapping[from]
 	to = graph.mapping[to]
 
@@ -106,6 +108,7 @@ func (graph *Graph) AddShortcut(from, to, via int64, weight float64) error {
 		Via:  viaInternal,
 		Cost: weight,
 	}
+	graph.shortcutsNum++
 	return nil
 }
 
@@ -167,13 +170,19 @@ func (graph *Graph) Unfreeze() {
 	graph.frozen = false
 }
 
-// shortcutsNum Calculate number of shortcuts (useful for debugging purposes)
-func (graph *Graph) shortcutsNum() int {
-	ans := 0
-	for _, i := range graph.shortcuts {
-		ans += len(i)
-	}
-	return ans
+// GetVerticesNum Returns number of vertices in graph
+func (graph *Graph) GetVerticesNum() int64 {
+	return int64(len(graph.Vertices))
+}
+
+// GetShortcutsNum Returns number of shortcuts in graph
+func (graph *Graph) GetShortcutsNum() int64 {
+	return int64(graph.shortcutsNum)
+}
+
+// GetEdgesNum Returns number of edges in graph
+func (graph *Graph) GetEdgesNum() int64 {
+	return graph.edgesNum
 }
 
 // IsShortcut Returns (vertex_id; true) if edge is a shortcut (edge defined as two vertices)

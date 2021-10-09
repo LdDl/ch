@@ -28,7 +28,7 @@ func (graph *Graph) Preprocess() []int64 {
 		graph.contractNode(vertex)
 		if DEBUG_PREPROCESSING {
 			if extractNum > 0 && graph.pqImportance.Len()%1000 == 0 {
-				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), graph.shortcutsNum(), time.Now())
+				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), graph.shortcutsNum, time.Now())
 			}
 		}
 		extractNum++
@@ -106,7 +106,7 @@ func (graph *Graph) processIncidentEdges(inEdges []incidentEdge, outEdges []inci
 			continue
 		}
 		incost := inEdges[i].cost
-		graph.dijkstra(inVertex, max, contractionID, int64(i)) // Finds the shortest distances from the inVertex to all outVertices.
+		graph.shortestPathsWithMaxCost(inVertex, max, contractionID, int64(i)) // Finds the shortest distances from the inVertex to all outVertices.
 		batchShortcuts := []*ShortcutPath{}
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j].vertexID
@@ -155,6 +155,7 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 		}
 		graph.Vertices[fromVertex].addOutIncidentEdge(toVertex, summaryCost)
 		graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
+		graph.shortcutsNum++
 	} else {
 		// If shortcut already exists
 		if summaryCost < existing.Cost {

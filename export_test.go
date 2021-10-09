@@ -11,9 +11,9 @@ func TestExport(t *testing.T) {
 	t.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContractionHierarchies()
 	t.Log("TestExport is starting...")
-	correctNumShortcuts := 394604
+	correctNumShortcuts := int64(394604)
 	correctNumVertices := 187853
-	evaluatedShortcuts := g.shortcutsNum()
+	evaluatedShortcuts := g.GetShortcutsNum()
 	if evaluatedShortcuts != correctNumShortcuts {
 		t.Errorf("Number of contractions should be %d, but got %d", correctNumShortcuts, evaluatedShortcuts)
 	}

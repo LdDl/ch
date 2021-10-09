@@ -7,8 +7,8 @@ func (graph *Graph) checkID(source, target int64) bool {
 	return s.contractionID != t.contractionID || s.sourceID != t.sourceID
 }
 
-// dijkstra Internal dijkstra algorithm to compute contraction hierarchies
-func (graph *Graph) dijkstra(source int64, maxcost float64, contractionID, sourceID int64) {
+// shortestPathsWithMaxCost Internal implementation of Dijkstra's algorithm to compute witness paths
+func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, contractionID, sourceID int64) {
 	graph.pqComparator = &distanceHeap{}
 	graph.pqComparator.Push(graph.Vertices[source])
 
@@ -31,7 +31,8 @@ func (graph *Graph) dijkstra(source int64, maxcost float64, contractionID, sourc
 			if tempPtr.contracted {
 				continue
 			}
-			if graph.checkID(vertex.vertexNum, temp) || tempPtr.distance.distance > vertex.distance.distance+cost {
+			alt := vertex.distance.distance + cost
+			if graph.checkID(vertex.vertexNum, temp) || tempPtr.distance.distance > alt {
 				tempPtr.distance.distance = vertex.distance.distance + cost
 				tempPtr.distance.contractionID = contractionID
 				tempPtr.distance.sourceID = sourceID
