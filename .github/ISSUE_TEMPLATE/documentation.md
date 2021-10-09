@@ -10,7 +10,7 @@ assignees: LdDl
 **What is your docs question about? Ask it**
 A clear and concise description of what the problem is.
 
-**What do you suggest?*
+**What do you suggest?**
 A clear and concise description of what you want to happen.
 
 **Additional context**
