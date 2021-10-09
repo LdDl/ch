@@ -7,26 +7,6 @@ func (graph *Graph) checkID(source, target int64) bool {
 	return s.contractionID != t.contractionID || s.sourceID != t.sourceID
 }
 
-// relaxEdges Edge relaxation
-func (graph *Graph) relaxEdges(vertexInfo *Vertex, contractionID, sourceID int64) {
-	vertexList := vertexInfo.outIncidentEdges
-	for i := 0; i < len(vertexList); i++ {
-		temp := vertexList[i].vertexID
-		cost := vertexList[i].cost
-		tempPtr := graph.Vertices[temp]
-		// Skip contracted vertices
-		if tempPtr.contracted {
-			continue
-		}
-		if graph.checkID(vertexInfo.vertexNum, temp) || tempPtr.distance.distance > vertexInfo.distance.distance+cost {
-			tempPtr.distance.distance = vertexInfo.distance.distance + cost
-			tempPtr.distance.contractionID = contractionID
-			tempPtr.distance.sourceID = sourceID
-			graph.pqComparator.Push(tempPtr)
-		}
-	}
-}
-
 // dijkstra Internal dijkstra algorithm to compute contraction hierarchies
 func (graph *Graph) dijkstra(source int64, maxcost float64, contractionID, sourceID int64) {
 	graph.pqComparator = &distanceHeap{}
@@ -41,6 +21,22 @@ func (graph *Graph) dijkstra(source int64, maxcost float64, contractionID, sourc
 		if vertex.distance.distance > maxcost {
 			return
 		}
-		graph.relaxEdges(vertex, contractionID, sourceID)
+		// Edge relaxation
+		vertexList := vertex.outIncidentEdges
+		for i := 0; i < len(vertexList); i++ {
+			temp := vertexList[i].vertexID
+			cost := vertexList[i].cost
+			tempPtr := graph.Vertices[temp]
+			// Skip contracted vertices
+			if tempPtr.contracted {
+				continue
+			}
+			if graph.checkID(vertex.vertexNum, temp) || tempPtr.distance.distance > vertex.distance.distance+cost {
+				tempPtr.distance.distance = vertex.distance.distance + cost
+				tempPtr.distance.contractionID = contractionID
+				tempPtr.distance.sourceID = sourceID
+				graph.pqComparator.Push(tempPtr)
+			}
+		}
 	}
 }
