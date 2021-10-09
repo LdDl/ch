@@ -45,8 +45,8 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	queryDist[source] = 0
 	revDistance[target] = 0
 
-	forwQ := &forwardPropagationHeap{}
-	backwQ := &backwardPropagationHeap{}
+	forwQ := &forwardHeap{}
+	backwQ := &backwardHeap{}
 
 	heap.Init(forwQ)
 	heap.Init(backwQ)

@@ -52,8 +52,8 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 		queryDist[source] = 0
 		revDistance[target] = 0
 
-		forwQ := &forwardPropagationHeap{}
-		backwQ := &backwardPropagationHeap{}
+		forwQ := &forwardHeap{}
+		backwQ := &backwardHeap{}
 
 		heap.Init(forwQ)
 		heap.Init(backwQ)
@@ -122,7 +122,7 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 	return estimateAll, pathAll
 }
 
-func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *simpleNode, forwQ *forwardPropagationHeap, prev map[int64]int64, queryDist []float64, cid int64, forwProcessed []int64) {
+func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *simpleNode, forwQ *forwardHeap, prev map[int64]int64, queryDist []float64, cid int64, forwProcessed []int64) {
 	vertexList := graph.Vertices[vertex.id].outIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
@@ -143,7 +143,7 @@ func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *simpleNode, forwQ *forw
 	}
 }
 
-func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *simpleNode, backwQ *backwardPropagationHeap, prev map[int64]int64, revDist []float64, cid int64, revProcessed []int64) {
+func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *simpleNode, backwQ *backwardHeap, prev map[int64]int64, revDist []float64, cid int64, revProcessed []int64) {
 	vertexList := graph.Vertices[vertex.id].inIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
