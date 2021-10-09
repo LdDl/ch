@@ -9,7 +9,7 @@ func (h distanceHeap) Len() int           { return len(h) }
 func (h distanceHeap) Less(i, j int) bool { return h[i].distance.distance < h[j].distance.distance }
 func (h distanceHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
 
-/* Actual code of interface шьздуьутефешщт */
+/* Actual code of interface implementation */
 // type Interface interface {
 // 	Len() int <-- taken from sort.Interface
 // 	Less(i, j int) bool <-- taken from sort.Interface
