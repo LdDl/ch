@@ -31,7 +31,7 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 	}
 
 	// create vertex set Q
-	Q := &minheapSTD{}
+	Q := &minHeap{}
 
 	// dist[source] ← 0
 	distance := make(map[int64]float64, len(graph.Vertices))
@@ -54,7 +54,7 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 	// while Q is not empty:
 	for Q.Len() != 0 {
 		// u ← Q.extract_min()
-		u := heap.Pop(Q).(minheapNode)
+		u := heap.Pop(Q).(*minHeapVertex)
 
 		// if u == target:
 		if u.id == target {

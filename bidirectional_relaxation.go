@@ -15,7 +15,7 @@ func (graph *Graph) relaxEdgesBiForward(vertex *simpleNode, forwQ *forwardPropag
 			if queryDist[temp] > alt {
 				queryDist[temp] = alt
 				prev[temp] = vertex.id
-				node := simpleNode{
+				node := &simpleNode{
 					id:        temp,
 					queryDist: alt,
 				}
@@ -36,7 +36,7 @@ func (graph *Graph) relaxEdgesBiBackward(vertex *simpleNode, backwQ *backwardPro
 			if revDist[temp] > alt {
 				revDist[temp] = alt
 				prev[temp] = vertex.id
-				node := simpleNode{
+				node := &simpleNode{
 					id:          temp,
 					revDistance: alt,
 				}

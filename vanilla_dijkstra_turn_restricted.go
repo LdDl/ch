@@ -31,7 +31,7 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 	}
 
 	// create vertex set Q
-	Q := &minheapSTD{}
+	Q := &minHeap{}
 
 	// dist[source] ← 0
 	distance := make(map[int64]float64, len(graph.Vertices))
@@ -56,7 +56,7 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 	// while Q is not empty:
 	for Q.Len() != 0 {
 		// u ← Q.extract_min()
-		u := heap.Pop(Q).(minheapNode)
+		u := heap.Pop(Q).(*minHeapVertex)
 		restrictions := make(map[int64]int64)
 		ok := false
 		destinationRestrictionID := int64(-1)

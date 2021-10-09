@@ -16,13 +16,13 @@ func (graph *Graph) Isochrones(source int64, maxCost float64) (map[int64]float64
 	if source, ok = graph.mapping[source]; !ok {
 		return nil, fmt.Errorf("No such source")
 	}
-	Q := &minheapSTD{}
+	Q := &minHeap{}
 	heap.Init(Q)
 	distance := make(map[int64]float64, len(graph.Vertices))
-	Q.Push(minheapNode{id: source, distance: 0})
+	Q.Push(&minHeapVertex{id: source, distance: 0})
 	visit := make(map[int64]bool)
 	for Q.Len() != 0 {
-		next := heap.Pop(Q).(minheapNode)
+		next := heap.Pop(Q).(*minHeapVertex)
 		visit[next.id] = true
 		if next.distance <= maxCost {
 			distance[graph.Vertices[next.id].Label] = next.distance
@@ -41,7 +41,7 @@ func (graph *Graph) Isochrones(source int64, maxCost float64) (map[int64]float64
 				if visit[target] {
 					continue
 				}
-				Q.Push(minheapNode{id: target, distance: alt})
+				Q.Push(&minHeapVertex{id: target, distance: alt})
 			}
 		}
 	}

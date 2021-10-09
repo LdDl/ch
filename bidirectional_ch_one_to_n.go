@@ -58,12 +58,12 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 		heap.Init(forwQ)
 		heap.Init(backwQ)
 
-		heapSource := simpleNode{
+		heapSource := &simpleNode{
 			id:          source,
 			queryDist:   0,
 			revDistance: math.MaxFloat64,
 		}
-		heapTarget := simpleNode{
+		heapTarget := &simpleNode{
 			id:          target,
 			queryDist:   math.MaxFloat64,
 			revDistance: 0,
@@ -78,10 +78,10 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 
 		for forwQ.Len() != 0 || backwQ.Len() != 0 {
 			if forwQ.Len() != 0 {
-				vertex1 := heap.Pop(forwQ).(simpleNode)
+				vertex1 := heap.Pop(forwQ).(*simpleNode)
 				if vertex1.queryDist <= estimate {
 					forwProcessed[vertex1.id] = nextQueue
-					graph.relaxEdgesBiForwardOneToMany(&vertex1, forwQ, prev, queryDist, nextQueue, forwProcessed)
+					graph.relaxEdgesBiForwardOneToMany(vertex1, forwQ, prev, queryDist, nextQueue, forwProcessed)
 				}
 				if revProcessed[vertex1.id] == nextQueue {
 					if vertex1.queryDist+revDistance[vertex1.id] < estimate {
@@ -92,10 +92,10 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 			}
 
 			if backwQ.Len() != 0 {
-				vertex2 := heap.Pop(backwQ).(simpleNode)
+				vertex2 := heap.Pop(backwQ).(*simpleNode)
 				if vertex2.revDistance <= estimate {
 					revProcessed[vertex2.id] = nextQueue
-					graph.relaxEdgesBiBackwardOneToMany(&vertex2, backwQ, prevReverse, revDistance, nextQueue, revProcessed)
+					graph.relaxEdgesBiBackwardOneToMany(vertex2, backwQ, prevReverse, revDistance, nextQueue, revProcessed)
 				}
 
 				if forwProcessed[vertex2.id] == nextQueue {
@@ -133,7 +133,7 @@ func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *simpleNode, forwQ *forw
 				queryDist[temp] = alt
 				prev[temp] = vertex.id
 				forwProcessed[temp] = cid
-				node := simpleNode{
+				node := &simpleNode{
 					id:        temp,
 					queryDist: alt,
 				}
@@ -154,7 +154,7 @@ func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *simpleNode, backwQ *ba
 				revDist[temp] = alt
 				prev[temp] = vertex.id
 				revProcessed[temp] = cid
-				node := simpleNode{
+				node := &simpleNode{
 					id:          temp,
 					revDistance: alt,
 				}
