@@ -58,43 +58,6 @@ func (graph *Graph) CreateVertex(label int64) error {
 	return nil
 }
 
-// AddVertex Adds vertex with provided internal ID
-//
-// labelExternal User's definied ID of vertex
-// labelInternal internal ID of vertex
-//
-func (graph *Graph) AddVertex(labelExternal, labelInternal int64) error {
-	if graph.frozen {
-		return ErrGraphIsFrozen
-	}
-	v := &Vertex{
-		Label:        labelExternal,
-		delNeighbors: 0,
-		distance:     NewDistance(),
-		contracted:   true,
-		vertexNum:    labelInternal,
-	}
-	if graph.mapping == nil {
-		graph.mapping = make(map[int64]int64)
-	}
-	if graph.shortcuts == nil {
-		graph.shortcuts = make(map[int64]map[int64]*ShortcutPath)
-	}
-
-	if _, ok := graph.mapping[labelExternal]; !ok {
-		graph.mapping[labelExternal] = labelInternal
-		if labelInternal < int64(len(graph.Vertices)) {
-			graph.Vertices[labelInternal] = v
-		} else {
-			diff := labelInternal - int64(len(graph.Vertices)) + 1
-			empty := make([]*Vertex, diff)
-			graph.Vertices = append(graph.Vertices, empty...)
-			graph.Vertices[labelInternal] = v
-		}
-	}
-	return nil
-}
-
 // AddEdge Adds new edge between two vertices
 //
 // from User's definied ID of first vertex of edge
