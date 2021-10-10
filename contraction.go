@@ -39,11 +39,11 @@ func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
 // outEdges Outcoming edges from vertex
 //
 func (graph *Graph) markNeighbors(inEdges, outEdges []*incidentEdge) {
-	for i := 0; i < len(inEdges); i++ {
+	for i := range inEdges {
 		temp := inEdges[i]
 		graph.Vertices[temp.vertexID].delNeighbors++
 	}
-	for i := 0; i < len(outEdges); i++ {
+	for i := range outEdges {
 		temp := outEdges[i]
 		graph.Vertices[temp.vertexID].delNeighbors++
 	}
@@ -68,7 +68,7 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 	// For every vertex 'w' in W, compute Pw as the cost from 'u' to 'w' through current vertex, which is the sum of the edge weights w(u, vertex) + w(vertex, w).
 	inMax := 0.0
 	outMax := 0.0
-	for i := 0; i < len(incomingEdges); i++ {
+	for i := range incomingEdges {
 		if graph.Vertices[incomingEdges[i].vertexID].contracted {
 			continue
 		}
@@ -76,7 +76,7 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 			inMax = incomingEdges[i].weight
 		}
 	}
-	for i := 0; i < len(outcomingEdges); i++ {
+	for i := range outcomingEdges {
 		if graph.Vertices[outcomingEdges[i].vertexID].contracted {
 			continue
 		}
@@ -102,7 +102,7 @@ func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
 	batchShortcuts := []*ShortcutPath{}
 
 	previousOrderPos := int64(vertex.orderPos - 1)
-	for i := 0; i < len(incomingEdges); i++ {
+	for i := range incomingEdges {
 		inVertex := incomingEdges[i].vertexID
 		// Do not consider any vertex has been excluded earlier
 		if graph.Vertices[inVertex].contracted {

@@ -120,7 +120,7 @@ func (graph *Graph) PrepareContractionHierarchies() {
 func (graph *Graph) computeImportance() *importanceHeap {
 	pqImportance := &importanceHeap{}
 	heap.Init(pqImportance)
-	for i := 0; i < len(graph.Vertices); i++ {
+	for i := range graph.Vertices {
 		graph.Vertices[i].computeImportance()
 		heap.Push(pqImportance, graph.Vertices[i])
 	}

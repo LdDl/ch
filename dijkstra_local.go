@@ -26,7 +26,7 @@ func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, prev
 		}
 		// Edge relaxation
 		vertexList := vertex.outIncidentEdges
-		for i := 0; i < len(vertexList); i++ {
+		for i := range vertexList {
 			temp := vertexList[i].vertexID
 			cost := vertexList[i].weight
 			tempPtr := graph.Vertices[temp]

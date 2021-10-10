@@ -77,7 +77,7 @@ func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
 				forwProcessed[forwardVertex.id] = true
 				// Edge relaxation in a forward propagation
 				neighborsUpward := graph.Vertices[forwardVertex.id].outIncidentEdges
-				for i := 0; i < len(neighborsUpward); i++ {
+				for i := range neighborsUpward {
 					temp := neighborsUpward[i].vertexID
 					cost := neighborsUpward[i].weight
 					if graph.Vertices[forwardVertex.id].orderPos < graph.Vertices[temp].orderPos {
@@ -108,7 +108,7 @@ func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
 				revProcessed[backwardVertex.id] = true
 				// Edge relaxation in a backward propagation
 				vertexList := graph.Vertices[backwardVertex.id].inIncidentEdges
-				for i := 0; i < len(vertexList); i++ {
+				for i := range vertexList {
 					temp := vertexList[i].vertexID
 					cost := vertexList[i].weight
 					if graph.Vertices[backwardVertex.id].orderPos < graph.Vertices[temp].orderPos {

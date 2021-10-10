@@ -67,7 +67,7 @@ func (graph *Graph) ExportEdgesToFile(fname string) error {
 		return errors.Wrap(err, "Can't write header to edges file")
 	}
 
-	for i := 0; i < len(graph.Vertices); i++ {
+	for i := range graph.Vertices {
 		currentVertexExternal := graph.Vertices[i].Label
 		currentVertexInternal := graph.Vertices[i].vertexNum
 		// Write reference information about "outcoming" adjacent vertices
@@ -110,7 +110,7 @@ func (graph *Graph) ExportVerticesToFile(fname string) error {
 	if err != nil {
 		return errors.Wrap(err, "Can't write header to vertices file")
 	}
-	for i := 0; i < len(graph.Vertices); i++ {
+	for i := range graph.Vertices {
 		currentVertexExternal := graph.Vertices[i].Label
 		err = writerVertices.Write([]string{
 			fmt.Sprintf("%d", currentVertexExternal),

@@ -123,7 +123,7 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 
 func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *bidirectionalVertex, forwQ *forwardHeap, prev map[int64]int64, queryDist []float64, cid int64, forwProcessed []int64) {
 	vertexList := graph.Vertices[vertex.id].outIncidentEdges
-	for i := 0; i < len(vertexList); i++ {
+	for i := range vertexList {
 		temp := vertexList[i].vertexID
 		cost := vertexList[i].weight
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
@@ -144,7 +144,7 @@ func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *bidirectionalVertex, fo
 
 func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *bidirectionalVertex, backwQ *backwardHeap, prev map[int64]int64, revQueryDist []float64, cid int64, revProcessed []int64) {
 	vertexList := graph.Vertices[vertex.id].inIncidentEdges
-	for i := 0; i < len(vertexList); i++ {
+	for i := range vertexList {
 		temp := vertexList[i].vertexID
 		cost := vertexList[i].weight
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
