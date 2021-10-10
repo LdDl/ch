@@ -3,7 +3,6 @@ package ch
 import (
 	"container/heap"
 	"container/list"
-	"math"
 )
 
 // ShortestPath Computes and returns shortest path and it's cost (extended Dijkstra's algorithm)
@@ -14,19 +13,20 @@ import (
 // target User's definied ID of target vertex
 //
 func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
-
 	if source == target {
 		return 0, []int64{source}
 	}
 	ok := true
-
 	if source, ok = graph.mapping[source]; !ok {
 		return -1.0, nil
 	}
 	if target, ok = graph.mapping[target]; !ok {
 		return -1.0, nil
 	}
+	return graph.shortestPath(source, target)
+}
 
+func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
 	forwardPrev := make(map[int64]int64)
 	backwardPrev := make(map[int64]int64)
 
@@ -39,8 +39,8 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	revProcessed[target] = true
 
 	for i := range queryDist {
-		queryDist[i] = math.MaxFloat64
-		revQueryDist[i] = math.MaxFloat64
+		queryDist[i] = Infinity
+		revQueryDist[i] = Infinity
 	}
 	queryDist[source] = 0
 	revQueryDist[target] = 0
@@ -54,56 +54,88 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	heapSource := &bidirectionalVertex{
 		id:               source,
 		queryDist:        0,
-		revQueryDistance: math.MaxFloat64,
+		revQueryDistance: Infinity,
 	}
 	heapTarget := &bidirectionalVertex{
 		id:               target,
-		queryDist:        math.MaxFloat64,
+		queryDist:        Infinity,
 		revQueryDistance: 0,
 	}
 
 	heap.Push(forwQ, heapSource)
 	heap.Push(backwQ, heapTarget)
 
-	estimate := math.MaxFloat64
+	estimate := Infinity
 
-	var iter int
-
-	var middleID int64
+	middleID := int64(-1)
 
 	for forwQ.Len() != 0 || backwQ.Len() != 0 {
-		iter++
+		// Upward search
 		if forwQ.Len() != 0 {
-			vertex1 := heap.Pop(forwQ).(*bidirectionalVertex)
-			if vertex1.queryDist <= estimate {
-				forwProcessed[vertex1.id] = true
-				graph.relaxEdgesBiForward(vertex1, forwQ, forwardPrev, queryDist)
+			forwardVertex := heap.Pop(forwQ).(*bidirectionalVertex)
+			if forwardVertex.queryDist <= estimate {
+				forwProcessed[forwardVertex.id] = true
+				// Edge relaxation in a forward propagation
+				neighborsUpward := graph.Vertices[forwardVertex.id].outIncidentEdges
+				for i := 0; i < len(neighborsUpward); i++ {
+					temp := neighborsUpward[i].vertexID
+					cost := neighborsUpward[i].weight
+					if graph.Vertices[forwardVertex.id].orderPos < graph.Vertices[temp].orderPos {
+						alt := queryDist[forwardVertex.id] + cost
+						if queryDist[temp] > alt {
+							queryDist[temp] = alt
+							forwardPrev[temp] = forwardVertex.id
+							node := &bidirectionalVertex{
+								id:        temp,
+								queryDist: alt,
+							}
+							heap.Push(forwQ, node)
+						}
+					}
+				}
 			}
-			if revProcessed[vertex1.id] {
-				if vertex1.queryDist+revQueryDist[vertex1.id] < estimate {
-					middleID = vertex1.id
-					estimate = vertex1.queryDist + revQueryDist[vertex1.id]
+			if revProcessed[forwardVertex.id] {
+				if forwardVertex.queryDist+revQueryDist[forwardVertex.id] < estimate {
+					middleID = forwardVertex.id
+					estimate = forwardVertex.queryDist + revQueryDist[forwardVertex.id]
 				}
 			}
 		}
-
+		// Backward search
 		if backwQ.Len() != 0 {
-			vertex2 := heap.Pop(backwQ).(*bidirectionalVertex)
-			if vertex2.revQueryDistance <= estimate {
-				revProcessed[vertex2.id] = true
-				graph.relaxEdgesBiBackward(vertex2, backwQ, backwardPrev, revQueryDist)
-			}
+			backwardVertex := heap.Pop(backwQ).(*bidirectionalVertex)
+			if backwardVertex.revQueryDistance <= estimate {
+				revProcessed[backwardVertex.id] = true
+				// Edge relaxation in a backward propagation
+				vertexList := graph.Vertices[backwardVertex.id].inIncidentEdges
+				for i := 0; i < len(vertexList); i++ {
+					temp := vertexList[i].vertexID
+					cost := vertexList[i].weight
+					if graph.Vertices[backwardVertex.id].orderPos < graph.Vertices[temp].orderPos {
+						alt := revQueryDist[backwardVertex.id] + cost
+						if revQueryDist[temp] > alt {
+							revQueryDist[temp] = alt
+							backwardPrev[temp] = backwardVertex.id
+							node := &bidirectionalVertex{
+								id:               temp,
+								revQueryDistance: alt,
+							}
+							heap.Push(backwQ, node)
+						}
+					}
+				}
 
-			if forwProcessed[vertex2.id] {
-				if vertex2.revQueryDistance+queryDist[vertex2.id] < estimate {
-					middleID = vertex2.id
-					estimate = vertex2.revQueryDistance + queryDist[vertex2.id]
+			}
+			if forwProcessed[backwardVertex.id] {
+				if backwardVertex.revQueryDistance+queryDist[backwardVertex.id] < estimate {
+					middleID = backwardVertex.id
+					estimate = backwardVertex.revQueryDistance + queryDist[backwardVertex.id]
 				}
 			}
 		}
 
 	}
-	if estimate == math.MaxFloat64 {
+	if estimate == Infinity {
 		return -1.0, nil
 	}
 	return estimate, graph.ComputePath(middleID, forwardPrev, backwardPrev)

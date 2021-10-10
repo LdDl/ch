@@ -1,9 +1,5 @@
 package ch
 
-import (
-	"math"
-)
-
 // Vertex All information about vertex
 type Vertex struct {
 	vertexNum int64
@@ -93,9 +89,9 @@ func NewDistance() *Distance {
 	return &Distance{
 		contractionID: -1,
 		sourceID:      -1,
-		distance:      math.MaxFloat64,
-		revQueryDist:  math.MaxFloat64,
-		queryDist:     math.MaxFloat64,
+		distance:      Infinity,
+		revQueryDist:  Infinity,
+		queryDist:     Infinity,
 	}
 }
 

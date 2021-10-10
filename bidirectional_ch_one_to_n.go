@@ -2,7 +2,6 @@ package ch
 
 import (
 	"container/heap"
-	"math"
 )
 
 // ShortestPathOneToMany Computes and returns shortest path and it's cost (extended Dijkstra's algorithm) for one-to-many relation
@@ -61,18 +60,18 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 		heapSource := &bidirectionalVertex{
 			id:               source,
 			queryDist:        0,
-			revQueryDistance: math.MaxFloat64,
+			revQueryDistance: Infinity,
 		}
 		heapTarget := &bidirectionalVertex{
 			id:               target,
-			queryDist:        math.MaxFloat64,
+			queryDist:        Infinity,
 			revQueryDistance: 0,
 		}
 
 		heap.Push(forwQ, heapSource)
 		heap.Push(backwQ, heapTarget)
 
-		estimate := math.MaxFloat64
+		estimate := Infinity
 
 		var middleID int64
 
@@ -107,7 +106,7 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 			}
 
 		}
-		if estimate == math.MaxFloat64 {
+		if estimate == Infinity {
 			estimateAll = append(estimateAll, -1)
 			pathAll = append(pathAll, nil)
 			continue

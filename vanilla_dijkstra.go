@@ -3,7 +3,6 @@ package ch
 import (
 	"container/heap"
 	"log"
-	"math"
 )
 
 // VanillaShortestPath Computes and returns shortest path and it's cost (vanilla Dijkstra's algorithm)
@@ -44,7 +43,7 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 		// if v ≠ source:
 		if graph.Vertices[i].vertexNum != source {
 			// dist[v] = INFINITY
-			distance[graph.Vertices[i].vertexNum] = math.MaxFloat64
+			distance[graph.Vertices[i].vertexNum] = Infinity
 		}
 		// prev[v] ← UNDEFINED
 		// nothing here
@@ -90,7 +89,7 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 		// heap.Init(Q)
 	}
 
-	if distance[target] == math.MaxFloat64 {
+	if distance[target] == Infinity {
 		return -1, []int64{}
 	}
 	// path = []

@@ -3,7 +3,6 @@ package ch
 import (
 	"container/heap"
 	"log"
-	"math"
 )
 
 // VanillaTurnRestrictedShortestPath Computes and returns turns restricted shortest path and it's cost (vanilla Dijkstra's algorithm)
@@ -45,7 +44,7 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 		// if v ≠ source:
 		if graph.Vertices[i].vertexNum != source {
 			// dist[v] = INFINITY
-			distance[graph.Vertices[i].vertexNum] = math.MaxFloat64
+			distance[graph.Vertices[i].vertexNum] = Infinity
 		}
 		// prev[v] ← UNDEFINED
 		// nothing here
@@ -82,7 +81,7 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 			}
 			if neighbor == destinationRestrictionID {
 				// If there is a turn restriction
-				distance[u.id] = math.MaxFloat64
+				distance[u.id] = Infinity
 				continue
 			}
 			cost := vertexList[v].weight

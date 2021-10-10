@@ -1,5 +1,10 @@
 package ch
 
+const (
+	Infinity = float64(^uint(0) >> 1)
+	// Infinity = Infinity
+)
+
 // shortestPathsWithMaxCost Internal implementation of Dijkstra's algorithm to compute witness paths
 func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, contractionID, sourceID int64) {
 	// Heap to store traveled distance
