@@ -103,31 +103,32 @@ func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
 
 	previousOrderPos := int64(vertex.orderPos - 1)
 	for i := range incomingEdges {
-		inVertex := incomingEdges[i].vertexID
+		u := incomingEdges[i]
+		inVertex := u.vertexID
 		// Do not consider any vertex has been excluded earlier
 		if graph.Vertices[inVertex].contracted {
 			continue
 		}
-		incost := incomingEdges[i].weight
-		neighborIndex := int64(i)
-		graph.shortestPathsWithMaxCost(inVertex, pmax, previousOrderPos, neighborIndex) // Finds the shortest distances from the inVertex to all outVertices.
+		inCost := u.weight
+		graph.shortestPathsWithMaxCost(inVertex, pmax, previousOrderPos) // Finds the shortest distances from the inVertex to all outVertices.
 		for j := range outcomingEdges {
-			outVertex := outcomingEdges[j].vertexID
-			outcost := outcomingEdges[j].weight
+			w := outcomingEdges[j]
+			outVertex := w.vertexID
 			outVertexPtr := graph.Vertices[outVertex]
 			// Do not consider any vertex has been excluded earlier
 			if outVertexPtr.contracted {
 				continue
 			}
-			neighborWeights := incost + outcost
+			outCost := w.weight
+			neighborsWeights := inCost + outCost
 			// For each w, if dist(u, w) > Pw we add a shortcut edge uw with weight Pw.
 			// If this condition doesn’t hold, no shortcut is added.
-			if outVertexPtr.distance.distance > neighborWeights ||
+			if outVertexPtr.distance.distance > neighborsWeights ||
 				outVertexPtr.distance.previousOrderPos != previousOrderPos ||
-				outVertexPtr.distance.sourceID != neighborIndex {
+				outVertexPtr.distance.previousSourceID != inVertex {
 
 				// Collect needed shortcuts
-				batchShortcuts = append(batchShortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertex.vertexNum, Cost: neighborWeights})
+				batchShortcuts = append(batchShortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertex.vertexNum, Cost: neighborsWeights})
 			}
 		}
 	}

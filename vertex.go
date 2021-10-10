@@ -78,7 +78,7 @@ func (vertex *Vertex) bidirectedEdges() int {
 // Distance Information about contraction between source vertex and contraction vertex
 type Distance struct {
 	previousOrderPos int64
-	sourceID         int64
+	previousSourceID int64
 	distance         float64
 	queryDist        float64
 	revQueryDist     float64
@@ -88,7 +88,7 @@ type Distance struct {
 func NewDistance() *Distance {
 	return &Distance{
 		previousOrderPos: -1,
-		sourceID:         -1,
+		previousSourceID: -1,
 		distance:         Infinity,
 		revQueryDist:     Infinity,
 		queryDist:        Infinity,
