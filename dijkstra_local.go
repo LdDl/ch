@@ -40,9 +40,9 @@ func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, prev
 				continue
 			}
 			alt := vertex.distance.distance + cost
-			if tempPtr.distance.distance > alt ||
-				vertex.distance.previousOrderPos != tempPtr.distance.previousOrderPos ||
-				vertex.distance.previousSourceID != tempPtr.distance.previousSourceID {
+			if tempPtr.distance.distance > alt || // usual condition for Dijkstra's algorithm
+				vertex.distance.previousOrderPos != tempPtr.distance.previousOrderPos || // Optional condition: if previous shortestPathsWithMaxCost(...) call has changed shortest path tree
+				vertex.distance.previousSourceID != tempPtr.distance.previousSourceID { // Optional condition: if previous shortestPathsWithMaxCost(...) call has changed shortest path tree
 				// Update new shortest distance
 				tempPtr.distance.distance = vertex.distance.distance + cost
 				tempPtr.distance.previousOrderPos = previousOrderPos

@@ -124,8 +124,8 @@ func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
 			// For each w, if dist(u, w) > Pw we add a shortcut edge uw with weight Pw.
 			// If this condition doesn’t hold, no shortcut is added.
 			if outVertexPtr.distance.distance > neighborsWeights ||
-				outVertexPtr.distance.previousOrderPos != previousOrderPos ||
-				outVertexPtr.distance.previousSourceID != inVertex {
+				outVertexPtr.distance.previousOrderPos != previousOrderPos || // Optional condition: if previous shortestPathsWithMaxCost(...) call has changed shortest path tree
+				outVertexPtr.distance.previousSourceID != inVertex { // Optional condition: if previous shortestPathsWithMaxCost(...) call has changed shortest path tree
 
 				// Collect needed shortcuts
 				batchShortcuts = append(batchShortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertex.vertexNum, Cost: neighborsWeights})
