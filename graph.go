@@ -8,17 +8,12 @@ import (
 
 // Graph Graph object
 //
-// pqImportance Heap to store importance of each vertex
-// pqComparator Heap to store traveled distance
 // mapping Internal map for 1:1 relation of internal IDs to user's IDs
 // Vertices Slice of vertices of graph
 // nodeOrdering Ordering of vertices
 // shortcuts Found and stored shortcuts based on contraction hierarchies
 //
 type Graph struct {
-	pqImportance *importanceHeap
-	pqComparator *distanceHeap
-
 	mapping      map[int64]int64
 	Vertices     []*Vertex
 	edgesNum     int64
@@ -141,21 +136,22 @@ func (graph *Graph) AddTurnRestriction(from, via, to int64) error {
 	return nil
 }
 
-// computeImportance Compute vertices' importance
-func (graph *Graph) computeImportance() {
-	graph.pqImportance = &importanceHeap{}
-	heap.Init(graph.pqImportance)
+// computeImportance Returns heap to store computed importance of each vertex
+func (graph *Graph) computeImportance() *importanceHeap {
+	pqImportance := &importanceHeap{}
+	heap.Init(pqImportance)
 	for i := 0; i < len(graph.Vertices); i++ {
 		graph.Vertices[i].computeImportance()
-		heap.Push(graph.pqImportance, graph.Vertices[i])
+		heap.Push(pqImportance, graph.Vertices[i])
 	}
 	graph.Freeze()
+	return pqImportance
 }
 
 // PrepareContractionHierarchies Compute contraction hierarchies
 func (graph *Graph) PrepareContractionHierarchies() {
-	graph.computeImportance()
-	graph.nodeOrdering = graph.Preprocess()
+	pqImportance := graph.computeImportance()
+	graph.nodeOrdering = graph.Preprocess(pqImportance)
 	graph.Freeze()
 }
 

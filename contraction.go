@@ -9,26 +9,26 @@ import (
 const DEBUG_PREPROCESSING = false
 
 // Preprocess Computes contraction hierarchies and returns node ordering
-func (graph *Graph) Preprocess() []int64 {
+func (graph *Graph) Preprocess(pqImportance *importanceHeap) []int64 {
 	nodeOrdering := make([]int64, len(graph.Vertices))
 	var extractNum int
-	for graph.pqImportance.Len() != 0 {
+	for pqImportance.Len() != 0 {
 		// Lazy update heuristic:
 		// update Importance of vertex "on demand" as follows:
 		// Before contracting vertex with currently smallest Importance, recompute its Importance and see if it is still the smallest
 		// If not pick next smallest one, recompute its Importance and see if that is the smallest now; If not, continue in same way ...
-		vertex := heap.Pop(graph.pqImportance).(*Vertex)
+		vertex := heap.Pop(pqImportance).(*Vertex)
 		vertex.computeImportance()
-		if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().importance {
-			graph.pqImportance.Push(vertex)
+		if pqImportance.Len() != 0 && vertex.importance > pqImportance.Peek().importance {
+			pqImportance.Push(vertex)
 			continue
 		}
 		nodeOrdering[extractNum] = vertex.vertexNum
 		vertex.orderPos = extractNum
 		graph.contractNode(vertex)
 		if DEBUG_PREPROCESSING {
-			if extractNum > 0 && graph.pqImportance.Len()%1000 == 0 {
-				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), graph.shortcutsNum, time.Now())
+			if extractNum > 0 && pqImportance.Len()%1000 == 0 {
+				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Time: %v\n", extractNum, len(graph.Vertices), pqImportance.Len(), graph.shortcutsNum, time.Now())
 			}
 		}
 		extractNum++

@@ -2,15 +2,16 @@ package ch
 
 // shortestPathsWithMaxCost Internal implementation of Dijkstra's algorithm to compute witness paths
 func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, contractionID, sourceID int64) {
-	graph.pqComparator = &distanceHeap{}
-	graph.pqComparator.Push(graph.Vertices[source])
+	// Heap to store traveled distance
+	pqComparator := &distanceHeap{}
+	pqComparator.Push(graph.Vertices[source])
 
 	graph.Vertices[source].distance.distance = 0
 	graph.Vertices[source].distance.contractionID = contractionID
 	graph.Vertices[source].distance.sourceID = sourceID
 
-	for graph.pqComparator.Len() != 0 {
-		vertex := graph.pqComparator.Pop()
+	for pqComparator.Len() != 0 {
+		vertex := pqComparator.Pop()
 		if vertex.distance.distance > maxcost {
 			return
 		}
@@ -29,7 +30,7 @@ func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, cont
 				tempPtr.distance.distance = vertex.distance.distance + cost
 				tempPtr.distance.contractionID = contractionID
 				tempPtr.distance.sourceID = sourceID
-				graph.pqComparator.Push(tempPtr)
+				pqComparator.Push(tempPtr)
 			}
 		}
 	}
