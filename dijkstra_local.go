@@ -11,8 +11,12 @@ func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, prev
 	pqComparator := &distanceHeap{}
 	pqComparator.Push(graph.Vertices[source])
 
+	// Instead of inializing distances to Infinity every single shortestPathsWithMaxCost(...) call we can do following
+	// Set dist[source] -> 0 (as usual)
 	graph.Vertices[source].distance.distance = 0
+	// Set order position to previously contracted (excluded from graph) vertex
 	graph.Vertices[source].distance.previousOrderPos = previousOrderPos
+	// Set source to identifier of vertex for which shortestPathsWithMaxCost(...) has been called
 	graph.Vertices[source].distance.previousSourceID = source
 
 	for pqComparator.Len() != 0 {
