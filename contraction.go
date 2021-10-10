@@ -136,7 +136,6 @@ func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
 }
 
 // insertShortcuts Creates (or updates: it depends on conditions) multiple shortcuts in graph structure
-// @todo: workaround for parent calls (results are different from each other, which is strange)
 func (graph *Graph) insertShortcuts(shortcuts []*ShortcutPath) {
 	for i := range shortcuts {
 		d := shortcuts[i]
