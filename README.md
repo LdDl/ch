@@ -122,6 +122,7 @@ Please see [ROADMAP.md](ROADMAP.md)
 
 
 ## Thanks
+Thanks to [this visual explanation](https://jlazarsfeld.github.io/ch.150.project/contents/)
 Thanks to [this](https://github.com/navjindervirdee/Advanced-Shortest-Paths-Algorithms) Java implementation of mentioned algorithms
 
 ## Dependencies

@@ -9,31 +9,28 @@ import (
 const DEBUG_PREPROCESSING = false
 
 // Preprocess Computes contraction hierarchies and returns node ordering
-func (graph *Graph) Preprocess() []int64 {
-	nodeOrdering := make([]int64, len(graph.Vertices))
-	var extractNum int
-	for graph.pqImportance.Len() != 0 {
+func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
+	extractionOrder := int64(0)
+	for pqImportance.Len() != 0 {
 		// Lazy update heuristic:
 		// update Importance of vertex "on demand" as follows:
 		// Before contracting vertex with currently smallest Importance, recompute its Importance and see if it is still the smallest
 		// If not pick next smallest one, recompute its Importance and see if that is the smallest now; If not, continue in same way ...
-		vertex := heap.Pop(graph.pqImportance).(*Vertex)
+		vertex := heap.Pop(pqImportance).(*Vertex)
 		vertex.computeImportance()
-		if graph.pqImportance.Len() != 0 && vertex.importance > graph.pqImportance.Peek().importance {
-			graph.pqImportance.Push(vertex)
+		if pqImportance.Len() != 0 && vertex.importance > pqImportance.Peek().importance {
+			pqImportance.Push(vertex)
 			continue
 		}
-		nodeOrdering[extractNum] = vertex.vertexNum
-		vertex.orderPos = extractNum
+		vertex.orderPos = extractionOrder
 		graph.contractNode(vertex)
 		if DEBUG_PREPROCESSING {
-			if extractNum > 0 && graph.pqImportance.Len()%1000 == 0 {
-				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Time: %v\n", extractNum, len(graph.Vertices), graph.pqImportance.Len(), graph.shortcutsNum(), time.Now())
+			if extractionOrder > 0 && pqImportance.Len()%1000 == 0 {
+				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Time: %v\n", extractionOrder, len(graph.Vertices), pqImportance.Len(), graph.shortcutsNum, time.Now())
 			}
 		}
-		extractNum++
+		extractionOrder++
 	}
-	return nodeOrdering
 }
 
 // markNeighbors
@@ -41,12 +38,12 @@ func (graph *Graph) Preprocess() []int64 {
 // inEdges Incoming edges from vertex
 // outEdges Outcoming edges from vertex
 //
-func (graph *Graph) markNeighbors(inEdges, outEdges []incidentEdge) {
-	for i := 0; i < len(inEdges); i++ {
+func (graph *Graph) markNeighbors(inEdges, outEdges []*incidentEdge) {
+	for i := range inEdges {
 		temp := inEdges[i]
 		graph.Vertices[temp.vertexID].delNeighbors++
 	}
-	for i := 0; i < len(outEdges); i++ {
+	for i := range outEdges {
 		temp := outEdges[i]
 		graph.Vertices[temp.vertexID].delNeighbors++
 	}
@@ -57,75 +54,88 @@ func (graph *Graph) markNeighbors(inEdges, outEdges []incidentEdge) {
 // vertex Vertex to be contracted
 //
 func (graph *Graph) contractNode(vertex *Vertex) {
-	inEdges := vertex.inIncidentEdges
-	outEdges := vertex.outIncidentEdges
+	// Consider all vertices with edges incoming TO current vertex as U
+	incomingEdges := vertex.inIncidentEdges
 
+	// Consider all vertices with edges incoming FROM current vertex as W
+	outcomingEdges := vertex.outIncidentEdges
+
+	// Exclude vertex for local shortest paths searches
 	vertex.contracted = true
+	// Tell neighbor vertices that current vertex has been contracted
+	graph.markNeighbors(incomingEdges, outcomingEdges)
 
+	// For every vertex 'w' in W, compute Pw as the cost from 'u' to 'w' through current vertex, which is the sum of the edge weights w(u, vertex) + w(vertex, w).
 	inMax := 0.0
 	outMax := 0.0
-
-	graph.markNeighbors(inEdges, outEdges)
-
-	for i := 0; i < len(inEdges); i++ {
-		if graph.Vertices[inEdges[i].vertexID].contracted {
+	for i := range incomingEdges {
+		if graph.Vertices[incomingEdges[i].vertexID].contracted {
 			continue
 		}
-		if inMax < inEdges[i].cost {
-			inMax = inEdges[i].cost
+		if inMax < incomingEdges[i].weight {
+			inMax = incomingEdges[i].weight
 		}
 	}
-
-	for i := 0; i < len(outEdges); i++ {
-		if graph.Vertices[outEdges[i].vertexID].contracted {
+	for i := range outcomingEdges {
+		if graph.Vertices[outcomingEdges[i].vertexID].contracted {
 			continue
 		}
-		if outMax < outEdges[i].cost {
-			outMax = outEdges[i].cost
+		if outMax < outcomingEdges[i].weight {
+			outMax = outcomingEdges[i].weight
 		}
 	}
+	// Then Pmax is the maximum pMax over all 'w' in W.
+	pmax := inMax + outMax
 
-	max := inMax + outMax
-
-	contractionID := int64(vertex.orderPos - 1)
-
-	graph.processIncidentEdges(inEdges, outEdges, max, contractionID, vertex.vertexNum)
+	// Perform a standard Dijkstra’s shortest path search from 'u' on the subgraph excluding current vertex.
+	graph.processIncidentEdges(vertex, pmax)
 }
 
 // processIncidentEdges Returns evaluated shorcuts
 //
-// inEdges - incoming [to provided vertex] incident edges
-// outEdges - outcoming [from provided vertex] incident edges
-// max - path cost restriction
-// contractionID - identifier of contraction
-// vertexID - identifier of provided vertex
-func (graph *Graph) processIncidentEdges(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractionID, vertexID int64) {
-	for i := 0; i < len(inEdges); i++ {
-		inVertex := inEdges[i].vertexID
+// vertex - Vertex for making possible shortcuts around
+// pmax - path cost restriction
+//
+func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
+	incomingEdges := vertex.inIncidentEdges
+	outcomingEdges := vertex.outIncidentEdges
+	batchShortcuts := []*ShortcutPath{}
+
+	previousOrderPos := int64(vertex.orderPos - 1)
+	for i := range incomingEdges {
+		u := incomingEdges[i]
+		inVertex := u.vertexID
+		// Do not consider any vertex has been excluded earlier
 		if graph.Vertices[inVertex].contracted {
 			continue
 		}
-		incost := inEdges[i].cost
-		graph.dijkstra(inVertex, max, contractionID, int64(i)) // Finds the shortest distances from the inVertex to all outVertices.
-		batchShortcuts := []*ShortcutPath{}
-		for j := 0; j < len(outEdges); j++ {
-			outVertex := outEdges[j].vertexID
-			outcost := outEdges[j].cost
+		inCost := u.weight
+		graph.shortestPathsWithMaxCost(inVertex, pmax, previousOrderPos) // Finds the shortest distances from the inVertex to all outVertices.
+		for j := range outcomingEdges {
+			w := outcomingEdges[j]
+			outVertex := w.vertexID
 			outVertexPtr := graph.Vertices[outVertex]
+			// Do not consider any vertex has been excluded earlier
 			if outVertexPtr.contracted {
 				continue
 			}
-			summaryCost := incost + outcost
-			if outVertexPtr.distance.contractionID != contractionID || outVertexPtr.distance.sourceID != int64(i) || outVertexPtr.distance.distance > summaryCost {
-				batchShortcuts = append(batchShortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertexID, Cost: summaryCost})
+			outCost := w.weight
+			neighborsWeights := inCost + outCost
+			// For each w, if dist(u, w) > Pw we add a shortcut edge uw with weight Pw.
+			// If this condition doesn’t hold, no shortcut is added.
+			if outVertexPtr.distance.distance > neighborsWeights ||
+				outVertexPtr.distance.previousOrderPos != previousOrderPos || // Optional condition: if previous shortestPathsWithMaxCost(...) call has changed shortest path tree
+				outVertexPtr.distance.previousSourceID != inVertex { // Optional condition: if previous shortestPathsWithMaxCost(...) call has changed shortest path tree
+
+				// Collect needed shortcuts
+				batchShortcuts = append(batchShortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertex.vertexNum, Cost: neighborsWeights})
 			}
 		}
-		graph.insertShortcuts(batchShortcuts)
 	}
+	graph.insertShortcuts(batchShortcuts)
 }
 
 // insertShortcuts Creates (or updates: it depends on conditions) multiple shortcuts in graph structure
-// @todo: workaround for parent calls (results are different from each other, which is strange)
 func (graph *Graph) insertShortcuts(shortcuts []*ShortcutPath) {
 	for i := range shortcuts {
 		d := shortcuts[i]
@@ -155,6 +165,7 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 		}
 		graph.Vertices[fromVertex].addOutIncidentEdge(toVertex, summaryCost)
 		graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
+		graph.shortcutsNum++
 	} else {
 		// If shortcut already exists
 		if summaryCost < existing.Cost {

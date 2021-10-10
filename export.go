@@ -67,16 +67,16 @@ func (graph *Graph) ExportEdgesToFile(fname string) error {
 		return errors.Wrap(err, "Can't write header to edges file")
 	}
 
-	for i := 0; i < len(graph.Vertices); i++ {
+	for i := range graph.Vertices {
 		currentVertexExternal := graph.Vertices[i].Label
 		currentVertexInternal := graph.Vertices[i].vertexNum
 		// Write reference information about "outcoming" adjacent vertices
 		// Why don't write info about "incoming" adjacent vertices also? Because all edges will be covered due the loop iteration mechanism
 		outcomingNeighbors := graph.Vertices[i].outIncidentEdges
-		for j := 0; j < len(outcomingNeighbors); j++ {
+		for j := range outcomingNeighbors {
 			toVertexExternal := graph.Vertices[outcomingNeighbors[j].vertexID].Label
 			toVertexInternal := outcomingNeighbors[j].vertexID
-			cost := outcomingNeighbors[j].cost
+			cost := outcomingNeighbors[j].weight
 			if _, ok := graph.shortcuts[currentVertexInternal][toVertexInternal]; !ok {
 				err = writer.Write([]string{
 					fmt.Sprintf("%d", currentVertexExternal),
@@ -110,7 +110,7 @@ func (graph *Graph) ExportVerticesToFile(fname string) error {
 	if err != nil {
 		return errors.Wrap(err, "Can't write header to vertices file")
 	}
-	for i := 0; i < len(graph.Vertices); i++ {
+	for i := range graph.Vertices {
 		currentVertexExternal := graph.Vertices[i].Label
 		err = writerVertices.Write([]string{
 			fmt.Sprintf("%d", currentVertexExternal),

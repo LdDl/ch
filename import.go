@@ -102,7 +102,7 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 		if err != nil {
 			return nil, err
 		}
-		vertexOrderPos, err := strconv.Atoi(record[1])
+		vertexOrderPos, err := strconv.ParseInt(record[1], 10, 64)
 		if err != nil {
 			return nil, err
 		}
@@ -175,7 +175,7 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 // from_vertex_id;via_vertex_id;to_vertex_id;
 // int;int;int
 //
-func (g *Graph) ImportRestrictionsFromFile(fname string) error {
+func (graph *Graph) ImportRestrictionsFromFile(fname string) error {
 	file, err := os.Open(fname)
 	if err != nil {
 		return err
@@ -207,7 +207,7 @@ func (g *Graph) ImportRestrictionsFromFile(fname string) error {
 			return err
 		}
 
-		err = g.AddTurnRestriction(sourceExternal, viaExternal, targetExternal)
+		err = graph.AddTurnRestriction(sourceExternal, viaExternal, targetExternal)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Can't add restriction between source_external_ID = '%d' and target_external_ID = '%d' via via_external_id = '%d'", sourceExternal, targetExternal, viaExternal))
 		}

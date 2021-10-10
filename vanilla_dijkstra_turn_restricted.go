@@ -3,7 +3,6 @@ package ch
 import (
 	"container/heap"
 	"log"
-	"math"
 )
 
 // VanillaTurnRestrictedShortestPath Computes and returns turns restricted shortest path and it's cost (vanilla Dijkstra's algorithm)
@@ -31,7 +30,7 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 	}
 
 	// create vertex set Q
-	Q := &minheapSTD{}
+	Q := &minHeap{}
 
 	// dist[source] ← 0
 	distance := make(map[int64]float64, len(graph.Vertices))
@@ -45,7 +44,7 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 		// if v ≠ source:
 		if graph.Vertices[i].vertexNum != source {
 			// dist[v] = INFINITY
-			distance[graph.Vertices[i].vertexNum] = math.MaxFloat64
+			distance[graph.Vertices[i].vertexNum] = Infinity
 		}
 		// prev[v] ← UNDEFINED
 		// nothing here
@@ -56,15 +55,11 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 	// while Q is not empty:
 	for Q.Len() != 0 {
 		// u ← Q.extract_min()
-		u := heap.Pop(Q).(minheapNode)
-		restrictions := make(map[int64]int64)
-		ok := false
+		u := heap.Pop(Q).(*minHeapVertex)
 		destinationRestrictionID := int64(-1)
-		if restrictions, ok = graph.restrictions[prevNodeID]; ok {
+		if restrictions, ok := graph.restrictions[prevNodeID]; ok {
 			// found some restrictions
-			if destinationRestrictionID, ok = restrictions[u.id]; ok {
-				// extract vidID from restriction
-			}
+			destinationRestrictionID = restrictions[u.id]
 		}
 
 		// if u == target:
@@ -86,10 +81,10 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 			}
 			if neighbor == destinationRestrictionID {
 				// If there is a turn restriction
-				distance[u.id] = math.MaxFloat64
+				distance[u.id] = Infinity
 				continue
 			}
-			cost := vertexList[v].cost
+			cost := vertexList[v].weight
 			// alt ← dist[u] + length(u, v)
 			alt := distance[u.id] + cost
 			// if alt < dist[v]

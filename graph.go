@@ -8,20 +8,15 @@ import (
 
 // Graph Graph object
 //
-// pqImportance Heap to store importance of each vertex
-// pqComparator Heap to store traveled distance
 // mapping Internal map for 1:1 relation of internal IDs to user's IDs
 // Vertices Slice of vertices of graph
-// nodeOrdering Ordering of vertices
 // shortcuts Found and stored shortcuts based on contraction hierarchies
 //
 type Graph struct {
-	pqImportance *importanceHeap
-	pqComparator *distanceHeap
-
 	mapping      map[int64]int64
 	Vertices     []*Vertex
-	nodeOrdering []int64
+	edgesNum     int64
+	shortcutsNum int64
 
 	shortcuts    map[int64]map[int64]*ShortcutPath
 	restrictions map[int64]map[int64]int64
@@ -58,43 +53,6 @@ func (graph *Graph) CreateVertex(label int64) error {
 	return nil
 }
 
-// AddVertex Adds vertex with provided internal ID
-//
-// labelExternal User's definied ID of vertex
-// labelInternal internal ID of vertex
-//
-func (graph *Graph) AddVertex(labelExternal, labelInternal int64) error {
-	if graph.frozen {
-		return ErrGraphIsFrozen
-	}
-	v := &Vertex{
-		Label:        labelExternal,
-		delNeighbors: 0,
-		distance:     NewDistance(),
-		contracted:   true,
-		vertexNum:    labelInternal,
-	}
-	if graph.mapping == nil {
-		graph.mapping = make(map[int64]int64)
-	}
-	if graph.shortcuts == nil {
-		graph.shortcuts = make(map[int64]map[int64]*ShortcutPath)
-	}
-
-	if _, ok := graph.mapping[labelExternal]; !ok {
-		graph.mapping[labelExternal] = labelInternal
-		if labelInternal < int64(len(graph.Vertices)) {
-			graph.Vertices[labelInternal] = v
-		} else {
-			diff := labelInternal - int64(len(graph.Vertices)) + 1
-			empty := make([]*Vertex, diff)
-			graph.Vertices = append(graph.Vertices, empty...)
-			graph.Vertices[labelInternal] = v
-		}
-	}
-	return nil
-}
-
 // AddEdge Adds new edge between two vertices
 //
 // from User's definied ID of first vertex of edge
@@ -105,13 +63,17 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 	if graph.frozen {
 		return ErrGraphIsFrozen
 	}
-
+	graph.edgesNum++
 	from = graph.mapping[from]
 	to = graph.mapping[to]
 
-	graph.Vertices[from].outIncidentEdges = append(graph.Vertices[from].outIncidentEdges, incidentEdge{to, weight})
-	graph.Vertices[to].inIncidentEdges = append(graph.Vertices[to].inIncidentEdges, incidentEdge{from, weight})
+	graph.addEdge(from, to, weight)
 	return nil
+}
+
+func (graph *Graph) addEdge(from, to int64, weight float64) {
+	graph.Vertices[from].outIncidentEdges = append(graph.Vertices[from].outIncidentEdges, &incidentEdge{vertexID: to, weight: weight})
+	graph.Vertices[to].inIncidentEdges = append(graph.Vertices[to].inIncidentEdges, &incidentEdge{vertexID: from, weight: weight})
 }
 
 // AddShortcut Adds new shortcut between two vertices
@@ -143,7 +105,53 @@ func (graph *Graph) AddShortcut(from, to, via int64, weight float64) error {
 		Via:  viaInternal,
 		Cost: weight,
 	}
+	graph.shortcutsNum++
 	return nil
+}
+
+// PrepareContractionHierarchies Compute contraction hierarchies
+func (graph *Graph) PrepareContractionHierarchies() {
+	pqImportance := graph.computeImportance()
+	graph.Preprocess(pqImportance)
+	graph.Freeze()
+}
+
+// computeImportance Returns heap to store computed importance of each vertex
+func (graph *Graph) computeImportance() *importanceHeap {
+	pqImportance := &importanceHeap{}
+	heap.Init(pqImportance)
+	for i := range graph.Vertices {
+		graph.Vertices[i].computeImportance()
+		heap.Push(pqImportance, graph.Vertices[i])
+	}
+	graph.Freeze()
+	return pqImportance
+}
+
+// Freeze Freeze graph. Should be called after contraction hierarchies had been prepared.
+func (graph *Graph) Freeze() {
+	graph.frozen = true
+}
+
+// Unfreeze Freeze graph. Should be called if graph modification is needed.
+func (graph *Graph) Unfreeze() {
+	fmt.Println("Warning: You will need to call PrepareContractionHierarchies() or even refresh graph again if you want to modify graph data")
+	graph.frozen = false
+}
+
+// GetVerticesNum Returns number of vertices in graph
+func (graph *Graph) GetVerticesNum() int64 {
+	return int64(len(graph.Vertices))
+}
+
+// GetShortcutsNum Returns number of shortcuts in graph
+func (graph *Graph) GetShortcutsNum() int64 {
+	return int64(graph.shortcutsNum)
+}
+
+// GetEdgesNum Returns number of edges in graph
+func (graph *Graph) GetEdgesNum() int64 {
+	return graph.edgesNum
 }
 
 // AddTurnRestriction Adds new turn restriction between two vertices via some other vertex
@@ -173,63 +181,4 @@ func (graph *Graph) AddTurnRestriction(from, via, to int64) error {
 		graph.restrictions[from][via] = to
 	}
 	return nil
-}
-
-// computeImportance Compute vertices' importance
-func (graph *Graph) computeImportance() {
-	graph.pqImportance = &importanceHeap{}
-	heap.Init(graph.pqImportance)
-	for i := 0; i < len(graph.Vertices); i++ {
-		graph.Vertices[i].computeImportance()
-		heap.Push(graph.pqImportance, graph.Vertices[i])
-	}
-	graph.Freeze()
-}
-
-// PrepareContractionHierarchies Compute contraction hierarchies
-func (graph *Graph) PrepareContractionHierarchies() {
-	graph.computeImportance()
-	graph.nodeOrdering = graph.Preprocess()
-	graph.Freeze()
-}
-
-// Freeze Freeze graph. Should be called after contraction hierarchies had been prepared.
-func (graph *Graph) Freeze() {
-	graph.frozen = true
-}
-
-// Unfreeze Freeze graph. Should be called if graph modification is needed.
-func (graph *Graph) Unfreeze() {
-	fmt.Println("Warning: You will need to call PrepareContractionHierarchies() or even refresh graph again if you want to modify graph data")
-	graph.frozen = false
-}
-
-// shortcutsNum Calculate number of shortcuts (useful for debugging purposes)
-func (graph *Graph) shortcutsNum() int {
-	ans := 0
-	for _, i := range graph.shortcuts {
-		ans += len(i)
-	}
-	return ans
-}
-
-// IsShortcut Returns (vertex_id; true) if edge is a shortcut (edge defined as two vertices)
-//
-// If source or taget vertex is not found then returns (-1; false)
-// If edge is not a shortcut then returns (-1; false)
-//
-func (graph *Graph) IsShortcut(labelFromVertex, labelToVertex int64) (int64, bool) {
-	source, ok := graph.mapping[labelFromVertex]
-	if !ok {
-		return -1, ok
-	}
-	target, ok := graph.mapping[labelToVertex]
-	if !ok {
-		return -1, ok
-	}
-	shortcut, ok := graph.shortcuts[source][target]
-	if !ok {
-		return -1, ok
-	}
-	return graph.Vertices[shortcut.Via].Label, ok
 }

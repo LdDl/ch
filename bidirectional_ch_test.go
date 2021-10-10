@@ -209,10 +209,6 @@ func graphFromCSV(graph *Graph, fname string) error {
 			return err
 		}
 
-		// if intinslice(source, []int{5606, 5607, 255077, 238618}) == false && intinslice(target, []int{5606, 5607, 255077, 238618}) == false {
-		// 	continue
-		// }
-
 		oneway := record[2]
 		weight, err := strconv.ParseFloat(record[3], 64)
 		if err != nil {
@@ -240,13 +236,4 @@ func graphFromCSV(graph *Graph, fname string) error {
 		}
 	}
 	return nil
-}
-
-func intinslice(elem int, sl []int) bool {
-	for i := range sl {
-		if sl[i] == elem {
-			return true
-		}
-	}
-	return false
 }
