@@ -52,16 +52,6 @@ func MakeVertex(label int64) *Vertex {
 	}
 }
 
-// NewVertex Create vertex with vertex number
-func NewVertex(vertexNum int64) *Vertex {
-	return &Vertex{
-		vertexNum:    vertexNum,
-		delNeighbors: 0,
-		distance:     NewDistance(),
-		contracted:   false,
-	}
-}
-
 // computeImportance Update importance of vertex
 func (vertex *Vertex) computeImportance() {
 	// Worst possible shortcuts number throught the vertex is: NumWorstShortcuts = NumIncomingEdges*NumOutcomingEdges
