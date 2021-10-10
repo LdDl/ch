@@ -19,11 +19,11 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 	prev := make(map[int64]int64)
 	prevReverse := make(map[int64]int64)
 
-	queryDist := make([]float64, len(graph.Vertices), len(graph.Vertices))
-	revQueryDist := make([]float64, len(graph.Vertices), len(graph.Vertices))
+	queryDist := make([]float64, len(graph.Vertices))
+	revQueryDist := make([]float64, len(graph.Vertices))
 
-	forwProcessed := make([]int64, len(graph.Vertices), len(graph.Vertices))
-	revProcessed := make([]int64, len(graph.Vertices), len(graph.Vertices))
+	forwProcessed := make([]int64, len(graph.Vertices))
+	revProcessed := make([]int64, len(graph.Vertices))
 
 	ok := false
 	if source, ok = graph.mapping[source]; !ok {

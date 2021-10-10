@@ -57,14 +57,10 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 	for Q.Len() != 0 {
 		// u ← Q.extract_min()
 		u := heap.Pop(Q).(*minHeapVertex)
-		restrictions := make(map[int64]int64)
-		ok := false
 		destinationRestrictionID := int64(-1)
-		if restrictions, ok = graph.restrictions[prevNodeID]; ok {
+		if restrictions, ok := graph.restrictions[prevNodeID]; ok {
 			// found some restrictions
-			if destinationRestrictionID, ok = restrictions[u.id]; ok {
-				// extract vidID from restriction
-			}
+			destinationRestrictionID = restrictions[u.id]
 		}
 
 		// if u == target:

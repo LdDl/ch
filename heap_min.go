@@ -24,15 +24,6 @@ func (h *minHeap) Pop() interface{} {
 	return lastNode
 }
 
-func (h *minHeap) decrease_priority(id int64, val float64) {
-	for i := 0; i < len(*h); i++ {
-		if (*h)[i].id == id {
-			(*h)[i].distance = val
-			break
-		}
-	}
-}
-
 func (h *minHeap) add_with_priority(id int64, val float64) {
 	nds := &minHeapVertex{
 		id:       id,

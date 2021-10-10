@@ -65,25 +65,3 @@ func (vertex *Vertex) updateOutIncidentEdge(vertexID int64, cost float64) bool {
 	vertex.outIncidentEdges[idx].cost = cost
 	return true
 }
-
-// deleteInIncidentEdge Deletes incoming incident edge by vertex ID on the other side of that edge
-// If operation is not successful then this function returns False
-func (vertex *Vertex) deleteInIncidentEdge(vertexID int64) bool {
-	idx := vertex.findInIncidentEdge(vertexID)
-	if idx < 0 {
-		return false
-	}
-	vertex.inIncidentEdges = append(vertex.inIncidentEdges[:idx], vertex.inIncidentEdges[idx+1:]...)
-	return true
-}
-
-// deleteOutIncidentEdge Deletes outcoming incident edge by vertex ID on the other side of that edge
-// If operation is not successful then this function returns False
-func (vertex *Vertex) deleteOutIncidentEdge(vertexID int64) bool {
-	idx := vertex.findOutIncidentEdge(vertexID)
-	if idx < 0 {
-		return false
-	}
-	vertex.outIncidentEdges = append(vertex.outIncidentEdges[:idx], vertex.outIncidentEdges[idx+1:]...)
-	return true
-}

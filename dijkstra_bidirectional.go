@@ -27,14 +27,14 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 		return -1.0, nil
 	}
 
-	prev := make(map[int64]int64)
-	prevReverse := make(map[int64]int64)
+	forwardPrev := make(map[int64]int64)
+	backwardPrev := make(map[int64]int64)
 
-	queryDist := make([]float64, len(graph.Vertices), len(graph.Vertices))
-	revQueryDist := make([]float64, len(graph.Vertices), len(graph.Vertices))
+	queryDist := make([]float64, len(graph.Vertices))
+	revQueryDist := make([]float64, len(graph.Vertices))
 
-	forwProcessed := make([]bool, len(graph.Vertices), len(graph.Vertices))
-	revProcessed := make([]bool, len(graph.Vertices), len(graph.Vertices))
+	forwProcessed := make([]bool, len(graph.Vertices))
+	revProcessed := make([]bool, len(graph.Vertices))
 	forwProcessed[source] = true
 	revProcessed[target] = true
 
@@ -77,7 +77,7 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 			vertex1 := heap.Pop(forwQ).(*simpleNode)
 			if vertex1.queryDist <= estimate {
 				forwProcessed[vertex1.id] = true
-				graph.relaxEdgesBiForward(vertex1, forwQ, prev, queryDist)
+				graph.relaxEdgesBiForward(vertex1, forwQ, forwardPrev, queryDist)
 			}
 			if revProcessed[vertex1.id] {
 				if vertex1.queryDist+revQueryDist[vertex1.id] < estimate {
@@ -91,7 +91,7 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 			vertex2 := heap.Pop(backwQ).(*simpleNode)
 			if vertex2.revQueryDistance <= estimate {
 				revProcessed[vertex2.id] = true
-				graph.relaxEdgesBiBackward(vertex2, backwQ, prevReverse, revQueryDist)
+				graph.relaxEdgesBiBackward(vertex2, backwQ, backwardPrev, revQueryDist)
 			}
 
 			if forwProcessed[vertex2.id] {
@@ -103,21 +103,20 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 		}
 
 	}
-	// fmt.Println(middleID, estimate)
 	if estimate == math.MaxFloat64 {
 		return -1.0, nil
 	}
-	return estimate, graph.ComputePath(middleID, prev, prevReverse)
+	return estimate, graph.ComputePath(middleID, forwardPrev, backwardPrev)
 }
 
 // ComputePath Returns slice of IDs (user defined) of computed path
-func (graph *Graph) ComputePath(middleID int64, prevF, prevR map[int64]int64) []int64 {
+func (graph *Graph) ComputePath(middleID int64, forwardPrev, backwardPrev map[int64]int64) []int64 {
 	l := list.New()
 	l.PushBack(middleID)
 	u := middleID
 	var ok bool
 	for {
-		if u, ok = prevF[u]; ok {
+		if u, ok = forwardPrev[u]; ok {
 			l.PushFront(u)
 		} else {
 			break
@@ -125,7 +124,7 @@ func (graph *Graph) ComputePath(middleID int64, prevF, prevR map[int64]int64) []
 	}
 	u = middleID
 	for {
-		if u, ok = prevR[u]; ok {
+		if u, ok = backwardPrev[u]; ok {
 			l.PushBack(u)
 		} else {
 			break

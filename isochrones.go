@@ -14,7 +14,7 @@ import (
 func (graph *Graph) Isochrones(source int64, maxCost float64) (map[int64]float64, error) {
 	ok := true
 	if source, ok = graph.mapping[source]; !ok {
-		return nil, fmt.Errorf("No such source")
+		return nil, fmt.Errorf("no such source")
 	}
 	Q := &minHeap{}
 	heap.Init(Q)
