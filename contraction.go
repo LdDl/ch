@@ -38,7 +38,7 @@ func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
 // inEdges Incoming edges from vertex
 // outEdges Outcoming edges from vertex
 //
-func (graph *Graph) markNeighbors(inEdges, outEdges []incidentEdge) {
+func (graph *Graph) markNeighbors(inEdges, outEdges []*incidentEdge) {
 	for i := 0; i < len(inEdges); i++ {
 		temp := inEdges[i]
 		graph.Vertices[temp.vertexID].delNeighbors++
@@ -68,8 +68,8 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 		if graph.Vertices[inEdges[i].vertexID].contracted {
 			continue
 		}
-		if inMax < inEdges[i].cost {
-			inMax = inEdges[i].cost
+		if inMax < inEdges[i].weight {
+			inMax = inEdges[i].weight
 		}
 	}
 
@@ -77,8 +77,8 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 		if graph.Vertices[outEdges[i].vertexID].contracted {
 			continue
 		}
-		if outMax < outEdges[i].cost {
-			outMax = outEdges[i].cost
+		if outMax < outEdges[i].weight {
+			outMax = outEdges[i].weight
 		}
 	}
 
@@ -96,18 +96,18 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 // max - path cost restriction
 // contractionID - identifier of contraction
 // vertexID - identifier of provided vertex
-func (graph *Graph) processIncidentEdges(inEdges []incidentEdge, outEdges []incidentEdge, max float64, contractionID, vertexID int64) {
+func (graph *Graph) processIncidentEdges(inEdges []*incidentEdge, outEdges []*incidentEdge, max float64, contractionID, vertexID int64) {
 	for i := 0; i < len(inEdges); i++ {
 		inVertex := inEdges[i].vertexID
 		if graph.Vertices[inVertex].contracted {
 			continue
 		}
-		incost := inEdges[i].cost
+		incost := inEdges[i].weight
 		graph.shortestPathsWithMaxCost(inVertex, max, contractionID, int64(i)) // Finds the shortest distances from the inVertex to all outVertices.
 		batchShortcuts := []*ShortcutPath{}
 		for j := 0; j < len(outEdges); j++ {
 			outVertex := outEdges[j].vertexID
-			outcost := outEdges[j].cost
+			outcost := outEdges[j].weight
 			outVertexPtr := graph.Vertices[outVertex]
 			if outVertexPtr.contracted {
 				continue

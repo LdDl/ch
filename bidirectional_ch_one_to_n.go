@@ -126,7 +126,7 @@ func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *simpleNode, forwQ *forw
 	vertexList := graph.Vertices[vertex.id].outIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
-		cost := vertexList[i].cost
+		cost := vertexList[i].weight
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
 			alt := queryDist[vertex.id] + cost
 			if forwProcessed[temp] != cid || queryDist[temp] > alt {
@@ -147,7 +147,7 @@ func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *simpleNode, backwQ *ba
 	vertexList := graph.Vertices[vertex.id].inIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
-		cost := vertexList[i].cost
+		cost := vertexList[i].weight
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
 			alt := revQueryDist[vertex.id] + cost
 			if revProcessed[temp] != cid || revQueryDist[temp] > alt {

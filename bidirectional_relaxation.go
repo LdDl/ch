@@ -9,7 +9,7 @@ func (graph *Graph) relaxEdgesBiForward(vertex *simpleNode, forwQ *forwardHeap, 
 	vertexList := graph.Vertices[vertex.id].outIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
-		cost := vertexList[i].cost
+		cost := vertexList[i].weight
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
 			alt := queryDist[vertex.id] + cost
 			if queryDist[temp] > alt {
@@ -30,7 +30,7 @@ func (graph *Graph) relaxEdgesBiBackward(vertex *simpleNode, backwQ *backwardHea
 	vertexList := graph.Vertices[vertex.id].inIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
-		cost := vertexList[i].cost
+		cost := vertexList[i].weight
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
 			alt := revQueryDist[vertex.id] + cost
 			if revQueryDist[temp] > alt {

@@ -67,9 +67,13 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 	from = graph.mapping[from]
 	to = graph.mapping[to]
 
-	graph.Vertices[from].outIncidentEdges = append(graph.Vertices[from].outIncidentEdges, incidentEdge{to, weight})
-	graph.Vertices[to].inIncidentEdges = append(graph.Vertices[to].inIncidentEdges, incidentEdge{from, weight})
+	graph.addEdge(from, to, weight)
 	return nil
+}
+
+func (graph *Graph) addEdge(from, to int64, weight float64) {
+	graph.Vertices[from].outIncidentEdges = append(graph.Vertices[from].outIncidentEdges, &incidentEdge{vertexID: to, weight: weight})
+	graph.Vertices[to].inIncidentEdges = append(graph.Vertices[to].inIncidentEdges, &incidentEdge{vertexID: from, weight: weight})
 }
 
 // AddShortcut Adds new shortcut between two vertices
@@ -105,6 +109,51 @@ func (graph *Graph) AddShortcut(from, to, via int64, weight float64) error {
 	return nil
 }
 
+// PrepareContractionHierarchies Compute contraction hierarchies
+func (graph *Graph) PrepareContractionHierarchies() {
+	pqImportance := graph.computeImportance()
+	graph.Preprocess(pqImportance)
+	graph.Freeze()
+}
+
+// computeImportance Returns heap to store computed importance of each vertex
+func (graph *Graph) computeImportance() *importanceHeap {
+	pqImportance := &importanceHeap{}
+	heap.Init(pqImportance)
+	for i := 0; i < len(graph.Vertices); i++ {
+		graph.Vertices[i].computeImportance()
+		heap.Push(pqImportance, graph.Vertices[i])
+	}
+	graph.Freeze()
+	return pqImportance
+}
+
+// Freeze Freeze graph. Should be called after contraction hierarchies had been prepared.
+func (graph *Graph) Freeze() {
+	graph.frozen = true
+}
+
+// Unfreeze Freeze graph. Should be called if graph modification is needed.
+func (graph *Graph) Unfreeze() {
+	fmt.Println("Warning: You will need to call PrepareContractionHierarchies() or even refresh graph again if you want to modify graph data")
+	graph.frozen = false
+}
+
+// GetVerticesNum Returns number of vertices in graph
+func (graph *Graph) GetVerticesNum() int64 {
+	return int64(len(graph.Vertices))
+}
+
+// GetShortcutsNum Returns number of shortcuts in graph
+func (graph *Graph) GetShortcutsNum() int64 {
+	return int64(graph.shortcutsNum)
+}
+
+// GetEdgesNum Returns number of edges in graph
+func (graph *Graph) GetEdgesNum() int64 {
+	return graph.edgesNum
+}
+
 // AddTurnRestriction Adds new turn restriction between two vertices via some other vertex
 //
 // from User's definied ID of source vertex
@@ -132,49 +181,4 @@ func (graph *Graph) AddTurnRestriction(from, via, to int64) error {
 		graph.restrictions[from][via] = to
 	}
 	return nil
-}
-
-// computeImportance Returns heap to store computed importance of each vertex
-func (graph *Graph) computeImportance() *importanceHeap {
-	pqImportance := &importanceHeap{}
-	heap.Init(pqImportance)
-	for i := 0; i < len(graph.Vertices); i++ {
-		graph.Vertices[i].computeImportance()
-		heap.Push(pqImportance, graph.Vertices[i])
-	}
-	graph.Freeze()
-	return pqImportance
-}
-
-// PrepareContractionHierarchies Compute contraction hierarchies
-func (graph *Graph) PrepareContractionHierarchies() {
-	pqImportance := graph.computeImportance()
-	graph.Preprocess(pqImportance)
-	graph.Freeze()
-}
-
-// Freeze Freeze graph. Should be called after contraction hierarchies had been prepared.
-func (graph *Graph) Freeze() {
-	graph.frozen = true
-}
-
-// Unfreeze Freeze graph. Should be called if graph modification is needed.
-func (graph *Graph) Unfreeze() {
-	fmt.Println("Warning: You will need to call PrepareContractionHierarchies() or even refresh graph again if you want to modify graph data")
-	graph.frozen = false
-}
-
-// GetVerticesNum Returns number of vertices in graph
-func (graph *Graph) GetVerticesNum() int64 {
-	return int64(len(graph.Vertices))
-}
-
-// GetShortcutsNum Returns number of shortcuts in graph
-func (graph *Graph) GetShortcutsNum() int64 {
-	return int64(graph.shortcutsNum)
-}
-
-// GetEdgesNum Returns number of edges in graph
-func (graph *Graph) GetEdgesNum() int64 {
-	return graph.edgesNum
 }

@@ -19,7 +19,7 @@ func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, cont
 		vertexList := vertex.outIncidentEdges
 		for i := 0; i < len(vertexList); i++ {
 			temp := vertexList[i].vertexID
-			cost := vertexList[i].cost
+			cost := vertexList[i].weight
 			tempPtr := graph.Vertices[temp]
 			// Skip contracted vertices
 			if tempPtr.contracted {

@@ -36,7 +36,7 @@ func (graph *Graph) Isochrones(source int64, maxCost float64) (map[int64]float64
 					}
 				}
 				target := vertexList[i].vertexID
-				cost := vertexList[i].cost
+				cost := vertexList[i].weight
 				alt := distance[graph.Vertices[next.id].Label] + cost
 				if visit[target] {
 					continue

@@ -76,7 +76,7 @@ func (graph *Graph) ExportEdgesToFile(fname string) error {
 		for j := 0; j < len(outcomingNeighbors); j++ {
 			toVertexExternal := graph.Vertices[outcomingNeighbors[j].vertexID].Label
 			toVertexInternal := outcomingNeighbors[j].vertexID
-			cost := outcomingNeighbors[j].cost
+			cost := outcomingNeighbors[j].weight
 			if _, ok := graph.shortcuts[currentVertexInternal][toVertexInternal]; !ok {
 				err = writer.Write([]string{
 					fmt.Sprintf("%d", currentVertexExternal),

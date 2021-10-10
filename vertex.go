@@ -9,8 +9,8 @@ type Vertex struct {
 	vertexNum int64
 	Label     int64
 
-	inIncidentEdges  []incidentEdge
-	outIncidentEdges []incidentEdge
+	inIncidentEdges  []*incidentEdge
+	outIncidentEdges []*incidentEdge
 
 	orderPos     int
 	contracted   bool

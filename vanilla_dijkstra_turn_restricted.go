@@ -85,7 +85,7 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 				distance[u.id] = math.MaxFloat64
 				continue
 			}
-			cost := vertexList[v].cost
+			cost := vertexList[v].weight
 			// alt ← dist[u] + length(u, v)
 			alt := distance[u.id] + cost
 			// if alt < dist[v]
