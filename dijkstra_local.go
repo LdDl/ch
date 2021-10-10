@@ -21,6 +21,7 @@ func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, prev
 		if vertex.contracted {
 			continue
 		}
+		// Once a vertex is settled with a shortest path score greater than max cost, search stops.
 		if vertex.distance.distance > maxcost {
 			return
 		}
@@ -38,7 +39,7 @@ func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, prev
 			if tempPtr.distance.distance > alt ||
 				vertex.distance.previousOrderPos != tempPtr.distance.previousOrderPos ||
 				vertex.distance.sourceID != tempPtr.distance.sourceID {
-				// Update new shortest
+				// Update new shortest distance
 				tempPtr.distance.distance = vertex.distance.distance + cost
 				tempPtr.distance.previousOrderPos = previousOrderPos
 				tempPtr.distance.sourceID = neighborIndex
