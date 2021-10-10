@@ -73,7 +73,7 @@ func (graph *Graph) ExportEdgesToFile(fname string) error {
 		// Write reference information about "outcoming" adjacent vertices
 		// Why don't write info about "incoming" adjacent vertices also? Because all edges will be covered due the loop iteration mechanism
 		outcomingNeighbors := graph.Vertices[i].outIncidentEdges
-		for j := 0; j < len(outcomingNeighbors); j++ {
+		for j := range outcomingNeighbors {
 			toVertexExternal := graph.Vertices[outcomingNeighbors[j].vertexID].Label
 			toVertexInternal := outcomingNeighbors[j].vertexID
 			cost := outcomingNeighbors[j].weight

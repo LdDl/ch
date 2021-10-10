@@ -6,14 +6,14 @@ const (
 )
 
 // shortestPathsWithMaxCost Internal implementation of Dijkstra's algorithm to compute witness paths
-func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, previousOrderPos, sourceID int64) {
+func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, previousOrderPos, neighborIndex int64) {
 	// Heap to store traveled distance
 	pqComparator := &distanceHeap{}
 	pqComparator.Push(graph.Vertices[source])
 
 	graph.Vertices[source].distance.distance = 0
 	graph.Vertices[source].distance.previousOrderPos = previousOrderPos
-	graph.Vertices[source].distance.sourceID = sourceID
+	graph.Vertices[source].distance.sourceID = neighborIndex
 
 	for pqComparator.Len() != 0 {
 		vertex := pqComparator.Pop()
@@ -38,7 +38,7 @@ func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, prev
 			if graph.checkID(vertex.vertexNum, temp) || tempPtr.distance.distance > alt {
 				tempPtr.distance.distance = vertex.distance.distance + cost
 				tempPtr.distance.previousOrderPos = previousOrderPos
-				tempPtr.distance.sourceID = sourceID
+				tempPtr.distance.sourceID = neighborIndex
 				pqComparator.Push(tempPtr)
 			}
 		}
