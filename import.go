@@ -102,7 +102,7 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 		if err != nil {
 			return nil, err
 		}
-		vertexOrderPos, err := strconv.Atoi(record[1])
+		vertexOrderPos, err := strconv.ParseInt(record[1], 10, 64)
 		if err != nil {
 			return nil, err
 		}

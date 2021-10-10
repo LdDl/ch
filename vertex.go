@@ -8,7 +8,7 @@ type Vertex struct {
 	inIncidentEdges  []*incidentEdge
 	outIncidentEdges []*incidentEdge
 
-	orderPos     int
+	orderPos     int64
 	contracted   bool
 	distance     *Distance
 	delNeighbors int
@@ -16,12 +16,12 @@ type Vertex struct {
 }
 
 // OrderPos Returns order position (in terms of contraction hierarchies) of vertex
-func (vertex *Vertex) OrderPos() int {
+func (vertex *Vertex) OrderPos() int64 {
 	return vertex.orderPos
 }
 
 // SetOrderPos Sets order position (in terms of contraction hierarchies) for vertex
-func (vertex *Vertex) SetOrderPos(orderPos int) {
+func (vertex *Vertex) SetOrderPos(orderPos int64) {
 	vertex.orderPos = orderPos
 }
 
@@ -57,7 +57,7 @@ func (vertex *Vertex) computeImportance() {
 	// note: the more neighbours have already been contracted, the later this vertex will be contracted in further.
 	// [+] Bidirection edges heuristic: for each vertex check how many bidirected incident edges vertex has.
 	// note: the more bidirected incident edges == less important vertex is.
-	vertex.importance = edgeDiff*14 + incidentEdgesNum*25 + vertex.delNeighbors*10 - vertex.bidirectedEdges()
+	vertex.importance = edgeDiff + incidentEdgesNum + vertex.delNeighbors - vertex.bidirectedEdges()
 }
 
 // bidirectedEdges Number of bidirected edges
@@ -77,21 +77,21 @@ func (vertex *Vertex) bidirectedEdges() int {
 
 // Distance Information about contraction between source vertex and contraction vertex
 type Distance struct {
-	contractionID int64
-	sourceID      int64
-	distance      float64
-	queryDist     float64
-	revQueryDist  float64
+	previousOrderPos int64
+	sourceID         int64
+	distance         float64
+	queryDist        float64
+	revQueryDist     float64
 }
 
 // NewDistance Constructor for Distance
 func NewDistance() *Distance {
 	return &Distance{
-		contractionID: -1,
-		sourceID:      -1,
-		distance:      Infinity,
-		revQueryDist:  Infinity,
-		queryDist:     Infinity,
+		previousOrderPos: -1,
+		sourceID:         -1,
+		distance:         Infinity,
+		revQueryDist:     Infinity,
+		queryDist:        Infinity,
 	}
 }
 

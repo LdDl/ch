@@ -10,7 +10,7 @@ const DEBUG_PREPROCESSING = false
 
 // Preprocess Computes contraction hierarchies and returns node ordering
 func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
-	extractionOrder := 0
+	extractionOrder := int64(0)
 	for pqImportance.Len() != 0 {
 		// Lazy update heuristic:
 		// update Importance of vertex "on demand" as follows:
@@ -54,71 +54,80 @@ func (graph *Graph) markNeighbors(inEdges, outEdges []*incidentEdge) {
 // vertex Vertex to be contracted
 //
 func (graph *Graph) contractNode(vertex *Vertex) {
-	inEdges := vertex.inIncidentEdges
-	outEdges := vertex.outIncidentEdges
+	// Consider all vertices with edges incoming TO current vertex as U
+	incomingEdges := vertex.inIncidentEdges
 
+	// Consider all vertices with edges incoming FROM current vertex as W
+	outcomingEdges := vertex.outIncidentEdges
+
+	// Exclude vertex for local shortest paths searches
 	vertex.contracted = true
+	// Tell neighbor vertices that current vertex has been contracted
+	graph.markNeighbors(incomingEdges, outcomingEdges)
 
+	// For every vertex 'w' in W, compute Pw as the cost from 'u' to 'w' through current vertex, which is the sum of the edge weights w(u, vertex) + w(vertex, w).
 	inMax := 0.0
 	outMax := 0.0
-
-	graph.markNeighbors(inEdges, outEdges)
-
-	for i := 0; i < len(inEdges); i++ {
-		if graph.Vertices[inEdges[i].vertexID].contracted {
+	for i := 0; i < len(incomingEdges); i++ {
+		if graph.Vertices[incomingEdges[i].vertexID].contracted {
 			continue
 		}
-		if inMax < inEdges[i].weight {
-			inMax = inEdges[i].weight
+		if inMax < incomingEdges[i].weight {
+			inMax = incomingEdges[i].weight
 		}
 	}
-
-	for i := 0; i < len(outEdges); i++ {
-		if graph.Vertices[outEdges[i].vertexID].contracted {
+	for i := 0; i < len(outcomingEdges); i++ {
+		if graph.Vertices[outcomingEdges[i].vertexID].contracted {
 			continue
 		}
-		if outMax < outEdges[i].weight {
-			outMax = outEdges[i].weight
+		if outMax < outcomingEdges[i].weight {
+			outMax = outcomingEdges[i].weight
 		}
 	}
+	// Then Pmax is the maximum pMax over all 'w' in W.
+	pmax := inMax + outMax
 
-	max := inMax + outMax
-
-	contractionID := int64(vertex.orderPos - 1)
-
-	graph.processIncidentEdges(inEdges, outEdges, max, contractionID, vertex.vertexNum)
+	// Perform a standard Dijkstra’s shortest path search from 'u' on the subgraph excluding current vertex.
+	graph.processIncidentEdges(vertex, pmax)
 }
 
 // processIncidentEdges Returns evaluated shorcuts
 //
-// inEdges - incoming [to provided vertex] incident edges
-// outEdges - outcoming [from provided vertex] incident edges
-// max - path cost restriction
-// contractionID - identifier of contraction
-// vertexID - identifier of provided vertex
-func (graph *Graph) processIncidentEdges(inEdges []*incidentEdge, outEdges []*incidentEdge, max float64, contractionID, vertexID int64) {
-	for i := 0; i < len(inEdges); i++ {
-		inVertex := inEdges[i].vertexID
+// vertex - Vertex for making possible shortcuts around
+// pmax - path cost restriction
+//
+func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
+	incomingEdges := vertex.inIncidentEdges
+	outcomingEdges := vertex.outIncidentEdges
+	batchShortcuts := []*ShortcutPath{}
+
+	previousOrderPos := int64(vertex.orderPos - 1)
+	for i := 0; i < len(incomingEdges); i++ {
+		inVertex := incomingEdges[i].vertexID
+		// Do not consider any vertex has been excluded earlier
 		if graph.Vertices[inVertex].contracted {
 			continue
 		}
-		incost := inEdges[i].weight
-		graph.shortestPathsWithMaxCost(inVertex, max, contractionID, int64(i)) // Finds the shortest distances from the inVertex to all outVertices.
-		batchShortcuts := []*ShortcutPath{}
-		for j := 0; j < len(outEdges); j++ {
-			outVertex := outEdges[j].vertexID
-			outcost := outEdges[j].weight
+		incost := incomingEdges[i].weight
+		graph.shortestPathsWithMaxCost(inVertex, pmax, previousOrderPos, int64(i)) // Finds the shortest distances from the inVertex to all outVertices.
+		for j := 0; j < len(outcomingEdges); j++ {
+			outVertex := outcomingEdges[j].vertexID
+			outcost := outcomingEdges[j].weight
 			outVertexPtr := graph.Vertices[outVertex]
+			// Do not consider any vertex has been excluded earlier
 			if outVertexPtr.contracted {
 				continue
 			}
-			summaryCost := incost + outcost
-			if outVertexPtr.distance.contractionID != contractionID || outVertexPtr.distance.sourceID != int64(i) || outVertexPtr.distance.distance > summaryCost {
-				batchShortcuts = append(batchShortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertexID, Cost: summaryCost})
+			neighborWeights := incost + outcost
+			// For each w, if dist(u, w) > Pw we add a shortcut edge uw with weight Pw.
+			// If this condition doesn’t hold, no shortcut is added.
+			if outVertexPtr.distance.distance > neighborWeights || outVertexPtr.distance.previousOrderPos != previousOrderPos || outVertexPtr.distance.sourceID != int64(i) {
+				// Collect needed shortcuts
+				batchShortcuts = append(batchShortcuts, &ShortcutPath{From: inVertex, To: outVertex, Via: vertex.vertexNum, Cost: neighborWeights})
 			}
 		}
-		graph.insertShortcuts(batchShortcuts)
 	}
+	graph.insertShortcuts(batchShortcuts)
 }
 
 // insertShortcuts Creates (or updates: it depends on conditions) multiple shortcuts in graph structure
