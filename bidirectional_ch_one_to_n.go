@@ -58,12 +58,12 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 		heap.Init(forwQ)
 		heap.Init(backwQ)
 
-		heapSource := &simpleNode{
+		heapSource := &bidirectionalVertex{
 			id:               source,
 			queryDist:        0,
 			revQueryDistance: math.MaxFloat64,
 		}
-		heapTarget := &simpleNode{
+		heapTarget := &bidirectionalVertex{
 			id:               target,
 			queryDist:        math.MaxFloat64,
 			revQueryDistance: 0,
@@ -78,7 +78,7 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 
 		for forwQ.Len() != 0 || backwQ.Len() != 0 {
 			if forwQ.Len() != 0 {
-				vertex1 := heap.Pop(forwQ).(*simpleNode)
+				vertex1 := heap.Pop(forwQ).(*bidirectionalVertex)
 				if vertex1.queryDist <= estimate {
 					forwProcessed[vertex1.id] = nextQueue
 					graph.relaxEdgesBiForwardOneToMany(vertex1, forwQ, prev, queryDist, nextQueue, forwProcessed)
@@ -92,7 +92,7 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 			}
 
 			if backwQ.Len() != 0 {
-				vertex2 := heap.Pop(backwQ).(*simpleNode)
+				vertex2 := heap.Pop(backwQ).(*bidirectionalVertex)
 				if vertex2.revQueryDistance <= estimate {
 					revProcessed[vertex2.id] = nextQueue
 					graph.relaxEdgesBiBackwardOneToMany(vertex2, backwQ, prevReverse, revQueryDist, nextQueue, revProcessed)
@@ -122,7 +122,7 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 	return estimateAll, pathAll
 }
 
-func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *simpleNode, forwQ *forwardHeap, prev map[int64]int64, queryDist []float64, cid int64, forwProcessed []int64) {
+func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *bidirectionalVertex, forwQ *forwardHeap, prev map[int64]int64, queryDist []float64, cid int64, forwProcessed []int64) {
 	vertexList := graph.Vertices[vertex.id].outIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
@@ -133,7 +133,7 @@ func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *simpleNode, forwQ *forw
 				queryDist[temp] = alt
 				prev[temp] = vertex.id
 				forwProcessed[temp] = cid
-				node := &simpleNode{
+				node := &bidirectionalVertex{
 					id:        temp,
 					queryDist: alt,
 				}
@@ -143,7 +143,7 @@ func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *simpleNode, forwQ *forw
 	}
 }
 
-func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *simpleNode, backwQ *backwardHeap, prev map[int64]int64, revQueryDist []float64, cid int64, revProcessed []int64) {
+func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *bidirectionalVertex, backwQ *backwardHeap, prev map[int64]int64, revQueryDist []float64, cid int64, revProcessed []int64) {
 	vertexList := graph.Vertices[vertex.id].inIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
@@ -154,7 +154,7 @@ func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *simpleNode, backwQ *ba
 				revQueryDist[temp] = alt
 				prev[temp] = vertex.id
 				revProcessed[temp] = cid
-				node := &simpleNode{
+				node := &bidirectionalVertex{
 					id:               temp,
 					revQueryDistance: alt,
 				}

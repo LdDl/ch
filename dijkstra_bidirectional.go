@@ -51,12 +51,12 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	heap.Init(forwQ)
 	heap.Init(backwQ)
 
-	heapSource := &simpleNode{
+	heapSource := &bidirectionalVertex{
 		id:               source,
 		queryDist:        0,
 		revQueryDistance: math.MaxFloat64,
 	}
-	heapTarget := &simpleNode{
+	heapTarget := &bidirectionalVertex{
 		id:               target,
 		queryDist:        math.MaxFloat64,
 		revQueryDistance: 0,
@@ -74,7 +74,7 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	for forwQ.Len() != 0 || backwQ.Len() != 0 {
 		iter++
 		if forwQ.Len() != 0 {
-			vertex1 := heap.Pop(forwQ).(*simpleNode)
+			vertex1 := heap.Pop(forwQ).(*bidirectionalVertex)
 			if vertex1.queryDist <= estimate {
 				forwProcessed[vertex1.id] = true
 				graph.relaxEdgesBiForward(vertex1, forwQ, forwardPrev, queryDist)
@@ -88,7 +88,7 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 		}
 
 		if backwQ.Len() != 0 {
-			vertex2 := heap.Pop(backwQ).(*simpleNode)
+			vertex2 := heap.Pop(backwQ).(*bidirectionalVertex)
 			if vertex2.revQueryDistance <= estimate {
 				revProcessed[vertex2.id] = true
 				graph.relaxEdgesBiBackward(vertex2, backwQ, backwardPrev, revQueryDist)

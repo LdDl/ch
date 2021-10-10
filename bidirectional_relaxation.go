@@ -5,7 +5,7 @@ import (
 )
 
 // relaxEdgesBiForward Edge relaxation in a forward propagation
-func (graph *Graph) relaxEdgesBiForward(vertex *simpleNode, forwQ *forwardHeap, prev map[int64]int64, queryDist []float64) {
+func (graph *Graph) relaxEdgesBiForward(vertex *bidirectionalVertex, forwQ *forwardHeap, prev map[int64]int64, queryDist []float64) {
 	vertexList := graph.Vertices[vertex.id].outIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
@@ -15,7 +15,7 @@ func (graph *Graph) relaxEdgesBiForward(vertex *simpleNode, forwQ *forwardHeap, 
 			if queryDist[temp] > alt {
 				queryDist[temp] = alt
 				prev[temp] = vertex.id
-				node := &simpleNode{
+				node := &bidirectionalVertex{
 					id:        temp,
 					queryDist: alt,
 				}
@@ -26,7 +26,7 @@ func (graph *Graph) relaxEdgesBiForward(vertex *simpleNode, forwQ *forwardHeap, 
 }
 
 // relaxEdgesBiForward Edge relaxation in a backward propagation
-func (graph *Graph) relaxEdgesBiBackward(vertex *simpleNode, backwQ *backwardHeap, prev map[int64]int64, revQueryDist []float64) {
+func (graph *Graph) relaxEdgesBiBackward(vertex *bidirectionalVertex, backwQ *backwardHeap, prev map[int64]int64, revQueryDist []float64) {
 	vertexList := graph.Vertices[vertex.id].inIncidentEdges
 	for i := 0; i < len(vertexList); i++ {
 		temp := vertexList[i].vertexID
@@ -36,7 +36,7 @@ func (graph *Graph) relaxEdgesBiBackward(vertex *simpleNode, backwQ *backwardHea
 			if revQueryDist[temp] > alt {
 				revQueryDist[temp] = alt
 				prev[temp] = vertex.id
-				node := &simpleNode{
+				node := &bidirectionalVertex{
 					id:               temp,
 					revQueryDistance: alt,
 				}
