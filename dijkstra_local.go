@@ -35,7 +35,10 @@ func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, prev
 				continue
 			}
 			alt := vertex.distance.distance + cost
-			if graph.checkID(vertex.vertexNum, temp) || tempPtr.distance.distance > alt {
+			if tempPtr.distance.distance > alt ||
+				vertex.distance.previousOrderPos != tempPtr.distance.previousOrderPos ||
+				vertex.distance.sourceID != tempPtr.distance.sourceID {
+				// Update new shortest
 				tempPtr.distance.distance = vertex.distance.distance + cost
 				tempPtr.distance.previousOrderPos = previousOrderPos
 				tempPtr.distance.sourceID = neighborIndex
@@ -43,11 +46,4 @@ func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, prev
 			}
 		}
 	}
-}
-
-// checkID Checks if both source's and target's contraction ID are not equal
-func (graph *Graph) checkID(source, target int64) bool {
-	s := graph.Vertices[source].distance
-	t := graph.Vertices[target].distance
-	return s.previousOrderPos != t.previousOrderPos || s.sourceID != t.sourceID
 }
