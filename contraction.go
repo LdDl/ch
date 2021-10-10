@@ -9,8 +9,7 @@ import (
 const DEBUG_PREPROCESSING = false
 
 // Preprocess Computes contraction hierarchies and returns node ordering
-func (graph *Graph) Preprocess(pqImportance *importanceHeap) []int64 {
-	nodeOrdering := make([]int64, len(graph.Vertices))
+func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
 	var extractNum int
 	for pqImportance.Len() != 0 {
 		// Lazy update heuristic:
@@ -23,7 +22,6 @@ func (graph *Graph) Preprocess(pqImportance *importanceHeap) []int64 {
 			pqImportance.Push(vertex)
 			continue
 		}
-		nodeOrdering[extractNum] = vertex.vertexNum
 		vertex.orderPos = extractNum
 		graph.contractNode(vertex)
 		if DEBUG_PREPROCESSING {
@@ -33,7 +31,6 @@ func (graph *Graph) Preprocess(pqImportance *importanceHeap) []int64 {
 		}
 		extractNum++
 	}
-	return nodeOrdering
 }
 
 // markNeighbors

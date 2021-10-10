@@ -10,7 +10,6 @@ import (
 //
 // mapping Internal map for 1:1 relation of internal IDs to user's IDs
 // Vertices Slice of vertices of graph
-// nodeOrdering Ordering of vertices
 // shortcuts Found and stored shortcuts based on contraction hierarchies
 //
 type Graph struct {
@@ -18,7 +17,6 @@ type Graph struct {
 	Vertices     []*Vertex
 	edgesNum     int64
 	shortcutsNum int64
-	nodeOrdering []int64
 
 	shortcuts    map[int64]map[int64]*ShortcutPath
 	restrictions map[int64]map[int64]int64
@@ -151,7 +149,7 @@ func (graph *Graph) computeImportance() *importanceHeap {
 // PrepareContractionHierarchies Compute contraction hierarchies
 func (graph *Graph) PrepareContractionHierarchies() {
 	pqImportance := graph.computeImportance()
-	graph.nodeOrdering = graph.Preprocess(pqImportance)
+	graph.Preprocess(pqImportance)
 	graph.Freeze()
 }
 
