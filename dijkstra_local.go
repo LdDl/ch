@@ -1,12 +1,5 @@
 package ch
 
-// checkID Checks if both source's and target's contraction ID are not equal
-func (graph *Graph) checkID(source, target int64) bool {
-	s := graph.Vertices[source].distance
-	t := graph.Vertices[target].distance
-	return s.contractionID != t.contractionID || s.sourceID != t.sourceID
-}
-
 // shortestPathsWithMaxCost Internal implementation of Dijkstra's algorithm to compute witness paths
 func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, contractionID, sourceID int64) {
 	graph.pqComparator = &distanceHeap{}
@@ -40,4 +33,11 @@ func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, cont
 			}
 		}
 	}
+}
+
+// checkID Checks if both source's and target's contraction ID are not equal
+func (graph *Graph) checkID(source, target int64) bool {
+	s := graph.Vertices[source].distance
+	t := graph.Vertices[target].distance
+	return s.contractionID != t.contractionID || s.sourceID != t.sourceID
 }

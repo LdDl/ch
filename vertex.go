@@ -12,14 +12,11 @@ type Vertex struct {
 	inIncidentEdges  []incidentEdge
 	outIncidentEdges []incidentEdge
 
-	orderPos         int
-	contracted       bool
-	distance         *Distance
-	incidentEdgesNum int
-	edgeDiff         int
-	delNeighbors     int
-	shortcutCover    int
-	importance       int
+	orderPos     int
+	contracted   bool
+	distance     *Distance
+	delNeighbors int
+	importance   int
 }
 
 // OrderPos Returns order position (in terms of contraction hierarchies) of vertex
@@ -55,16 +52,16 @@ func MakeVertex(label int64) *Vertex {
 // computeImportance Update importance of vertex
 func (vertex *Vertex) computeImportance() {
 	// Worst possible shortcuts number throught the vertex is: NumWorstShortcuts = NumIncomingEdges*NumOutcomingEdges
-	vertex.shortcutCover = len(vertex.inIncidentEdges) * len(vertex.outIncidentEdges)
+	shortcutCover := len(vertex.inIncidentEdges) * len(vertex.outIncidentEdges)
 	// Number of total incident edges is: NumIncomingEdges+NumOutcomingEdges
-	vertex.incidentEdgesNum = len(vertex.inIncidentEdges) + len(vertex.outIncidentEdges)
+	incidentEdgesNum := len(vertex.inIncidentEdges) + len(vertex.outIncidentEdges)
 	// Edge difference is between NumWorstShortcuts and TotalIncidentEdgesNum
-	vertex.edgeDiff = vertex.shortcutCover - vertex.incidentEdgesNum
+	edgeDiff := shortcutCover - incidentEdgesNum
 	// [+] Spatial diversity heuristic: for each vertex maintain a count of the number of neighbors that have already been contracted [vertex.delNeighbors], and add this to the summary importance
 	// note: the more neighbours have already been contracted, the later this vertex will be contracted in further.
 	// [+] Bidirection edges heuristic: for each vertex check how many bidirected incident edges vertex has.
 	// note: the more bidirected incident edges == less important vertex is.
-	vertex.importance = vertex.edgeDiff*14 + vertex.incidentEdgesNum*25 + vertex.delNeighbors*10 - vertex.bidirectedEdges()
+	vertex.importance = edgeDiff*14 + incidentEdgesNum*25 + vertex.delNeighbors*10 - vertex.bidirectedEdges()
 }
 
 // bidirectedEdges Number of bidirected edges
