@@ -47,7 +47,7 @@ func MakeVertex(label int64) *Vertex {
 
 // computeImportance Update importance of vertex
 func (vertex *Vertex) computeImportance() {
-	// Worst possible shortcuts number throught the vertex is: NumWorstShortcuts = NumIncomingEdges*NumOutcomingEdges
+	// Worst possible shortcuts number through the vertex is: NumWorstShortcuts = NumIncomingEdges*NumOutcomingEdges
 	shortcutCover := len(vertex.inIncidentEdges) * len(vertex.outIncidentEdges)
 	// Number of total incident edges is: NumIncomingEdges+NumOutcomingEdges
 	incidentEdgesNum := len(vertex.inIncidentEdges) + len(vertex.outIncidentEdges)
