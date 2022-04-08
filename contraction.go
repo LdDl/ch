@@ -99,6 +99,9 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
 	incomingEdges := vertex.inIncidentEdges
 	outcomingEdges := vertex.outIncidentEdges
+	if len(outcomingEdges) == 0 {
+		return
+	}
 	batchShortcuts := []*ShortcutPath{}
 
 	previousOrderPos := int64(vertex.orderPos - 1)
