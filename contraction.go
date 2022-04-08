@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const DEBUG_PREPROCESSING = false
+const DEBUG_PREPROCESSING = true
 
 // Preprocess Computes contraction hierarchies and returns node ordering
 func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
@@ -102,7 +102,7 @@ func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
 	if len(outcomingEdges) == 0 {
 		return
 	}
-	batchShortcuts := []*ShortcutPath{}
+	batchShortcuts := make([]*ShortcutPath, 0, len(incomingEdges)*len(outcomingEdges))
 
 	previousOrderPos := int64(vertex.orderPos - 1)
 	for i := range incomingEdges {
