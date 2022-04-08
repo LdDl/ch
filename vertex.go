@@ -76,12 +76,13 @@ func (vertex *Vertex) bidirectedEdges() int {
 }
 
 // Distance Information about contraction between source vertex and contraction vertex
+// distance - used in Dijkstra local searches
+// previousOrderPos - previous contraction order (shortest path tree)
+// previousSourceID - previously found source vertex (shortest path tree)
 type Distance struct {
 	previousOrderPos int64
 	previousSourceID int64
 	distance         float64
-	queryDist        float64
-	revQueryDist     float64
 }
 
 // NewDistance Constructor for Distance
@@ -90,8 +91,6 @@ func NewDistance() *Distance {
 		previousOrderPos: -1,
 		previousSourceID: -1,
 		distance:         Infinity,
-		revQueryDist:     Infinity,
-		queryDist:        Infinity,
 	}
 }
 
