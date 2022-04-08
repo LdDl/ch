@@ -40,7 +40,7 @@ func (h *distanceHeap) Pop() *Vertex {
 
 // Remove removes and returns the element at index i from the heap.
 // The complexity is O(log n) where n = h.Len().
-func (h *distanceHeap) Remove(i int) *Vertex {
+func (h distanceHeap) Remove(i int) *Vertex {
 	n := h.Len() - 1
 	if n != i {
 		h.Swap(i, n)
@@ -51,7 +51,7 @@ func (h *distanceHeap) Remove(i int) *Vertex {
 	return h.Pop()
 }
 
-func (h *distanceHeap) up(j int) {
+func (h distanceHeap) up(j int) {
 	for {
 		i := (j - 1) / 2 // parent
 		if i == j || !h.Less(j, i) {
@@ -62,7 +62,7 @@ func (h *distanceHeap) up(j int) {
 	}
 }
 
-func (h *distanceHeap) down(i0, n int) bool {
+func (h distanceHeap) down(i0, n int) bool {
 	i := i0
 	for {
 		j1 := 2*i + 1
