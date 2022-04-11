@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+var (
+	tmLayout = "2006-01-2T15:04:05.999999999"
+)
+
 // Preprocess Computes contraction hierarchies and returns node ordering
 func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
 	extractionOrder := int64(0)
@@ -24,7 +28,7 @@ func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
 		graph.contractNode(vertex)
 		if graph.verbose {
 			if extractionOrder > 0 && pqImportance.Len()%1000 == 0 {
-				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Time: %v\n", extractionOrder, len(graph.Vertices), pqImportance.Len(), graph.shortcutsNum, time.Now())
+				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Initial edges num: %d Time: %v\n", extractionOrder, len(graph.Vertices), pqImportance.Len(), graph.shortcutsNum, graph.edgesNum, time.Now().Format(tmLayout))
 			}
 		}
 		extractionOrder++
