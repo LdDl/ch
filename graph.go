@@ -21,7 +21,22 @@ type Graph struct {
 	shortcuts    map[int64]map[int64]*ShortcutPath
 	restrictions map[int64]map[int64]int64
 
-	frozen bool
+	frozen  bool
+	verbose bool
+}
+
+// NewGraph returns pointer to created Graph and does preallocations for processing purposes
+func NewGraph() *Graph {
+	return &Graph{
+		mapping:      make(map[int64]int64),
+		Vertices:     make([]*Vertex, 0),
+		edgesNum:     0,
+		shortcutsNum: 0,
+		shortcuts:    make(map[int64]map[int64]*ShortcutPath),
+		restrictions: make(map[int64]map[int64]int64),
+		frozen:       false,
+		verbose:      false,
+	}
 }
 
 // CreateVertex Creates new vertex and assign internal ID to it
@@ -114,6 +129,11 @@ func (graph *Graph) PrepareContractionHierarchies() {
 	pqImportance := graph.computeImportance()
 	graph.Preprocess(pqImportance)
 	graph.Freeze()
+}
+
+// SetVerbose sets verbose parameter for debugging purposes
+func (graph *Graph) SetVerbose(flag bool) {
+	graph.verbose = flag
 }
 
 // computeImportance Returns heap to store computed importance of each vertex

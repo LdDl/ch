@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-const DEBUG_PREPROCESSING = false
-
 // Preprocess Computes contraction hierarchies and returns node ordering
 func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
 	extractionOrder := int64(0)
@@ -24,7 +22,7 @@ func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
 		}
 		vertex.orderPos = extractionOrder
 		graph.contractNode(vertex)
-		if DEBUG_PREPROCESSING {
+		if graph.verbose {
 			if extractionOrder > 0 && pqImportance.Len()%1000 == 0 {
 				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Time: %v\n", extractionOrder, len(graph.Vertices), pqImportance.Len(), graph.shortcutsNum, time.Now())
 			}
