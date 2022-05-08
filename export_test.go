@@ -7,7 +7,10 @@ import (
 
 func TestExport(t *testing.T) {
 	g := Graph{}
-	graphFromCSV(&g, "data/pgrouting_osm.csv")
+	err := graphFromCSV(&g, "data/pgrouting_osm.csv")
+	if err != nil {
+		t.Error(err)
+	}
 	t.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContractionHierarchies()
 	t.Log("TestExport is starting...")
@@ -20,7 +23,7 @@ func TestExport(t *testing.T) {
 	if len(g.Vertices) != correctNumVertices {
 		t.Errorf("Number of vertices should be %d, but got %d", correctNumVertices, len(g.Vertices))
 	}
-	err := g.ExportToFile("data/export_pgrouting.csv")
+	err = g.ExportToFile("data/export_pgrouting.csv")
 	if err != nil {
 		t.Error(err)
 		return

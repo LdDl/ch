@@ -18,7 +18,7 @@ func (graph *Graph) VanillaTurnRestrictedShortestPath(source, target int64) (flo
 	if source == target {
 		return 0, []int64{source}
 	}
-	ok := true
+	var ok bool
 
 	if source, ok = graph.mapping[source]; !ok {
 		log.Println("No such source")

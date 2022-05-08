@@ -24,7 +24,7 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 	forwProcessed := make([]int64, len(graph.Vertices))
 	revProcessed := make([]int64, len(graph.Vertices))
 
-	ok := false
+	var ok bool
 	if source, ok = graph.mapping[source]; !ok {
 		estimateAll = append(estimateAll, -1.0)
 		pathAll = append(pathAll, nil)
@@ -38,7 +38,7 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 			pathAll = append(pathAll, []int64{source})
 			continue
 		}
-		ok := true
+		var ok bool
 		if target, ok = graph.mapping[target]; !ok {
 			estimateAll = append(estimateAll, -1.0)
 			pathAll = append(pathAll, nil)

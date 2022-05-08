@@ -6,7 +6,10 @@ import (
 
 func TestVanillaShortestPath(t *testing.T) {
 	g := Graph{}
-	graphFromCSV(&g, "data/pgrouting_osm.csv")
+	err := graphFromCSV(&g, "data/pgrouting_osm.csv")
+	if err != nil {
+		t.Error(err)
+	}
 	t.Log("TestShortestPath is starting...")
 	u := int64(69618)
 	v := int64(5924)

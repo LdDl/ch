@@ -16,7 +16,7 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	if source == target {
 		return 0, []int64{source}
 	}
-	ok := true
+	var ok bool
 	if source, ok = graph.mapping[source]; !ok {
 		return -1.0, nil
 	}
