@@ -11,7 +11,6 @@ import (
 //
 // source User's definied ID of source vertex
 // target User's definied ID of target vertex
-//
 func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	if source == target {
 		return 0, []int64{source}
@@ -23,10 +22,50 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	if target, ok = graph.mapping[target]; !ok {
 		return -1.0, nil
 	}
-	return graph.shortestPath(source, target)
+	return graph.shortestPath([]vertexAlternativeInternal{{vertexNum: source}}, []vertexAlternativeInternal{{vertexNum: target}})
 }
 
-func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
+type VertexAlternative struct {
+	Label              int64
+	AdditionalDistance float64
+}
+
+// ShortestPathWithAlternatives Computes and returns shortest path and it's cost (extended Dijkstra's algorithm),
+// with multiple alternatives for source and target vertices with additional distances to reach the vertices
+// (useful if source and target are outside of the graph)
+//
+// If there are some errors then function returns '-1.0' as cost and nil as shortest path
+//
+// sources Source vertex alternatives
+// targets Target vertex alternatives
+func (graph *Graph) ShortestPathWithAlternatives(sources, targets []VertexAlternative) (float64, []int64) {
+	sourcesInternal := make([]vertexAlternativeInternal, 0, len(sources))
+	targetsInternal := make([]vertexAlternativeInternal, 0, len(targets))
+	for _, source := range sources {
+		sourceInternal := vertexAlternativeInternal{additionalDistance: source.AdditionalDistance}
+		var ok bool
+		if sourceInternal.vertexNum, ok = graph.mapping[source.Label]; !ok {
+			return -1.0, nil
+		}
+		sourcesInternal = append(sourcesInternal, sourceInternal)
+	}
+	for _, target := range targets {
+		targetInternal := vertexAlternativeInternal{additionalDistance: target.AdditionalDistance}
+		var ok bool
+		if targetInternal.vertexNum, ok = graph.mapping[target.Label]; !ok {
+			return -1.0, nil
+		}
+		targetsInternal = append(targetsInternal, targetInternal)
+	}
+	return graph.shortestPath(sourcesInternal, targetsInternal)
+}
+
+type vertexAlternativeInternal struct {
+	vertexNum          int64
+	additionalDistance float64
+}
+
+func (graph *Graph) shortestPath(sources, targets []vertexAlternativeInternal) (float64, []int64) {
 	forwardPrev := make(map[int64]int64)
 	backwardPrev := make(map[int64]int64)
 
@@ -35,15 +74,24 @@ func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
 
 	forwProcessed := make([]bool, len(graph.Vertices))
 	revProcessed := make([]bool, len(graph.Vertices))
-	forwProcessed[source] = true
-	revProcessed[target] = true
+
+	for _, source := range sources {
+		forwProcessed[source.vertexNum] = true
+	}
+	for _, target := range targets {
+		revProcessed[target.vertexNum] = true
+	}
 
 	for i := range queryDist {
 		queryDist[i] = Infinity
 		revQueryDist[i] = Infinity
 	}
-	queryDist[source] = 0
-	revQueryDist[target] = 0
+	for _, source := range sources {
+		queryDist[source.vertexNum] = source.additionalDistance
+	}
+	for _, target := range targets {
+		revQueryDist[target.vertexNum] = target.additionalDistance
+	}
 
 	forwQ := &forwardHeap{}
 	backwQ := &backwardHeap{}
@@ -51,19 +99,22 @@ func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
 	heap.Init(forwQ)
 	heap.Init(backwQ)
 
-	heapSource := &bidirectionalVertex{
-		id:               source,
-		queryDist:        0,
-		revQueryDistance: Infinity,
+	for _, source := range sources {
+		heapSource := &bidirectionalVertex{
+			id:               source.vertexNum,
+			queryDist:        source.additionalDistance,
+			revQueryDistance: Infinity,
+		}
+		heap.Push(forwQ, heapSource)
 	}
-	heapTarget := &bidirectionalVertex{
-		id:               target,
-		queryDist:        Infinity,
-		revQueryDistance: 0,
+	for _, target := range targets {
+		heapTarget := &bidirectionalVertex{
+			id:               target.vertexNum,
+			queryDist:        Infinity,
+			revQueryDistance: target.additionalDistance,
+		}
+		heap.Push(backwQ, heapTarget)
 	}
-
-	heap.Push(forwQ, heapSource)
-	heap.Push(backwQ, heapTarget)
 
 	estimate := Infinity
 
