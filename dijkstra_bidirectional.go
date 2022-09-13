@@ -25,27 +25,40 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	return graph.shortestPath(source, target)
 }
 
-func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
-	queryDist := make([]float64, len(graph.Vertices))
-	revQueryDist := make([]float64, len(graph.Vertices))
-
-	forwProcessed := make([]bool, len(graph.Vertices))
-	revProcessed := make([]bool, len(graph.Vertices))
-	forwProcessed[source] = true
-	revProcessed[target] = true
+func (graph *Graph) initShortestPath() (
+	queryDist, revQueryDist []float64,
+	forwProcessed, revProcessed []bool,
+	forwQ *forwardHeap,
+	backwQ *backwardHeap,
+) {
+	queryDist = make([]float64, len(graph.Vertices))
+	revQueryDist = make([]float64, len(graph.Vertices))
 
 	for i := range queryDist {
 		queryDist[i] = Infinity
 		revQueryDist[i] = Infinity
 	}
-	queryDist[source] = 0
-	revQueryDist[target] = 0
 
-	forwQ := &forwardHeap{}
-	backwQ := &backwardHeap{}
+	forwProcessed = make([]bool, len(graph.Vertices))
+	revProcessed = make([]bool, len(graph.Vertices))
+
+	forwQ = &forwardHeap{}
+	backwQ = &backwardHeap{}
 
 	heap.Init(forwQ)
 	heap.Init(backwQ)
+
+	return
+}
+
+func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
+	queryDist, revQueryDist, forwProcessed, revProcessed, forwQ, backwQ := graph.initShortestPath()
+
+	forwProcessed[source] = true
+	revProcessed[target] = true
+
+	queryDist[source] = 0
+	revQueryDist[target] = 0
 
 	heapSource := &bidirectionalVertex{
 		id:               source,
@@ -190,11 +203,7 @@ type vertexAlternativeInternal struct {
 }
 
 func (graph *Graph) shortestPathWithAlternatives(sources, targets []vertexAlternativeInternal) (float64, []int64) {
-	queryDist := make([]float64, len(graph.Vertices))
-	revQueryDist := make([]float64, len(graph.Vertices))
-
-	forwProcessed := make([]bool, len(graph.Vertices))
-	revProcessed := make([]bool, len(graph.Vertices))
+	queryDist, revQueryDist, forwProcessed, revProcessed, forwQ, backwQ := graph.initShortestPath()
 
 	for _, source := range sources {
 		forwProcessed[source.vertexNum] = true
@@ -203,22 +212,12 @@ func (graph *Graph) shortestPathWithAlternatives(sources, targets []vertexAltern
 		revProcessed[target.vertexNum] = true
 	}
 
-	for i := range queryDist {
-		queryDist[i] = Infinity
-		revQueryDist[i] = Infinity
-	}
 	for _, source := range sources {
 		queryDist[source.vertexNum] = source.additionalDistance
 	}
 	for _, target := range targets {
 		revQueryDist[target.vertexNum] = target.additionalDistance
 	}
-
-	forwQ := &forwardHeap{}
-	backwQ := &backwardHeap{}
-
-	heap.Init(forwQ)
-	heap.Init(backwQ)
 
 	for _, source := range sources {
 		heapSource := &bidirectionalVertex{
