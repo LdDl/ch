@@ -207,19 +207,7 @@ func (graph *Graph) shortestPathWithAlternatives(sources, targets []vertexAltern
 
 	for _, source := range sources {
 		forwProcessed[source.vertexNum] = true
-	}
-	for _, target := range targets {
-		revProcessed[target.vertexNum] = true
-	}
-
-	for _, source := range sources {
 		queryDist[source.vertexNum] = source.additionalDistance
-	}
-	for _, target := range targets {
-		revQueryDist[target.vertexNum] = target.additionalDistance
-	}
-
-	for _, source := range sources {
 		heapSource := &bidirectionalVertex{
 			id:               source.vertexNum,
 			queryDist:        source.additionalDistance,
@@ -228,6 +216,8 @@ func (graph *Graph) shortestPathWithAlternatives(sources, targets []vertexAltern
 		heap.Push(forwQ, heapSource)
 	}
 	for _, target := range targets {
+		revProcessed[target.vertexNum] = true
+		revQueryDist[target.vertexNum] = target.additionalDistance
 		heapTarget := &bidirectionalVertex{
 			id:               target.vertexNum,
 			queryDist:        Infinity,
