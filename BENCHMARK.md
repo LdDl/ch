@@ -15,22 +15,22 @@ pkg: github.com/LdDl/ch
 cpu: Intel(R) Core(TM) i5-10600K CPU @ 4.10GHz
 BenchmarkShortestPath
     bidirectional_ch_test.go:71: BenchmarkShortestPath is starting...
-BenchmarkShortestPath/CH_shortest_path/4/vertices-4-shortcuts-1
-BenchmarkShortestPath/CH_shortest_path/4/vertices-4-shortcuts-1-12               1812537               656.3 ns/op           344 B/op         14 allocs/op
-BenchmarkShortestPath/CH_shortest_path/8/vertices-8-shortcuts-12
-BenchmarkShortestPath/CH_shortest_path/8/vertices-8-shortcuts-12-12               849522              1436 ns/op             692 B/op         24 allocs/op
-BenchmarkShortestPath/CH_shortest_path/16/vertices-16-shortcuts-27
-BenchmarkShortestPath/CH_shortest_path/16/vertices-16-shortcuts-27-12             283128              4278 ns/op            1845 B/op         45 allocs/op
-BenchmarkShortestPath/CH_shortest_path/32/vertices-32-shortcuts-164
-BenchmarkShortestPath/CH_shortest_path/32/vertices-32-shortcuts-164-12             83996             12967 ns/op            4986 B/op         90 allocs/op
-BenchmarkShortestPath/CH_shortest_path/64/vertices-64-shortcuts-441
-BenchmarkShortestPath/CH_shortest_path/64/vertices-64-shortcuts-441-12             36754             32824 ns/op           11145 B/op        169 allocs/op
-BenchmarkShortestPath/CH_shortest_path/128/vertices-128-shortcuts-1482
-BenchmarkShortestPath/CH_shortest_path/128/vertices-128-shortcuts-1482-12          12462             95884 ns/op           24712 B/op        340 allocs/op
-BenchmarkShortestPath/CH_shortest_path/256/vertices-256-shortcuts-4055
-BenchmarkShortestPath/CH_shortest_path/256/vertices-256-shortcuts-4055-12           4872            244026 ns/op           52101 B/op        685 allocs/op
+BenchmarkShortestPath/CH_shortest_path/4/vertices-4-edges-9-shortcuts-1
+BenchmarkShortestPath/CH_shortest_path/4/vertices-4-edges-9-shortcuts-1-12               1957400             649.5 ns/op           345 B/op         14 allocs/op
+BenchmarkShortestPath/CH_shortest_path/8/vertices-8-edges-63-shortcuts-8
+BenchmarkShortestPath/CH_shortest_path/8/vertices-8-edges-63-shortcuts-8-12               741454              1592 ns/op           735 B/op         25 allocs/op
+BenchmarkShortestPath/CH_shortest_path/16/vertices-16-edges-313-shortcuts-25
+BenchmarkShortestPath/CH_shortest_path/16/vertices-16-edges-313-shortcuts-25-12           269764              4262 ns/op           1721 B/op        43 allocs/op
+BenchmarkShortestPath/CH_shortest_path/32/vertices-32-edges-1396-shortcuts-104
+BenchmarkShortestPath/CH_shortest_path/32/vertices-32-edges-1396-shortcuts-104-12          83739             13438 ns/op           4981 B/op        89 allocs/op
+BenchmarkShortestPath/CH_shortest_path/64/vertices-64-edges-5882-shortcuts-382
+BenchmarkShortestPath/CH_shortest_path/64/vertices-64-edges-5882-shortcuts-382-12          33704             36579 ns/op          11221 B/op       171 allocs/op
+BenchmarkShortestPath/CH_shortest_path/128/vertices-128-edges-24050-shortcuts-1456
+BenchmarkShortestPath/CH_shortest_path/128/vertices-128-edges-24050-shortcuts-1456-12      10416            109526 ns/op          25132 B/op       348 allocs/op
+BenchmarkShortestPath/CH_shortest_path/256/vertices-256-edges-97234-shortcuts-5719
+BenchmarkShortestPath/CH_shortest_path/256/vertices-256-edges-97234-shortcuts-5719-12       4414            286111 ns/op          53513 B/op       722 allocs/op
 PASS
-ok      github.com/LdDl/ch      74.831s
+ok      github.com/LdDl/ch      72.896s
 ```
 
 For one-to-many query ([ShortestPathOneToMany](bidirectional_ch_one_to_n.go#L15)):

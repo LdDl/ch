@@ -78,7 +78,7 @@ func BenchmarkShortestPath(b *testing.B) {
 			return
 		}
 		b.ResetTimer()
-		b.Run(fmt.Sprintf("%s/%d/vertices-%d-shortcuts-%d", "CH shortest path", n, len(g.Vertices), g.shortcutsNum), func(b *testing.B) {
+		b.Run(fmt.Sprintf("%s/%d/vertices-%d-edges-%d-shortcuts-%d", "CH shortest path", n, len(g.Vertices), g.GetEdgesNum(), g.GetShortcutsNum()), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				u := int64(rand.Intn(len(g.Vertices)))
 				v := int64(rand.Intn(len(g.Vertices)))
@@ -346,7 +346,8 @@ func generateSyntheticGraph(verticesNum int) (*Graph, error) {
 			if err != nil {
 				return nil, err
 			}
-			weight := rand.Float64()
+			// weight := rand.Float64()
+			weight := 0.01 + rand.Float64()*(10-0.01) // Make more dispersion
 			err = graph.AddEdge(source, target, weight)
 			if err != nil {
 				return nil, err
