@@ -90,91 +90,58 @@ func (graph *Graph) shortestPathCore(
 
 	for forwQ.Len() != 0 || backwQ.Len() != 0 {
 		// Upward search
-		q := forwQ
-		localProcessed := forwProcessed
-		reverseProcessed := revProcessed
-		localQueryDist := queryDist
-		reverseQueryDist := revQueryDist
-		prev := forwardPrev
 		getEdges := func(id int64) []*incidentEdge {
 			return graph.Vertices[id].outIncidentEdges
 		}
-		if q.Len() != 0 {
-			vertex := heap.Pop(q).(*vertexDist)
-			if vertex.dist <= estimate {
-				localProcessed[vertex.id] = true
-				// Edge relaxation in a forward propagation
-				vertexList := getEdges(vertex.id)
-				for i := range vertexList {
-					temp := vertexList[i].vertexID
-					cost := vertexList[i].weight
-					if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
-						alt := localQueryDist[vertex.id] + cost
-						if localQueryDist[temp] > alt {
-							localQueryDist[temp] = alt
-							prev[temp] = vertex.id
-							node := &vertexDist{
-								id:   temp,
-								dist: alt,
-							}
-							heap.Push(q, node)
-						}
-					}
-				}
-			}
-			if reverseProcessed[vertex.id] {
-				if vertex.dist+reverseQueryDist[vertex.id] < estimate {
-					middleID = vertex.id
-					estimate = vertex.dist + reverseQueryDist[vertex.id]
-				}
-			}
-		}
+		graph.directionalSearch(forwQ, getEdges, forwProcessed, revProcessed, queryDist, revQueryDist, forwardPrev, &estimate, &middleID)
 		// Backward search
-		q = backwQ
-		localProcessed = revProcessed
-		reverseProcessed = forwProcessed
-		localQueryDist = revQueryDist
-		reverseQueryDist = queryDist
-		prev = backwardPrev
 		getEdges = func(id int64) []*incidentEdge {
 			return graph.Vertices[id].inIncidentEdges
 		}
-		if q.Len() != 0 {
-			vertex := heap.Pop(q).(*vertexDist)
-			if vertex.dist <= estimate {
-				localProcessed[vertex.id] = true
-				// Edge relaxation in a backward propagation
-				vertexList := getEdges(vertex.id)
-				for i := range vertexList {
-					temp := vertexList[i].vertexID
-					cost := vertexList[i].weight
-					if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
-						alt := localQueryDist[vertex.id] + cost
-						if localQueryDist[temp] > alt {
-							localQueryDist[temp] = alt
-							prev[temp] = vertex.id
-							node := &vertexDist{
-								id:   temp,
-								dist: alt,
-							}
-							heap.Push(q, node)
-						}
-					}
-				}
-			}
-			if reverseProcessed[vertex.id] {
-				if vertex.dist+reverseQueryDist[vertex.id] < estimate {
-					middleID = vertex.id
-					estimate = vertex.dist + reverseQueryDist[vertex.id]
-				}
-			}
-		}
+		graph.directionalSearch(backwQ, getEdges, revProcessed, forwProcessed, revQueryDist, queryDist, backwardPrev, &estimate, &middleID)
 
 	}
 	if estimate == Infinity {
 		return -1.0, nil
 	}
 	return estimate, graph.ComputePath(middleID, forwardPrev, backwardPrev)
+}
+
+func (graph *Graph) directionalSearch(
+	q *vertexDistHeap, getEdges func(id int64) []*incidentEdge,
+	localProcessed, reverseProcessed []bool,
+	localQueryDist, reverseQueryDist []float64,
+	prev map[int64]int64, estimate *float64, middleID *int64) {
+	if q.Len() != 0 {
+		vertex := heap.Pop(q).(*vertexDist)
+		if vertex.dist <= *estimate {
+			localProcessed[vertex.id] = true
+			// Edge relaxation in a forward propagation
+			vertexList := getEdges(vertex.id)
+			for i := range vertexList {
+				temp := vertexList[i].vertexID
+				cost := vertexList[i].weight
+				if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
+					alt := localQueryDist[vertex.id] + cost
+					if localQueryDist[temp] > alt {
+						localQueryDist[temp] = alt
+						prev[temp] = vertex.id
+						node := &vertexDist{
+							id:   temp,
+							dist: alt,
+						}
+						heap.Push(q, node)
+					}
+				}
+			}
+		}
+		if reverseProcessed[vertex.id] {
+			if vertex.dist+reverseQueryDist[vertex.id] < *estimate {
+				*middleID = vertex.id
+				*estimate = vertex.dist + reverseQueryDist[vertex.id]
+			}
+		}
+	}
 }
 
 type VertexAlternative struct {
