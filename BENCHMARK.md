@@ -1,9 +1,9 @@
 My PC is:
 
-    Processor: Intel(R) Core(TM) i9-7900X CPU @ 3.30GHz x 10
-    Memory: 46.8GiB
-    Linux Kernel: 4.15.0-20-generic
-    OS: Linux Mint 19.1 Cinnamon
+    Processor: Intel(R) Core(TM) i5-10600K CPU @ 4.10GHz x 12
+    Memory: 16.3GiB
+    Linux Kernel: 5.15.0-47-lowlatency
+    OS: Ubuntu 22.04 LTS
 
 I have used graph with ~187k vertices for benchmark.
 
@@ -12,21 +12,25 @@ For one-to-one query ([ShortestPath](bidirectional_ch.go#L16)):
 goos: linux
 goarch: amd64
 pkg: github.com/LdDl/ch
-BenchmarkShortestPath/CH_shortest_path/1/vertices-187853-20         	     500	   2801587 ns/op	 3532241 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/2/vertices-187853-20         	    1000	   2639499 ns/op	 3532225 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/4/vertices-187853-20         	    1000	   2730468 ns/op	 3532239 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/8/vertices-187853-20         	     500	   2887250 ns/op	 3532254 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/16/vertices-187853-20        	     500	   2292956 ns/op	 3532251 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/32/vertices-187853-20        	     500	   2837590 ns/op	 3532247 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/64/vertices-187853-20        	     500	   2649959 ns/op	 3532233 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/128/vertices-187853-20       	     500	   2790797 ns/op	 3532215 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/256/vertices-187853-20       	     500	   2640733 ns/op	 3532231 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/512/vertices-187853-20       	     500	   2381726 ns/op	 3532224 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/1024/vertices-187853-20      	     500	   2810581 ns/op	 3532223 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/2048/vertices-187853-20      	     500	   2770308 ns/op	 3532203 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/4096/vertices-187853-20      	     500	   2592263 ns/op	 3532234 B/op	    2225 allocs/op
+cpu: Intel(R) Core(TM) i5-10600K CPU @ 4.10GHz
+BenchmarkShortestPath
+    bidirectional_ch_test.go:71: BenchmarkShortestPath is starting...
+BenchmarkShortestPath/CH_shortest_path/4/vertices-4-edges-9-shortcuts-1
+BenchmarkShortestPath/CH_shortest_path/4/vertices-4-edges-9-shortcuts-1-12               1957400             649.5 ns/op           345 B/op         14 allocs/op
+BenchmarkShortestPath/CH_shortest_path/8/vertices-8-edges-63-shortcuts-8
+BenchmarkShortestPath/CH_shortest_path/8/vertices-8-edges-63-shortcuts-8-12               741454              1592 ns/op           735 B/op         25 allocs/op
+BenchmarkShortestPath/CH_shortest_path/16/vertices-16-edges-313-shortcuts-25
+BenchmarkShortestPath/CH_shortest_path/16/vertices-16-edges-313-shortcuts-25-12           269764              4262 ns/op           1721 B/op        43 allocs/op
+BenchmarkShortestPath/CH_shortest_path/32/vertices-32-edges-1396-shortcuts-104
+BenchmarkShortestPath/CH_shortest_path/32/vertices-32-edges-1396-shortcuts-104-12          83739             13438 ns/op           4981 B/op        89 allocs/op
+BenchmarkShortestPath/CH_shortest_path/64/vertices-64-edges-5882-shortcuts-382
+BenchmarkShortestPath/CH_shortest_path/64/vertices-64-edges-5882-shortcuts-382-12          33704             36579 ns/op          11221 B/op       171 allocs/op
+BenchmarkShortestPath/CH_shortest_path/128/vertices-128-edges-24050-shortcuts-1456
+BenchmarkShortestPath/CH_shortest_path/128/vertices-128-edges-24050-shortcuts-1456-12      10416            109526 ns/op          25132 B/op       348 allocs/op
+BenchmarkShortestPath/CH_shortest_path/256/vertices-256-edges-97234-shortcuts-5719
+BenchmarkShortestPath/CH_shortest_path/256/vertices-256-edges-97234-shortcuts-5719-12       4414            286111 ns/op          53513 B/op       722 allocs/op
 PASS
-ok  	github.com/LdDl/ch	34.153s
+ok      github.com/LdDl/ch      72.896s
 ```
 
 For one-to-many query ([ShortestPathOneToMany](bidirectional_ch_one_to_n.go#L15)):
@@ -34,21 +38,16 @@ For one-to-many query ([ShortestPathOneToMany](bidirectional_ch_one_to_n.go#L15)
 goos: linux
 goarch: amd64
 pkg: github.com/LdDl/ch
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1/vertices-187853-20         	     160	   7175512 ns/op	 6773392 B/op	   14463 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2/vertices-187853-20         	     176	   6847237 ns/op	 6773416 B/op	   14463 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4/vertices-187853-20         	     172	   7101499 ns/op	 6773230 B/op	   14461 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/8/vertices-187853-20         	     181	   6706642 ns/op	 6773435 B/op	   14463 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/16/vertices-187853-20        	     170	   6915546 ns/op	 6773325 B/op	   14462 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/32/vertices-187853-20        	     174	   6887815 ns/op	 6773307 B/op	   14462 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/64/vertices-187853-20        	     174	   6964305 ns/op	 6773370 B/op	   14462 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/128/vertices-187853-20       	     168	   6916208 ns/op	 6773333 B/op	   14463 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/256/vertices-187853-20       	     170	   7161520 ns/op	 6773373 B/op	   14463 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/512/vertices-187853-20       	     172	   6710753 ns/op	 6773492 B/op	   14464 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1024/vertices-187853-20      	     181	   6680762 ns/op	 6773273 B/op	   14462 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2048/vertices-187853-20      	     171	   6695043 ns/op	 6773313 B/op	   14462 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4096/vertices-187853-20      	     176	   6674091 ns/op	 6773373 B/op	   14462 allocs/op
+cpu: Intel(R) Core(TM) i5-10600K CPU @ 4.10GHz
+BenchmarkShortestPathOneToMany/CH_shortest_path/4/vertices-4-edges-9-shortcuts-1-12         	  394494	      3470 ns/op	    2041 B/op	      68 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path/8/vertices-8-edges-62-shortcuts-6-12        	  131952	      9674 ns/op	    4276 B/op	     136 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path/16/vertices-16-edges-312-shortcuts-39-12    	   52059	     22458 ns/op	    8392 B/op	     226 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path/32/vertices-32-edges-1390-shortcuts-109-12  	   18764	     65199 ns/op	   18632 B/op	     427 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path/64/vertices-64-edges-5845-shortcuts-602-12  	    6642	    172839 ns/op	   40654 B/op	     834 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path/128/vertices-128-edges-24033-shortcuts-1257-12         	    2407	    446408 ns/op	   82683 B/op	    1584 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path/256/vertices-256-edges-97037-shortcuts-5233-12         	     798	   1330968 ns/op	  184523 B/op	    3461 allocs/op
 PASS
-ok  	github.com/LdDl/ch	33.806s
+ok  	github.com/LdDl/ch	68.262s
 ```
 
 Also if you want to make comparison between OneToMany in term of ShortestPathOneToMany() and OneToMany in term of looping:
@@ -59,22 +58,36 @@ sed -i 's/BenchmarkOldWayShortestPathOneToMany/BenchmarkShortestPathOneToMany/g'
 ```
 and then use [benchcmp](https://godoc.org/golang.org/x/tools/cmd/benchcmp):
 ```bash
+go install golang.org/x/tools/cmd/benchcmp@latest
 benchcmp old.txt new.txt
 ```
+
 Output should be something like this:
 ```bash
-benchmark                                                                                 old ns/op     new ns/op     delta
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1/vertices-187853-20        10608955      7175512       -32.36%
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2/vertices-187853-20        10813368      6847237       -36.68%
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4/vertices-187853-20        10583636      7101499       -32.90%
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/8/vertices-187853-20        10500989      6706642       -36.13%
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/16/vertices-187853-20       10470206      6915546       -33.95%
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/32/vertices-187853-20       10421460      6887815       -33.91%
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/64/vertices-187853-20       10499903      6964305       -33.67%
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/128/vertices-187853-20      10735268      6916208       -35.57%
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/256/vertices-187853-20      10836504      7161520       -33.91%
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/512/vertices-187853-20      10544817      6710753       -36.36%
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1024/vertices-187853-20     10619897      6680762       -37.09%
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2048/vertices-187853-20     10772554      6695043       -37.85%
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4096/vertices-187853-20     10257450      6674091       -34.93%
+benchmark                                                                                          old ns/op     new ns/op     delta
+BenchmarkShortestPathOneToMany/CH_shortest_path/4/vertices-4-edges-9-shortcuts-1-12                3298          3388          +2.73%
+BenchmarkShortestPathOneToMany/CH_shortest_path/8/vertices-8-edges-61-shortcuts-1-12               7029          7453          +6.03%
+BenchmarkShortestPathOneToMany/CH_shortest_path/16/vertices-16-edges-316-shortcuts-31-12           24339         23665         -2.77%
+BenchmarkShortestPathOneToMany/CH_shortest_path/32/vertices-32-edges-1404-shortcuts-123-12         60482         59596         -1.46%
+BenchmarkShortestPathOneToMany/CH_shortest_path/64/vertices-64-edges-5894-shortcuts-322-12         159670        157954        -1.07%
+BenchmarkShortestPathOneToMany/CH_shortest_path/128/vertices-128-edges-23977-shortcuts-1315-12     493555        529951        +7.37%
+BenchmarkShortestPathOneToMany/CH_shortest_path/256/vertices-256-edges-97227-shortcuts-5276-12     1409281       1338109       -5.05%
+
+benchmark                                                                                          old allocs     new allocs     delta
+BenchmarkShortestPathOneToMany/CH_shortest_path/4/vertices-4-edges-9-shortcuts-1-12                72             68             -5.56%
+BenchmarkShortestPathOneToMany/CH_shortest_path/8/vertices-8-edges-61-shortcuts-1-12               121            117            -3.31%
+BenchmarkShortestPathOneToMany/CH_shortest_path/16/vertices-16-edges-316-shortcuts-31-12           239            232            -2.93%
+BenchmarkShortestPathOneToMany/CH_shortest_path/32/vertices-32-edges-1404-shortcuts-123-12         432            407            -5.79%
+BenchmarkShortestPathOneToMany/CH_shortest_path/64/vertices-64-edges-5894-shortcuts-322-12         844            792            -6.16%
+BenchmarkShortestPathOneToMany/CH_shortest_path/128/vertices-128-edges-23977-shortcuts-1315-12     1725           1645           -4.64%
+BenchmarkShortestPathOneToMany/CH_shortest_path/256/vertices-256-edges-97227-shortcuts-5276-12     3646           3494           -4.17%
+
+benchmark                                                                                          old bytes     new bytes     delta
+BenchmarkShortestPathOneToMany/CH_shortest_path/4/vertices-4-edges-9-shortcuts-1-12                1725          2041          +18.32%
+BenchmarkShortestPathOneToMany/CH_shortest_path/8/vertices-8-edges-61-shortcuts-1-12               3409          3607          +5.81%
+BenchmarkShortestPathOneToMany/CH_shortest_path/16/vertices-16-edges-316-shortcuts-31-12           9912          8745          -11.77%
+BenchmarkShortestPathOneToMany/CH_shortest_path/32/vertices-32-edges-1404-shortcuts-123-12         24182         18083         -25.22%
+BenchmarkShortestPathOneToMany/CH_shortest_path/64/vertices-64-edges-5894-shortcuts-322-12         55777         38899         -30.26%
+BenchmarkShortestPathOneToMany/CH_shortest_path/128/vertices-128-edges-23977-shortcuts-1315-12     124457        85822         -31.04%
+BenchmarkShortestPathOneToMany/CH_shortest_path/256/vertices-256-edges-97227-shortcuts-5276-12     271506        186313        -31.38
 ```
