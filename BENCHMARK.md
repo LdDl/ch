@@ -1,9 +1,9 @@
 My PC is:
 
-    Processor: Intel(R) Core(TM) i9-7900X CPU @ 3.30GHz x 10
+    Processor: Intel(R) Core(TM) i5-10600K CPU @ 4.10GHz x 12
     Memory: 46.8GiB
-    Linux Kernel: 4.15.0-20-generic
-    OS: Linux Mint 19.1 Cinnamon
+    Linux Kernel: 5.15.0-47-lowlatency
+    OS: Ubuntu 22.04 LTS
 
 I have used graph with ~187k vertices for benchmark.
 
@@ -12,21 +12,25 @@ For one-to-one query ([ShortestPath](bidirectional_ch.go#L16)):
 goos: linux
 goarch: amd64
 pkg: github.com/LdDl/ch
-BenchmarkShortestPath/CH_shortest_path/1/vertices-187853-20         	     500	   2801587 ns/op	 3532241 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/2/vertices-187853-20         	    1000	   2639499 ns/op	 3532225 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/4/vertices-187853-20         	    1000	   2730468 ns/op	 3532239 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/8/vertices-187853-20         	     500	   2887250 ns/op	 3532254 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/16/vertices-187853-20        	     500	   2292956 ns/op	 3532251 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/32/vertices-187853-20        	     500	   2837590 ns/op	 3532247 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/64/vertices-187853-20        	     500	   2649959 ns/op	 3532233 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/128/vertices-187853-20       	     500	   2790797 ns/op	 3532215 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/256/vertices-187853-20       	     500	   2640733 ns/op	 3532231 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/512/vertices-187853-20       	     500	   2381726 ns/op	 3532224 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/1024/vertices-187853-20      	     500	   2810581 ns/op	 3532223 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/2048/vertices-187853-20      	     500	   2770308 ns/op	 3532203 B/op	    2225 allocs/op
-BenchmarkShortestPath/CH_shortest_path/4096/vertices-187853-20      	     500	   2592263 ns/op	 3532234 B/op	    2225 allocs/op
+cpu: Intel(R) Core(TM) i5-10600K CPU @ 4.10GHz
+BenchmarkShortestPath
+    bidirectional_ch_test.go:71: BenchmarkShortestPath is starting...
+BenchmarkShortestPath/CH_shortest_path/4/vertices-4-shortcuts-1
+BenchmarkShortestPath/CH_shortest_path/4/vertices-4-shortcuts-1-12               1812537               656.3 ns/op           344 B/op         14 allocs/op
+BenchmarkShortestPath/CH_shortest_path/8/vertices-8-shortcuts-12
+BenchmarkShortestPath/CH_shortest_path/8/vertices-8-shortcuts-12-12               849522              1436 ns/op             692 B/op         24 allocs/op
+BenchmarkShortestPath/CH_shortest_path/16/vertices-16-shortcuts-27
+BenchmarkShortestPath/CH_shortest_path/16/vertices-16-shortcuts-27-12             283128              4278 ns/op            1845 B/op         45 allocs/op
+BenchmarkShortestPath/CH_shortest_path/32/vertices-32-shortcuts-164
+BenchmarkShortestPath/CH_shortest_path/32/vertices-32-shortcuts-164-12             83996             12967 ns/op            4986 B/op         90 allocs/op
+BenchmarkShortestPath/CH_shortest_path/64/vertices-64-shortcuts-441
+BenchmarkShortestPath/CH_shortest_path/64/vertices-64-shortcuts-441-12             36754             32824 ns/op           11145 B/op        169 allocs/op
+BenchmarkShortestPath/CH_shortest_path/128/vertices-128-shortcuts-1482
+BenchmarkShortestPath/CH_shortest_path/128/vertices-128-shortcuts-1482-12          12462             95884 ns/op           24712 B/op        340 allocs/op
+BenchmarkShortestPath/CH_shortest_path/256/vertices-256-shortcuts-4055
+BenchmarkShortestPath/CH_shortest_path/256/vertices-256-shortcuts-4055-12           4872            244026 ns/op           52101 B/op        685 allocs/op
 PASS
-ok  	github.com/LdDl/ch	34.153s
+ok      github.com/LdDl/ch      74.831s
 ```
 
 For one-to-many query ([ShortestPathOneToMany](bidirectional_ch_one_to_n.go#L15)):

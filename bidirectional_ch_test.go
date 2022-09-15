@@ -68,22 +68,20 @@ func TestBothVanillaAndCH(t *testing.T) {
 }
 
 func BenchmarkShortestPath(b *testing.B) {
-	g := Graph{}
-	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
-	if err != nil {
-		b.Error(err)
-	}
-	b.Log("Please wait until contraction hierarchy is prepared")
-	g.PrepareContractionHierarchies()
 	b.Log("BenchmarkShortestPath is starting...")
-	b.ResetTimer()
-
-	for k := 0.; k <= 12; k++ {
+	rand.Seed(1337)
+	for k := 2.; k <= 8; k++ {
 		n := int(math.Pow(2, k))
-		b.Run(fmt.Sprintf("%s/%d/vertices-%d", "CH shortest path", n, len(g.Vertices)), func(b *testing.B) {
+		g, err := generateSyntheticGraph(n)
+		if err != nil {
+			b.Error(err)
+			return
+		}
+		b.ResetTimer()
+		b.Run(fmt.Sprintf("%s/%d/vertices-%d-shortcuts-%d", "CH shortest path", n, len(g.Vertices), g.shortcutsNum), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				u := int64(69618)
-				v := int64(5924)
+				u := int64(rand.Intn(len(g.Vertices)))
+				v := int64(rand.Intn(len(g.Vertices)))
 				ans, path := g.ShortestPath(u, v)
 				_, _ = ans, path
 			}
@@ -236,4 +234,41 @@ func graphFromCSV(graph *Graph, fname string) error {
 		}
 	}
 	return nil
+}
+
+func generateSyntheticGraph(verticesNum int) (*Graph, error) {
+	graph := Graph{}
+	var i int
+	for i = 1; i < verticesNum; i++ {
+		source := int64(i - 1)
+		err := graph.CreateVertex(source)
+		if err != nil {
+			return nil, err
+		}
+		for j := 1; j < verticesNum; j++ {
+			if j == i {
+				continue
+			}
+			target := int64(j)
+			err := graph.CreateVertex(target)
+			if err != nil {
+				return nil, err
+			}
+			weight := rand.Float64()
+			err = graph.AddEdge(source, target, weight)
+			if err != nil {
+				return nil, err
+			}
+			addReverse := rand.Intn(2)
+			if addReverse != 0 {
+				// Add reverse edge imitating bidirectional=true
+				err = graph.AddEdge(target, source, weight)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+	graph.PrepareContractionHierarchies()
+	return &graph, nil
 }
