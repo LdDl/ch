@@ -28,8 +28,8 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 func (graph *Graph) initShortestPath() (
 	queryDist, revQueryDist []float64,
 	forwProcessed, revProcessed []bool,
-	forwQ *forwardHeap,
-	backwQ *backwardHeap,
+	forwQ *vertexDistHeap,
+	backwQ *vertexDistHeap,
 ) {
 	queryDist = make([]float64, len(graph.Vertices))
 	revQueryDist = make([]float64, len(graph.Vertices))
@@ -42,8 +42,8 @@ func (graph *Graph) initShortestPath() (
 	forwProcessed = make([]bool, len(graph.Vertices))
 	revProcessed = make([]bool, len(graph.Vertices))
 
-	forwQ = &forwardHeap{}
-	backwQ = &backwardHeap{}
+	forwQ = &vertexDistHeap{}
+	backwQ = &vertexDistHeap{}
 
 	heap.Init(forwQ)
 	heap.Init(backwQ)
@@ -60,15 +60,13 @@ func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
 	queryDist[source] = 0
 	revQueryDist[target] = 0
 
-	heapSource := &bidirectionalVertex{
-		id:               source,
-		queryDist:        0,
-		revQueryDistance: Infinity,
+	heapSource := &vertexDist{
+		id:   source,
+		dist: 0,
 	}
-	heapTarget := &bidirectionalVertex{
-		id:               target,
-		queryDist:        Infinity,
-		revQueryDistance: 0,
+	heapTarget := &vertexDist{
+		id:   target,
+		dist: 0,
 	}
 
 	heap.Push(forwQ, heapSource)
@@ -80,8 +78,8 @@ func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
 func (graph *Graph) shortestPathCore(
 	queryDist, revQueryDist []float64,
 	forwProcessed, revProcessed []bool,
-	forwQ *forwardHeap,
-	backwQ *backwardHeap,
+	forwQ *vertexDistHeap,
+	backwQ *vertexDistHeap,
 ) (float64, []int64) {
 	forwardPrev := make(map[int64]int64)
 	backwardPrev := make(map[int64]int64)
@@ -93,8 +91,8 @@ func (graph *Graph) shortestPathCore(
 	for forwQ.Len() != 0 || backwQ.Len() != 0 {
 		// Upward search
 		if forwQ.Len() != 0 {
-			forwardVertex := heap.Pop(forwQ).(*bidirectionalVertex)
-			if forwardVertex.queryDist <= estimate {
+			forwardVertex := heap.Pop(forwQ).(*vertexDist)
+			if forwardVertex.dist <= estimate {
 				forwProcessed[forwardVertex.id] = true
 				// Edge relaxation in a forward propagation
 				neighborsUpward := graph.Vertices[forwardVertex.id].outIncidentEdges
@@ -106,9 +104,9 @@ func (graph *Graph) shortestPathCore(
 						if queryDist[temp] > alt {
 							queryDist[temp] = alt
 							forwardPrev[temp] = forwardVertex.id
-							node := &bidirectionalVertex{
-								id:        temp,
-								queryDist: alt,
+							node := &vertexDist{
+								id:   temp,
+								dist: alt,
 							}
 							heap.Push(forwQ, node)
 						}
@@ -116,16 +114,16 @@ func (graph *Graph) shortestPathCore(
 				}
 			}
 			if revProcessed[forwardVertex.id] {
-				if forwardVertex.queryDist+revQueryDist[forwardVertex.id] < estimate {
+				if forwardVertex.dist+revQueryDist[forwardVertex.id] < estimate {
 					middleID = forwardVertex.id
-					estimate = forwardVertex.queryDist + revQueryDist[forwardVertex.id]
+					estimate = forwardVertex.dist + revQueryDist[forwardVertex.id]
 				}
 			}
 		}
 		// Backward search
 		if backwQ.Len() != 0 {
-			backwardVertex := heap.Pop(backwQ).(*bidirectionalVertex)
-			if backwardVertex.revQueryDistance <= estimate {
+			backwardVertex := heap.Pop(backwQ).(*vertexDist)
+			if backwardVertex.dist <= estimate {
 				revProcessed[backwardVertex.id] = true
 				// Edge relaxation in a backward propagation
 				vertexList := graph.Vertices[backwardVertex.id].inIncidentEdges
@@ -137,9 +135,9 @@ func (graph *Graph) shortestPathCore(
 						if revQueryDist[temp] > alt {
 							revQueryDist[temp] = alt
 							backwardPrev[temp] = backwardVertex.id
-							node := &bidirectionalVertex{
-								id:               temp,
-								revQueryDistance: alt,
+							node := &vertexDist{
+								id:   temp,
+								dist: alt,
 							}
 							heap.Push(backwQ, node)
 						}
@@ -148,9 +146,9 @@ func (graph *Graph) shortestPathCore(
 
 			}
 			if forwProcessed[backwardVertex.id] {
-				if backwardVertex.revQueryDistance+queryDist[backwardVertex.id] < estimate {
+				if backwardVertex.dist+queryDist[backwardVertex.id] < estimate {
 					middleID = backwardVertex.id
-					estimate = backwardVertex.revQueryDistance + queryDist[backwardVertex.id]
+					estimate = backwardVertex.dist + queryDist[backwardVertex.id]
 				}
 			}
 		}
@@ -208,20 +206,18 @@ func (graph *Graph) shortestPathWithAlternatives(sources, targets []vertexAltern
 	for _, source := range sources {
 		forwProcessed[source.vertexNum] = true
 		queryDist[source.vertexNum] = source.additionalDistance
-		heapSource := &bidirectionalVertex{
-			id:               source.vertexNum,
-			queryDist:        source.additionalDistance,
-			revQueryDistance: Infinity,
+		heapSource := &vertexDist{
+			id:   source.vertexNum,
+			dist: source.additionalDistance,
 		}
 		heap.Push(forwQ, heapSource)
 	}
 	for _, target := range targets {
 		revProcessed[target.vertexNum] = true
 		revQueryDist[target.vertexNum] = target.additionalDistance
-		heapTarget := &bidirectionalVertex{
-			id:               target.vertexNum,
-			queryDist:        Infinity,
-			revQueryDistance: target.additionalDistance,
+		heapTarget := &vertexDist{
+			id:   target.vertexNum,
+			dist: target.additionalDistance,
 		}
 		heap.Push(backwQ, heapTarget)
 	}
