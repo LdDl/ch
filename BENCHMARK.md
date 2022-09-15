@@ -1,7 +1,7 @@
 My PC is:
 
     Processor: Intel(R) Core(TM) i5-10600K CPU @ 4.10GHz x 12
-    Memory: 46.8GiB
+    Memory: 16.3GiB
     Linux Kernel: 5.15.0-47-lowlatency
     OS: Ubuntu 22.04 LTS
 
