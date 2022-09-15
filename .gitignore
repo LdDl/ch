@@ -7,6 +7,8 @@ benchmark_graph.csv
 /data/export_pgrouting_shortcuts.csv
 new.txt
 old.txt
+new-targets.txt
+old-targets.txt
 cmd/osm2ch/*.csv
 *.exe
 debug-new.txt

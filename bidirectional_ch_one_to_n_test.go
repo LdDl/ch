@@ -95,6 +95,66 @@ func BenchmarkOldWayShortestPathOneToMany(b *testing.B) {
 	}
 }
 
+func BenchmarkTargetNodesShortestPathOneToMany(b *testing.B) {
+	g := Graph{}
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
+	if err != nil {
+		b.Error(err)
+	}
+	b.Log("Please wait until contraction hierarchy is prepared")
+	g.PrepareContractionHierarchies()
+	b.Log("BenchmarkTargetNodesShortestPathOneToMany is starting...")
+	b.ResetTimer()
+
+	rand.Seed(1337)
+	for k := 1.0; k <= 7; k++ {
+		u := int64(106600)
+		n := int(math.Pow(2, k))
+		targets := 1 + rand.Intn(n)
+		v := make([]int64, targets)
+		for t := 0; t < targets; t++ {
+			v[t] = int64(rand.Intn(len(g.Vertices)))
+		}
+		b.Run(fmt.Sprintf("%s/%d/vertices-%d-edges-%d-shortcuts-%d-targets-%d", "CH shortest path", n, len(g.Vertices), g.GetEdgesNum(), g.GetShortcutsNum(), targets), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				ans, path := g.ShortestPathOneToMany(u, v)
+				_, _ = ans, path
+			}
+		})
+	}
+}
+
+func BenchmarkTargetNodesOldWayShortestPathOneToMany(b *testing.B) {
+	g := Graph{}
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
+	if err != nil {
+		b.Error(err)
+	}
+	b.Log("Please wait until contraction hierarchy is prepared")
+	g.PrepareContractionHierarchies()
+	b.Log("BenchmarkTargetNodesShortestPathOneToMany is starting...")
+	b.ResetTimer()
+
+	rand.Seed(1337)
+	for k := 1.0; k <= 7; k++ {
+		u := int64(106600)
+		n := int(math.Pow(2, k))
+		targets := 1 + rand.Intn(n)
+		v := make([]int64, targets)
+		for t := 0; t < targets; t++ {
+			v[t] = int64(rand.Intn(len(g.Vertices)))
+		}
+		b.Run(fmt.Sprintf("%s/%d/vertices-%d-edges-%d-shortcuts-%d-targets-%d", "CH shortest path", n, len(g.Vertices), g.GetEdgesNum(), g.GetShortcutsNum(), targets), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				for vv := range v {
+					ans, path := g.ShortestPath(u, v[vv])
+					_, _ = ans, path
+				}
+			}
+		})
+	}
+}
+
 func BenchmarkStaticCaseShortestPathOneToMany(b *testing.B) {
 	g := Graph{}
 	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
