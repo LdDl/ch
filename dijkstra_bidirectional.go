@@ -11,7 +11,6 @@ import (
 //
 // source User's definied ID of source vertex
 // target User's definied ID of target vertex
-//
 func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	if source == target {
 		return 0, []int64{source}
@@ -26,30 +25,40 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	return graph.shortestPath(source, target)
 }
 
-func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
-	forwardPrev := make(map[int64]int64)
-	backwardPrev := make(map[int64]int64)
-
-	queryDist := make([]float64, len(graph.Vertices))
-	revQueryDist := make([]float64, len(graph.Vertices))
-
-	forwProcessed := make([]bool, len(graph.Vertices))
-	revProcessed := make([]bool, len(graph.Vertices))
-	forwProcessed[source] = true
-	revProcessed[target] = true
+func (graph *Graph) initShortestPath() (
+	queryDist, revQueryDist []float64,
+	forwProcessed, revProcessed []bool,
+	forwQ *forwardHeap,
+	backwQ *backwardHeap,
+) {
+	queryDist = make([]float64, len(graph.Vertices))
+	revQueryDist = make([]float64, len(graph.Vertices))
 
 	for i := range queryDist {
 		queryDist[i] = Infinity
 		revQueryDist[i] = Infinity
 	}
-	queryDist[source] = 0
-	revQueryDist[target] = 0
 
-	forwQ := &forwardHeap{}
-	backwQ := &backwardHeap{}
+	forwProcessed = make([]bool, len(graph.Vertices))
+	revProcessed = make([]bool, len(graph.Vertices))
+
+	forwQ = &forwardHeap{}
+	backwQ = &backwardHeap{}
 
 	heap.Init(forwQ)
 	heap.Init(backwQ)
+
+	return
+}
+
+func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
+	queryDist, revQueryDist, forwProcessed, revProcessed, forwQ, backwQ := graph.initShortestPath()
+
+	forwProcessed[source] = true
+	revProcessed[target] = true
+
+	queryDist[source] = 0
+	revQueryDist[target] = 0
 
 	heapSource := &bidirectionalVertex{
 		id:               source,
@@ -64,6 +73,18 @@ func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
 
 	heap.Push(forwQ, heapSource)
 	heap.Push(backwQ, heapTarget)
+
+	return graph.shortestPathCore(queryDist, revQueryDist, forwProcessed, revProcessed, forwQ, backwQ)
+}
+
+func (graph *Graph) shortestPathCore(
+	queryDist, revQueryDist []float64,
+	forwProcessed, revProcessed []bool,
+	forwQ *forwardHeap,
+	backwQ *backwardHeap,
+) (float64, []int64) {
+	forwardPrev := make(map[int64]int64)
+	backwardPrev := make(map[int64]int64)
 
 	estimate := Infinity
 
@@ -139,6 +160,73 @@ func (graph *Graph) shortestPath(source, target int64) (float64, []int64) {
 		return -1.0, nil
 	}
 	return estimate, graph.ComputePath(middleID, forwardPrev, backwardPrev)
+}
+
+type VertexAlternative struct {
+	Label              int64
+	AdditionalDistance float64
+}
+
+// ShortestPathWithAlternatives Computes and returns shortest path and it's cost (extended Dijkstra's algorithm),
+// with multiple alternatives for source and target vertices with additional distances to reach the vertices
+// (useful if source and target are outside of the graph)
+//
+// If there are some errors then function returns '-1.0' as cost and nil as shortest path
+//
+// sources Source vertex alternatives
+// targets Target vertex alternatives
+func (graph *Graph) ShortestPathWithAlternatives(sources, targets []VertexAlternative) (float64, []int64) {
+	sourcesInternal := make([]vertexAlternativeInternal, 0, len(sources))
+	targetsInternal := make([]vertexAlternativeInternal, 0, len(targets))
+	for _, source := range sources {
+		sourceInternal := vertexAlternativeInternal{additionalDistance: source.AdditionalDistance}
+		var ok bool
+		if sourceInternal.vertexNum, ok = graph.mapping[source.Label]; !ok {
+			return -1.0, nil
+		}
+		sourcesInternal = append(sourcesInternal, sourceInternal)
+	}
+	for _, target := range targets {
+		targetInternal := vertexAlternativeInternal{additionalDistance: target.AdditionalDistance}
+		var ok bool
+		if targetInternal.vertexNum, ok = graph.mapping[target.Label]; !ok {
+			return -1.0, nil
+		}
+		targetsInternal = append(targetsInternal, targetInternal)
+	}
+	return graph.shortestPathWithAlternatives(sourcesInternal, targetsInternal)
+}
+
+type vertexAlternativeInternal struct {
+	vertexNum          int64
+	additionalDistance float64
+}
+
+func (graph *Graph) shortestPathWithAlternatives(sources, targets []vertexAlternativeInternal) (float64, []int64) {
+	queryDist, revQueryDist, forwProcessed, revProcessed, forwQ, backwQ := graph.initShortestPath()
+
+	for _, source := range sources {
+		forwProcessed[source.vertexNum] = true
+		queryDist[source.vertexNum] = source.additionalDistance
+		heapSource := &bidirectionalVertex{
+			id:               source.vertexNum,
+			queryDist:        source.additionalDistance,
+			revQueryDistance: Infinity,
+		}
+		heap.Push(forwQ, heapSource)
+	}
+	for _, target := range targets {
+		revProcessed[target.vertexNum] = true
+		revQueryDist[target.vertexNum] = target.additionalDistance
+		heapTarget := &bidirectionalVertex{
+			id:               target.vertexNum,
+			queryDist:        Infinity,
+			revQueryDistance: target.additionalDistance,
+		}
+		heap.Push(backwQ, heapTarget)
+	}
+
+	return graph.shortestPathCore(queryDist, revQueryDist, forwProcessed, revProcessed, forwQ, backwQ)
 }
 
 // ComputePath Returns slice of IDs (user defined) of computed path
