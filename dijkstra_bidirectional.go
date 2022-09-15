@@ -90,65 +90,82 @@ func (graph *Graph) shortestPathCore(
 
 	for forwQ.Len() != 0 || backwQ.Len() != 0 {
 		// Upward search
-		if forwQ.Len() != 0 {
-			forwardVertex := heap.Pop(forwQ).(*vertexDist)
-			if forwardVertex.dist <= estimate {
-				forwProcessed[forwardVertex.id] = true
+		q := forwQ
+		localProcessed := forwProcessed
+		reverseProcessed := revProcessed
+		localQueryDist := queryDist
+		reverseQueryDist := revQueryDist
+		prev := forwardPrev
+		getEdges := func(id int64) []*incidentEdge {
+			return graph.Vertices[id].outIncidentEdges
+		}
+		if q.Len() != 0 {
+			vertex := heap.Pop(q).(*vertexDist)
+			if vertex.dist <= estimate {
+				localProcessed[vertex.id] = true
 				// Edge relaxation in a forward propagation
-				neighborsUpward := graph.Vertices[forwardVertex.id].outIncidentEdges
-				for i := range neighborsUpward {
-					temp := neighborsUpward[i].vertexID
-					cost := neighborsUpward[i].weight
-					if graph.Vertices[forwardVertex.id].orderPos < graph.Vertices[temp].orderPos {
-						alt := queryDist[forwardVertex.id] + cost
-						if queryDist[temp] > alt {
-							queryDist[temp] = alt
-							forwardPrev[temp] = forwardVertex.id
+				vertexList := getEdges(vertex.id)
+				for i := range vertexList {
+					temp := vertexList[i].vertexID
+					cost := vertexList[i].weight
+					if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
+						alt := localQueryDist[vertex.id] + cost
+						if localQueryDist[temp] > alt {
+							localQueryDist[temp] = alt
+							prev[temp] = vertex.id
 							node := &vertexDist{
 								id:   temp,
 								dist: alt,
 							}
-							heap.Push(forwQ, node)
+							heap.Push(q, node)
 						}
 					}
 				}
 			}
-			if revProcessed[forwardVertex.id] {
-				if forwardVertex.dist+revQueryDist[forwardVertex.id] < estimate {
-					middleID = forwardVertex.id
-					estimate = forwardVertex.dist + revQueryDist[forwardVertex.id]
+			if reverseProcessed[vertex.id] {
+				if vertex.dist+reverseQueryDist[vertex.id] < estimate {
+					middleID = vertex.id
+					estimate = vertex.dist + reverseQueryDist[vertex.id]
 				}
 			}
 		}
 		// Backward search
-		if backwQ.Len() != 0 {
-			backwardVertex := heap.Pop(backwQ).(*vertexDist)
-			if backwardVertex.dist <= estimate {
-				revProcessed[backwardVertex.id] = true
+		q = backwQ
+		localProcessed = revProcessed
+		reverseProcessed = forwProcessed
+		localQueryDist = revQueryDist
+		reverseQueryDist = queryDist
+		prev = backwardPrev
+		getEdges = func(id int64) []*incidentEdge {
+			return graph.Vertices[id].inIncidentEdges
+		}
+		if q.Len() != 0 {
+			vertex := heap.Pop(q).(*vertexDist)
+			if vertex.dist <= estimate {
+				localProcessed[vertex.id] = true
 				// Edge relaxation in a backward propagation
-				vertexList := graph.Vertices[backwardVertex.id].inIncidentEdges
+				vertexList := getEdges(vertex.id)
 				for i := range vertexList {
 					temp := vertexList[i].vertexID
 					cost := vertexList[i].weight
-					if graph.Vertices[backwardVertex.id].orderPos < graph.Vertices[temp].orderPos {
-						alt := revQueryDist[backwardVertex.id] + cost
-						if revQueryDist[temp] > alt {
-							revQueryDist[temp] = alt
-							backwardPrev[temp] = backwardVertex.id
+					if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
+						alt := localQueryDist[vertex.id] + cost
+						if localQueryDist[temp] > alt {
+							localQueryDist[temp] = alt
+							prev[temp] = vertex.id
 							node := &vertexDist{
 								id:   temp,
 								dist: alt,
 							}
-							heap.Push(backwQ, node)
+							heap.Push(q, node)
 						}
 					}
 				}
-
 			}
-			if forwProcessed[backwardVertex.id] {
-				if backwardVertex.dist+queryDist[backwardVertex.id] < estimate {
-					middleID = backwardVertex.id
-					estimate = backwardVertex.dist + queryDist[backwardVertex.id]
+			if reverseProcessed[vertex.id] {
+				if vertex.dist+reverseQueryDist[vertex.id] < estimate {
+					middleID = vertex.id
+					estimate = vertex.dist + reverseQueryDist[vertex.id]
 				}
 			}
 		}
