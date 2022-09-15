@@ -89,6 +89,28 @@ func BenchmarkShortestPath(b *testing.B) {
 	}
 }
 
+func BenchmarkStaticCaseShortestPath(b *testing.B) {
+	b.Log("BenchmarkStaticCaseShortestPath is starting...")
+	g := Graph{}
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
+	if err != nil {
+		b.Error(err)
+		return
+	}
+	b.ResetTimer()
+	g.PrepareContractionHierarchies()
+	b.Run(fmt.Sprintf("%s/vertices-%d-edges-%d-shortcuts-%d", "CH shortest path", len(g.Vertices), g.GetEdgesNum(), g.GetShortcutsNum()), func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			u := int64(69618)
+			v := int64(5924)
+			ans, path := g.ShortestPath(u, v)
+			_, _ = ans, path
+		}
+	})
+}
+
+// BenchmarkOneCaseShortestPath/CH_shortest_path/vertices-187853-edges-366113-shortcuts-394840-12         	     891	   1412347 ns/op	 3460158 B/op	    1027 allocs/op
+
 func BenchmarkPrepareContracts(b *testing.B) {
 	g := Graph{}
 	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
@@ -329,6 +351,7 @@ func graphFromCSV(graph *Graph, fname string) error {
 }
 
 func generateSyntheticGraph(verticesNum int) (*Graph, error) {
+	rand.Seed(1337)
 	graph := Graph{}
 	var i int
 	for i = 1; i < verticesNum; i++ {

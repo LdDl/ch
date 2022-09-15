@@ -1,18 +1,13 @@
 goos: linux
 goarch: amd64
 pkg: github.com/LdDl/ch
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1/vertices-187853-20         	      99	  11189406 ns/op	17809538 B/op	   14659 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2/vertices-187853-20         	      97	  11212175 ns/op	17809420 B/op	   14658 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4/vertices-187853-20         	      96	  11376902 ns/op	17809440 B/op	   14659 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/8/vertices-187853-20         	     102	  11069096 ns/op	17809555 B/op	   14660 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/16/vertices-187853-20        	     112	  10608154 ns/op	17809671 B/op	   14661 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/32/vertices-187853-20        	     110	  10820957 ns/op	17809369 B/op	   14657 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/64/vertices-187853-20        	     112	  10679280 ns/op	17809430 B/op	   14658 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/128/vertices-187853-20       	     100	  11159336 ns/op	17809514 B/op	   14659 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/256/vertices-187853-20       	     100	  10622020 ns/op	17809369 B/op	   14658 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/512/vertices-187853-20       	     109	  10528842 ns/op	17809476 B/op	   14659 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/1024/vertices-187853-20      	     109	  10825896 ns/op	17809636 B/op	   14661 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/2048/vertices-187853-20      	     111	  10255177 ns/op	17809508 B/op	   14659 allocs/op
-BenchmarkShortestPathOneToMany/CH_shortest_path_(one_to_many)/4096/vertices-187853-20      	     109	  10545949 ns/op	17809435 B/op	   14658 allocs/op
+cpu: Intel(R) Core(TM) i5-10600K CPU @ 4.10GHz
+BenchmarkShortestPathOneToMany/CH_shortest_path/4/vertices-4-edges-9-shortcuts-1-12         	  370994	      3298 ns/op	    1725 B/op	      72 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path/8/vertices-8-edges-61-shortcuts-1-12        	  169714	      7029 ns/op	    3409 B/op	     121 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path/16/vertices-16-edges-316-shortcuts-31-12    	   51801	     24339 ns/op	    9912 B/op	     239 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path/32/vertices-32-edges-1404-shortcuts-123-12  	   18261	     60482 ns/op	   24182 B/op	     432 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path/64/vertices-64-edges-5894-shortcuts-322-12  	    7291	    159670 ns/op	   55777 B/op	     844 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path/128/vertices-128-edges-23977-shortcuts-1315-12         	    2350	    493555 ns/op	  124457 B/op	    1725 allocs/op
+BenchmarkShortestPathOneToMany/CH_shortest_path/256/vertices-256-edges-97227-shortcuts-5276-12         	     870	   1409281 ns/op	  271506 B/op	    3646 allocs/op
 PASS
-ok  	github.com/LdDl/ch	32.592s
+ok  	github.com/LdDl/ch	70.487s
