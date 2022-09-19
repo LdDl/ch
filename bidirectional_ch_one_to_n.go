@@ -4,25 +4,37 @@ import (
 	"container/heap"
 )
 
+func (graph *Graph) initShortestPathOneToMany() (
+	estimateAll []float64,
+	pathAll [][]int64,
+	prev map[int64]int64,
+	prevReverse map[int64]int64,
+	queryDist, revQueryDist []float64,
+	forwProcessed, revProcessed []int64,
+) {
+	estimateAll = []float64{}
+	pathAll = [][]int64{}
+
+	prev = make(map[int64]int64)
+	prevReverse = make(map[int64]int64)
+
+	queryDist = make([]float64, len(graph.Vertices))
+	revQueryDist = make([]float64, len(graph.Vertices))
+
+	forwProcessed = make([]int64, len(graph.Vertices))
+	revProcessed = make([]int64, len(graph.Vertices))
+
+	return
+}
+
 // ShortestPathOneToMany Computes and returns shortest path and it's cost (extended Dijkstra's algorithm) for one-to-many relation
 //
 // If there are some errors then function returns '-1.0' as cost and nil as shortest path
 //
-// source User's definied ID of source vertex
-// targets User's definied IDs for target vertetices
-//
+// source User's defined ID of source vertex
+// targets User's defined IDs for target vertices
 func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]float64, [][]int64) {
-	estimateAll := []float64{}
-	pathAll := [][]int64{}
-
-	prev := make(map[int64]int64)
-	prevReverse := make(map[int64]int64)
-
-	queryDist := make([]float64, len(graph.Vertices))
-	revQueryDist := make([]float64, len(graph.Vertices))
-
-	forwProcessed := make([]int64, len(graph.Vertices))
-	revProcessed := make([]int64, len(graph.Vertices))
+	estimateAll, pathAll, prev, prevReverse, queryDist, revQueryDist, forwProcessed, revProcessed := graph.initShortestPathOneToMany()
 
 	var ok bool
 	if source, ok = graph.mapping[source]; !ok {
@@ -71,51 +83,137 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 		heap.Push(forwQ, heapSource)
 		heap.Push(backwQ, heapTarget)
 
-		estimate := Infinity
+		estimate, path := graph.shortestPathOneToManyCore(nextQueue, prev, prevReverse, queryDist, revQueryDist, forwProcessed, revProcessed, forwQ, backwQ)
 
-		var middleID int64
+		estimateAll = append(estimateAll, estimate)
+		pathAll = append(pathAll, path)
+	}
 
-		for forwQ.Len() != 0 || backwQ.Len() != 0 {
-			if forwQ.Len() != 0 {
-				vertex1 := heap.Pop(forwQ).(*bidirectionalVertex)
-				if vertex1.queryDist <= estimate {
-					forwProcessed[vertex1.id] = nextQueue
-					graph.relaxEdgesBiForwardOneToMany(vertex1, forwQ, prev, queryDist, nextQueue, forwProcessed)
-				}
-				if revProcessed[vertex1.id] == nextQueue {
-					if vertex1.queryDist+revQueryDist[vertex1.id] < estimate {
-						middleID = vertex1.id
-						estimate = vertex1.queryDist + revQueryDist[vertex1.id]
-					}
+	return estimateAll, pathAll
+}
+
+func (graph *Graph) shortestPathOneToManyCore(
+	nextQueue int64,
+	prev map[int64]int64,
+	prevReverse map[int64]int64,
+	queryDist, revQueryDist []float64,
+	forwProcessed, revProcessed []int64,
+	forwQ *forwardHeap,
+	backwQ *backwardHeap,
+) (float64, []int64) {
+	estimate := Infinity
+
+	var middleID int64
+
+	for forwQ.Len() != 0 || backwQ.Len() != 0 {
+		if forwQ.Len() != 0 {
+			vertex1 := heap.Pop(forwQ).(*bidirectionalVertex)
+			if vertex1.queryDist <= estimate {
+				forwProcessed[vertex1.id] = nextQueue
+				graph.relaxEdgesBiForwardOneToMany(vertex1, forwQ, prev, queryDist, nextQueue, forwProcessed)
+			}
+			if revProcessed[vertex1.id] == nextQueue {
+				if vertex1.queryDist+revQueryDist[vertex1.id] < estimate {
+					middleID = vertex1.id
+					estimate = vertex1.queryDist + revQueryDist[vertex1.id]
 				}
 			}
-
-			if backwQ.Len() != 0 {
-				vertex2 := heap.Pop(backwQ).(*bidirectionalVertex)
-				if vertex2.revQueryDistance <= estimate {
-					revProcessed[vertex2.id] = nextQueue
-					graph.relaxEdgesBiBackwardOneToMany(vertex2, backwQ, prevReverse, revQueryDist, nextQueue, revProcessed)
-				}
-
-				if forwProcessed[vertex2.id] == nextQueue {
-					if vertex2.revQueryDistance+queryDist[vertex2.id] < estimate {
-						middleID = vertex2.id
-						estimate = vertex2.revQueryDistance + queryDist[vertex2.id]
-					}
-				}
-			}
-
 		}
-		if estimate == Infinity {
-			estimateAll = append(estimateAll, -1)
+
+		if backwQ.Len() != 0 {
+			vertex2 := heap.Pop(backwQ).(*bidirectionalVertex)
+			if vertex2.revQueryDistance <= estimate {
+				revProcessed[vertex2.id] = nextQueue
+				graph.relaxEdgesBiBackwardOneToMany(vertex2, backwQ, prevReverse, revQueryDist, nextQueue, revProcessed)
+			}
+
+			if forwProcessed[vertex2.id] == nextQueue {
+				if vertex2.revQueryDistance+queryDist[vertex2.id] < estimate {
+					middleID = vertex2.id
+					estimate = vertex2.revQueryDistance + queryDist[vertex2.id]
+				}
+			}
+		}
+
+	}
+	if estimate == Infinity {
+		return -1, nil
+	}
+
+	return estimate, graph.ComputePath(middleID, prev, prevReverse)
+}
+
+// ShortestPathWithAlternatives Computes and returns shortest path and it's cost (extended Dijkstra's algorithm) for one-to-many relation
+// with multiple alternatives for source and target vertices with additional distances to reach the vertices
+// (useful if source and target are outside of the graph)
+//
+// If there are some errors then function returns '-1.0' as cost and nil as shortest path
+//
+// sourceAlternatives Source vertex alternatives
+// targetsAlternatives Target vertex alternatives
+func (graph *Graph) ShortestPathOneToManyWithAlternatives(sourceAlternatives []VertexAlternative, targetsAlternatives [][]VertexAlternative) ([]float64, [][]int64) {
+	estimateAll, pathAll, prev, prevReverse, queryDist, revQueryDist, forwProcessed, revProcessed := graph.initShortestPathOneToMany()
+
+	var sourceAlternativesInternal []vertexAlternativeInternal
+	for _, sourceAlternative := range sourceAlternatives {
+		var ok bool
+		sourceAlternativeInternal := vertexAlternativeInternal{additionalDistance: sourceAlternative.AdditionalDistance}
+		if sourceAlternativeInternal.vertexNum, ok = graph.mapping[sourceAlternative.Label]; !ok {
+			estimateAll = append(estimateAll, -1.0)
 			pathAll = append(pathAll, nil)
-			continue
+			return estimateAll, pathAll
+		}
+		sourceAlternativesInternal = append(sourceAlternativesInternal, sourceAlternativeInternal)
+	}
+
+	for idx, targetAlternatives := range targetsAlternatives {
+		nextQueue := int64(idx) + 1
+
+		var targetAlternativesInternal []vertexAlternativeInternal
+		for _, targetAlternative := range targetAlternatives {
+			var ok bool
+			targetAlternativeInternal := vertexAlternativeInternal{additionalDistance: targetAlternative.AdditionalDistance}
+			if targetAlternativeInternal.vertexNum, ok = graph.mapping[targetAlternative.Label]; !ok {
+				estimateAll = append(estimateAll, -1.0)
+				pathAll = append(pathAll, nil)
+				continue
+			}
+			targetAlternativesInternal = append(targetAlternativesInternal, targetAlternativeInternal)
 		}
 
-		es, pp := estimate, graph.ComputePath(middleID, prev, prevReverse)
+		forwQ := &forwardHeap{}
+		backwQ := &backwardHeap{}
 
-		estimateAll = append(estimateAll, es)
-		pathAll = append(pathAll, pp)
+		heap.Init(forwQ)
+		heap.Init(backwQ)
+
+		for _, sourceAlternative := range sourceAlternativesInternal {
+			forwProcessed[sourceAlternative.vertexNum] = nextQueue
+			queryDist[sourceAlternative.vertexNum] = sourceAlternative.additionalDistance
+
+			heapSource := &bidirectionalVertex{
+				id:               sourceAlternative.vertexNum,
+				queryDist:        sourceAlternative.additionalDistance,
+				revQueryDistance: Infinity,
+			}
+			heap.Push(forwQ, heapSource)
+		}
+		for _, targetAlternative := range targetAlternativesInternal {
+			revProcessed[targetAlternative.vertexNum] = nextQueue
+			revQueryDist[targetAlternative.vertexNum] = targetAlternative.additionalDistance
+
+			heapTarget := &bidirectionalVertex{
+				id:               targetAlternative.vertexNum,
+				queryDist:        Infinity,
+				revQueryDistance: targetAlternative.additionalDistance,
+			}
+			heap.Push(backwQ, heapTarget)
+		}
+
+		estimate, path := graph.shortestPathOneToManyCore(nextQueue, prev, prevReverse, queryDist, revQueryDist, forwProcessed, revProcessed, forwQ, backwQ)
+
+		estimateAll = append(estimateAll, estimate)
+		pathAll = append(pathAll, path)
 	}
 
 	return estimateAll, pathAll
