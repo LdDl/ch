@@ -2,7 +2,6 @@ package ch
 
 import (
 	"fmt"
-	"math"
 	"testing"
 )
 
@@ -46,7 +45,7 @@ func TestManyToManyShortestPath(t *testing.T) {
 	t.Log("TestShortestPath is Ok!")
 }
 
-func BenchmarkShortestPathManyToMany(b *testing.B) {
+func BenchmarkStaticCaseShortestPathManyToMany(b *testing.B) {
 	g := Graph{}
 	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
 	if err != nil {
@@ -54,23 +53,20 @@ func BenchmarkShortestPathManyToMany(b *testing.B) {
 	}
 	b.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContractionHierarchies()
-	b.Log("BenchmarkShortestPathManyToMany is starting...")
+	b.Log("BenchmarkStaticCaseShortestPathManyToMany is starting...")
 	b.ResetTimer()
 
-	for k := 0.; k <= 12; k++ {
-		n := int(math.Pow(2, k))
-		b.Run(fmt.Sprintf("%s/%d/vertices-%d", "CH shortest path (many to many)", n, len(g.Vertices)), func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				u := []int64{106600}
-				v := []int64{5924, 81611, 69618, 68427, 68490}
-				ans, path := g.ShortestPathManyToMany(u, v)
-				_, _ = ans, path
-			}
-		})
-	}
+	b.Run(fmt.Sprintf("%s/vertices-%d", "CH shortest path (many to many)", len(g.Vertices)), func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			u := []int64{106600}
+			v := []int64{5924, 81611, 69618, 68427, 68490}
+			ans, path := g.ShortestPathManyToMany(u, v)
+			_, _ = ans, path
+		}
+	})
 }
 
-func BenchmarkOldWayShortestPathManyToMany(b *testing.B) {
+func BenchmarkStaticCaseOldWayShortestPathManyToMany(b *testing.B) {
 	g := Graph{}
 	err := graphFromCSV(&g, "data/pgrouting_osm.csv")
 	if err != nil {
@@ -81,17 +77,14 @@ func BenchmarkOldWayShortestPathManyToMany(b *testing.B) {
 	b.Log("BenchmarkOldWayShortestPathManyToMany is starting...")
 	b.ResetTimer()
 
-	for k := 0.; k <= 12; k++ {
-		n := int(math.Pow(2, k))
-		b.Run(fmt.Sprintf("%s/%d/vertices-%d", "CH shortest path (many to many)", n, len(g.Vertices)), func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				u := int64(106600)
-				v := []int64{5924, 81611, 69618, 68427, 68490}
-				for vv := range v {
-					ans, path := g.ShortestPath(u, v[vv])
-					_, _ = ans, path
-				}
+	b.Run(fmt.Sprintf("%s/vertices-%d", "CH shortest path (many to many)", len(g.Vertices)), func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			u := int64(106600)
+			v := []int64{5924, 81611, 69618, 68427, 68490}
+			for vv := range v {
+				ans, path := g.ShortestPath(u, v[vv])
+				_, _ = ans, path
 			}
-		})
-	}
+		}
+	})
 }
