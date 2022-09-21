@@ -2,6 +2,8 @@ package ch
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
 	"testing"
 )
 
@@ -45,6 +47,64 @@ func TestManyToManyShortestPath(t *testing.T) {
 	t.Log("TestShortestPath is Ok!")
 }
 
+func BenchmarkShortestPathManyToMany(b *testing.B) {
+	b.Log("BenchmarkShortestPathManyToMany is starting...")
+	rand.Seed(1337)
+	for k := 2.0; k <= 8; k++ {
+		n := int(math.Pow(2, k))
+		g, err := generateSyntheticGraph(n)
+		if err != nil {
+			b.Error(err)
+			return
+		}
+		b.ResetTimer()
+		b.Run(fmt.Sprintf("%s/%d/vertices-%d-edges-%d-shortcuts-%d", "CH shortest path", n, len(g.Vertices), g.GetEdgesNum(), g.GetShortcutsNum()), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				u := []int64{int64(rand.Intn(len(g.Vertices)))}
+				v := []int64{
+					int64(rand.Intn(len(g.Vertices))),
+					int64(rand.Intn(len(g.Vertices))),
+					int64(rand.Intn(len(g.Vertices))),
+					int64(rand.Intn(len(g.Vertices))),
+					int64(rand.Intn(len(g.Vertices))),
+				}
+				ans, path := g.ShortestPathManyToMany(u, v)
+				_, _ = ans, path
+			}
+		})
+	}
+}
+
+func BenchmarkOldWayShortestPathManyToMany(b *testing.B) {
+	b.Log("BenchmarkOldWayShortestPathManyToMany is starting...")
+	rand.Seed(1337)
+	for k := 2.0; k <= 8; k++ {
+		n := int(math.Pow(2, k))
+		g, err := generateSyntheticGraph(n)
+		if err != nil {
+			b.Error(err)
+			return
+		}
+		b.ResetTimer()
+		b.Run(fmt.Sprintf("%s/%d/vertices-%d-edges-%d-shortcuts-%d", "CH shortest path", n, len(g.Vertices), g.GetEdgesNum(), g.GetShortcutsNum()), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				u := int64(rand.Intn(len(g.Vertices)))
+				v := []int64{
+					int64(rand.Intn(len(g.Vertices))),
+					int64(rand.Intn(len(g.Vertices))),
+					int64(rand.Intn(len(g.Vertices))),
+					int64(rand.Intn(len(g.Vertices))),
+					int64(rand.Intn(len(g.Vertices))),
+				}
+				for vv := range v {
+					ans, path := g.ShortestPath(u, v[vv])
+					_, _ = ans, path
+				}
+			}
+		})
+	}
+}
+
 func BenchmarkStaticCaseShortestPathManyToMany(b *testing.B) {
 	g := Graph{}
 	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
@@ -74,7 +134,7 @@ func BenchmarkStaticCaseOldWayShortestPathManyToMany(b *testing.B) {
 	}
 	b.Log("Please wait until contraction hierarchy is prepared")
 	g.PrepareContractionHierarchies()
-	b.Log("BenchmarkOldWayShortestPathManyToMany is starting...")
+	b.Log("BenchmarkStaticCaseOldWayShortestPathManyToMany is starting...")
 	b.ResetTimer()
 
 	b.Run(fmt.Sprintf("%s/vertices-%d", "CH shortest path (many to many)", len(g.Vertices)), func(b *testing.B) {

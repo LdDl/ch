@@ -13,4 +13,6 @@ cmd/osm2ch/*.csv
 *.exe
 debug-new.txt
 debug-old.txt
+new_m_n.txt
+old_m_n.txt
 /cmd

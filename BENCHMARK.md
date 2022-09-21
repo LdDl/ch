@@ -50,7 +50,7 @@ PASS
 ok  	github.com/LdDl/ch	68.262s
 ```
 
-Also if you want to make comparison between OneToMany in term of ShortestPathOneToMany() and OneToMany in term of looping:
+If you want to make comparison between OneToMany in term of ShortestPathOneToMany() and OneToMany in term of looping:
 ```go
 go test -benchmem -run=^$ github.com/LdDl/ch -bench BenchmarkOldWayShortestPathOneToMany > old.txt
 go test -benchmem -run=^$ github.com/LdDl/ch -bench BenchmarkShortestPathOneToMany > new.txt
@@ -90,4 +90,47 @@ BenchmarkShortestPathOneToMany/CH_shortest_path/32/vertices-32-edges-1404-shortc
 BenchmarkShortestPathOneToMany/CH_shortest_path/64/vertices-64-edges-5894-shortcuts-322-12         55777         38899         -30.26%
 BenchmarkShortestPathOneToMany/CH_shortest_path/128/vertices-128-edges-23977-shortcuts-1315-12     124457        85822         -31.04%
 BenchmarkShortestPathOneToMany/CH_shortest_path/256/vertices-256-edges-97227-shortcuts-5276-12     271506        186313        -31.38
+```
+
+
+If you want to make comparison between OneToMany in term of ShortestPathOneToMany() and OneToMany in term of looping:
+```go
+go test -benchmem -run=^$ github.com/LdDl/ch -bench BenchmarkOldWayShortestPathManyToMany > old_m_n.txt
+go test -benchmem -run=^$ github.com/LdDl/ch -bench BenchmarkShortestPathManyToMany > new_m_n.txt
+sed -i 's/BenchmarkOldWayShortestPathManyToMany/BenchmarkShortestPathManyToMany/g' old_m_n.txt
+```
+and then use [benchcmp](https://godoc.org/golang.org/x/tools/cmd/benchcmp):
+```bash
+go install golang.org/x/tools/cmd/benchcmp@latest
+benchcmp old_m_n.txt new_m_n.txt
+```
+
+Output should be something like this:
+```bash
+benchmark                                                                                           old ns/op     new ns/op     delta
+BenchmarkShortestPathManyToMany/CH_shortest_path/4/vertices-4-edges-9-shortcuts-1-12                3087          4593          +48.79%
+BenchmarkShortestPathManyToMany/CH_shortest_path/8/vertices-8-edges-61-shortcuts-1-12               6907          7927          +14.77%
+BenchmarkShortestPathManyToMany/CH_shortest_path/16/vertices-16-edges-316-shortcuts-31-12           23256         23335         +0.34%
+BenchmarkShortestPathManyToMany/CH_shortest_path/32/vertices-32-edges-1404-shortcuts-123-12         67078         72903         +8.68%
+BenchmarkShortestPathManyToMany/CH_shortest_path/64/vertices-64-edges-5894-shortcuts-322-12         175228        281475        +60.63%
+BenchmarkShortestPathManyToMany/CH_shortest_path/128/vertices-128-edges-23977-shortcuts-1315-12     494103        1277792       +158.61%
+BenchmarkShortestPathManyToMany/CH_shortest_path/256/vertices-256-edges-97227-shortcuts-5276-12     1268879       5410451       +326.40%
+
+benchmark                                                                                           old allocs     new allocs     delta
+BenchmarkShortestPathManyToMany/CH_shortest_path/4/vertices-4-edges-9-shortcuts-1-12                72             87             +20.83%
+BenchmarkShortestPathManyToMany/CH_shortest_path/8/vertices-8-edges-61-shortcuts-1-12               121            120            -0.83%
+BenchmarkShortestPathManyToMany/CH_shortest_path/16/vertices-16-edges-316-shortcuts-31-12           239            198            -17.15%
+BenchmarkShortestPathManyToMany/CH_shortest_path/32/vertices-32-edges-1404-shortcuts-123-12         432            349            -19.21%
+BenchmarkShortestPathManyToMany/CH_shortest_path/64/vertices-64-edges-5894-shortcuts-322-12         846            670            -20.80%
+BenchmarkShortestPathManyToMany/CH_shortest_path/128/vertices-128-edges-23977-shortcuts-1315-12     1727           1372           -20.56%
+BenchmarkShortestPathManyToMany/CH_shortest_path/256/vertices-256-edges-97227-shortcuts-5276-12     3633           2867           -21.08%
+
+benchmark                                                                                           old bytes     new bytes     delta
+BenchmarkShortestPathManyToMany/CH_shortest_path/4/vertices-4-edges-9-shortcuts-1-12                1588          3163          +99.18%
+BenchmarkShortestPathManyToMany/CH_shortest_path/8/vertices-8-edges-61-shortcuts-1-12               3061          4242          +38.58%
+BenchmarkShortestPathManyToMany/CH_shortest_path/16/vertices-16-edges-316-shortcuts-31-12           8876          8211          -7.49%
+BenchmarkShortestPathManyToMany/CH_shortest_path/32/vertices-32-edges-1404-shortcuts-123-12         21948         17150         -21.86%
+BenchmarkShortestPathManyToMany/CH_shortest_path/64/vertices-64-edges-5894-shortcuts-322-12         50805         35714         -29.70%
+BenchmarkShortestPathManyToMany/CH_shortest_path/128/vertices-128-edges-23977-shortcuts-1315-12     112964        77437         -31.45%
+BenchmarkShortestPathManyToMany/CH_shortest_path/256/vertices-256-edges-97227-shortcuts-5276-12     243966        164183        -32.70%
 ```
