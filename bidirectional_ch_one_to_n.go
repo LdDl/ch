@@ -152,32 +152,12 @@ func (graph *Graph) shortestPathOneToManyCore(
 func (graph *Graph) ShortestPathOneToManyWithAlternatives(sourceAlternatives []VertexAlternative, targetsAlternatives [][]VertexAlternative) ([]float64, [][]int64) {
 	estimateAll, pathAll, prev, prevReverse, queryDist, revQueryDist, forwProcessed, revProcessed := graph.initShortestPathOneToMany()
 
-	var sourceAlternativesInternal []vertexAlternativeInternal
-	for _, sourceAlternative := range sourceAlternatives {
-		var ok bool
-		sourceAlternativeInternal := vertexAlternativeInternal{additionalDistance: sourceAlternative.AdditionalDistance}
-		if sourceAlternativeInternal.vertexNum, ok = graph.mapping[sourceAlternative.Label]; !ok {
-			estimateAll = append(estimateAll, -1.0)
-			pathAll = append(pathAll, nil)
-			return estimateAll, pathAll
-		}
-		sourceAlternativesInternal = append(sourceAlternativesInternal, sourceAlternativeInternal)
-	}
+	sourceAlternativesInternal := graph.vertexAlternativesToInternal(sourceAlternatives)
 
 	for idx, targetAlternatives := range targetsAlternatives {
 		nextQueue := int64(idx) + 1
 
-		var targetAlternativesInternal []vertexAlternativeInternal
-		for _, targetAlternative := range targetAlternatives {
-			var ok bool
-			targetAlternativeInternal := vertexAlternativeInternal{additionalDistance: targetAlternative.AdditionalDistance}
-			if targetAlternativeInternal.vertexNum, ok = graph.mapping[targetAlternative.Label]; !ok {
-				estimateAll = append(estimateAll, -1.0)
-				pathAll = append(pathAll, nil)
-				continue
-			}
-			targetAlternativesInternal = append(targetAlternativesInternal, targetAlternativeInternal)
-		}
+		targetAlternativesInternal := graph.vertexAlternativesToInternal(targetAlternatives)
 
 		forwQ := &vertexDistHeap{}
 		backwQ := &vertexDistHeap{}
@@ -186,6 +166,9 @@ func (graph *Graph) ShortestPathOneToManyWithAlternatives(sourceAlternatives []V
 		heap.Init(backwQ)
 
 		for _, sourceAlternative := range sourceAlternativesInternal {
+			if sourceAlternative.vertexNum == vertexNotFound {
+				continue
+			}
 			forwProcessed[sourceAlternative.vertexNum] = nextQueue
 			queryDist[sourceAlternative.vertexNum] = sourceAlternative.additionalDistance
 
@@ -196,6 +179,9 @@ func (graph *Graph) ShortestPathOneToManyWithAlternatives(sourceAlternatives []V
 			heap.Push(forwQ, heapSource)
 		}
 		for _, targetAlternative := range targetAlternativesInternal {
+			if targetAlternative.vertexNum == vertexNotFound {
+				continue
+			}
 			revProcessed[targetAlternative.vertexNum] = nextQueue
 			revQueryDist[targetAlternative.vertexNum] = targetAlternative.additionalDistance
 

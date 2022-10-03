@@ -148,3 +148,55 @@ func BenchmarkStaticCaseOldWayShortestPathManyToMany(b *testing.B) {
 		}
 	})
 }
+
+func TestManyToManyAlternatives(t *testing.T) {
+	//  S-(1)-0-(1)-1-(1)-2
+	//  |     |     |     |
+	// (2)   (1)   (2)   (2)
+	//  |     |     |     |
+	//  3-(1)-4-(1)-5-(1)-T
+
+	g := Graph{}
+	g.CreateVertex(0)
+	g.CreateVertex(1)
+	g.CreateVertex(2)
+	g.CreateVertex(3)
+	g.CreateVertex(4)
+	g.CreateVertex(5)
+	g.CreateVertex(6)
+	g.AddEdge(0, 1, 1.0)
+	g.AddEdge(0, 4, 1.0)
+	g.AddEdge(1, 2, 1.0)
+	g.AddEdge(1, 5, 2.0)
+	g.AddEdge(3, 4, 1.0)
+	g.AddEdge(4, 5, 1.0)
+
+	expectedPath := []int64{0, 4, 5}
+
+	g.PrepareContractionHierarchies()
+	t.Log("TestManyToManyAlternatives is starting...")
+	sources := []VertexAlternative{
+		{Label: 0, AdditionalDistance: 1.0},
+		{Label: 3, AdditionalDistance: 2.0},
+	}
+	targets := []VertexAlternative{
+		{Label: 2, AdditionalDistance: 2.0},
+		{Label: 5, AdditionalDistance: 1.0},
+	}
+	ans, paths := g.ShortestPathManyToManyWithAlternatives([][]VertexAlternative{sources}, [][]VertexAlternative{targets})
+	t.Log("ShortestPathManyToManyWithAlternatives returned", ans, paths)
+	path := paths[0][0]
+	if len(path) != len(expectedPath) {
+		t.Errorf("Num of vertices in path should be %d, but got %d", len(expectedPath), len(path))
+	}
+	for i := range expectedPath {
+		if path[i] != expectedPath[i] {
+			t.Errorf("Path item %d should be %d, but got %d", i, expectedPath[i], path[i])
+		}
+	}
+	if Round(ans[0][0], 0.00005) != Round(4.0, 0.00005) {
+		t.Errorf("Length of path should be 4.0, but got %f", ans)
+	}
+
+	t.Log("TestManyToManyAlternatives is Ok!")
+}

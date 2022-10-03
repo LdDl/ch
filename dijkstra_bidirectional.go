@@ -148,11 +148,6 @@ func (graph *Graph) directionalSearch(
 	}
 }
 
-type VertexAlternative struct {
-	Label              int64
-	AdditionalDistance float64
-}
-
 // ShortestPathWithAlternatives Computes and returns shortest path and it's cost (extended Dijkstra's algorithm),
 // with multiple alternatives for source and target vertices with additional distances to reach the vertices
 // (useful if source and target are outside of the graph)
@@ -165,22 +160,9 @@ func (graph *Graph) ShortestPathWithAlternatives(sources, targets []VertexAltern
 	endpoints := [directionsCount][]VertexAlternative{sources, targets}
 	var endpointsInternal [directionsCount][]vertexAlternativeInternal
 	for d, alternatives := range endpoints {
-		endpointsInternal[d] = make([]vertexAlternativeInternal, 0, len(alternatives))
-		for _, alternative := range alternatives {
-			alternativeInternal := vertexAlternativeInternal{additionalDistance: alternative.AdditionalDistance}
-			var ok bool
-			if alternativeInternal.vertexNum, ok = graph.mapping[alternative.Label]; !ok {
-				return -1.0, nil
-			}
-			endpointsInternal[d] = append(endpointsInternal[d], alternativeInternal)
-		}
+		endpointsInternal[d] = graph.vertexAlternativesToInternal(alternatives)
 	}
 	return graph.shortestPathWithAlternatives(endpointsInternal)
-}
-
-type vertexAlternativeInternal struct {
-	vertexNum          int64
-	additionalDistance float64
 }
 
 func (graph *Graph) shortestPathWithAlternatives(endpoints [directionsCount][]vertexAlternativeInternal) (float64, []int64) {
@@ -188,6 +170,9 @@ func (graph *Graph) shortestPathWithAlternatives(endpoints [directionsCount][]ve
 
 	for d := forward; d < directionsCount; d++ {
 		for _, endpoint := range endpoints[d] {
+			if endpoint.vertexNum == vertexNotFound {
+				continue
+			}
 			processed[d][endpoint.vertexNum] = true
 			queryDist[d][endpoint.vertexNum] = endpoint.additionalDistance
 			heapEndpoint := &vertexDist{
