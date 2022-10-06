@@ -17,8 +17,8 @@ const (
 //
 // If there are some errors then function returns '-1.0' as cost and nil as shortest path
 //
-// source User's definied ID of source vertex
-// target User's definied ID of target vertex
+// source - user's definied ID of source vertex
+// target - user's definied ID of target vertex
 func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	if source == target {
 		return 0, []int64{source}
@@ -33,60 +33,40 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	return graph.shortestPath(endpoints)
 }
 
-func (graph *Graph) initShortestPath() (
-	queryDist [directionsCount][]float64,
-	processed [directionsCount][]bool,
-	queues [directionsCount]*vertexDistHeap,
-) {
+func (graph *Graph) initShortestPath() (queryDist [directionsCount][]float64, processed [directionsCount][]bool, queues [directionsCount]*vertexDistHeap) {
 	for d := forward; d < directionsCount; d++ {
 		queryDist[d] = make([]float64, len(graph.Vertices))
-
 		for i := range queryDist[d] {
 			queryDist[d][i] = Infinity
 		}
-
 		processed[d] = make([]bool, len(graph.Vertices))
-
 		queues[d] = &vertexDistHeap{}
-
 		heap.Init(queues[d])
 	}
-
 	return
 }
 
 func (graph *Graph) shortestPath(endpoints [directionsCount]int64) (float64, []int64) {
 	queryDist, processed, queues := graph.initShortestPath()
-
 	for d := forward; d < directionsCount; d++ {
-
 		processed[d][endpoints[d]] = true
-
 		queryDist[d][endpoints[d]] = 0
-
 		heapEndpoint := &vertexDist{
 			id:   endpoints[d],
 			dist: 0,
 		}
 		heap.Push(queues[d], heapEndpoint)
 	}
-
 	return graph.shortestPathCore(queryDist, processed, queues)
 }
 
-func (graph *Graph) shortestPathCore(
-	queryDist [directionsCount][]float64,
-	processed [directionsCount][]bool,
-	queues [directionsCount]*vertexDistHeap,
-) (float64, []int64) {
+func (graph *Graph) shortestPathCore(queryDist [directionsCount][]float64, processed [directionsCount][]bool, queues [directionsCount]*vertexDistHeap) (float64, []int64) {
 	var prev [directionsCount]map[int64]int64
 	for d := forward; d < directionsCount; d++ {
 		prev[d] = make(map[int64]int64)
 	}
 	estimate := Infinity
-
 	middleID := int64(-1)
-
 	for {
 		queuesProcessed := false
 		for d := forward; d < directionsCount; d++ {
@@ -107,12 +87,7 @@ func (graph *Graph) shortestPathCore(
 	return estimate, graph.ComputePath(middleID, prev[forward], prev[backward])
 }
 
-func (graph *Graph) directionalSearch(
-	d direction, q *vertexDistHeap,
-	localProcessed, reverseProcessed []bool,
-	localQueryDist, reverseQueryDist []float64,
-	prev map[int64]int64, estimate *float64, middleID *int64) {
-
+func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, localProcessed, reverseProcessed []bool, localQueryDist, reverseQueryDist []float64, prev map[int64]int64, estimate *float64, middleID *int64) {
 	vertex := heap.Pop(q).(*vertexDist)
 	if vertex.dist <= *estimate {
 		localProcessed[vertex.id] = true
@@ -154,8 +129,8 @@ func (graph *Graph) directionalSearch(
 //
 // If there are some errors then function returns '-1.0' as cost and nil as shortest path
 //
-// sources Source vertex alternatives
-// targets Target vertex alternatives
+// sources - user's definied ID of source vertex with additional penalty
+// targets - user's definied ID of target vertex with additional penalty
 func (graph *Graph) ShortestPathWithAlternatives(sources, targets []VertexAlternative) (float64, []int64) {
 	endpoints := [directionsCount][]VertexAlternative{sources, targets}
 	var endpointsInternal [directionsCount][]vertexAlternativeInternal
@@ -167,7 +142,6 @@ func (graph *Graph) ShortestPathWithAlternatives(sources, targets []VertexAltern
 
 func (graph *Graph) shortestPathWithAlternatives(endpoints [directionsCount][]vertexAlternativeInternal) (float64, []int64) {
 	queryDist, processed, queues := graph.initShortestPath()
-
 	for d := forward; d < directionsCount; d++ {
 		for _, endpoint := range endpoints[d] {
 			if endpoint.vertexNum == vertexNotFound {

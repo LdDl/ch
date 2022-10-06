@@ -4,12 +4,12 @@ import (
 	"container/heap"
 )
 
-// ShortestPath Computes and returns shortest path and it's cost (extended Dijkstra's algorithm)
+// ShortestPathManyToMany computes and returns shortest paths and theirs's costs (extended Dijkstra's algorithm) between multiple sources and targets
 //
 // If there are some errors then function returns '-1.0' as cost and nil as shortest path
 //
-// source User's definied ID of source vertex
-// target User's definied ID of target vertex
+// sources - set of user's definied IDs of source vertices
+// targets - set of user's definied IDs of target vertices
 func (graph *Graph) ShortestPathManyToMany(sources, targets []int64) ([][]float64, [][][]int64) {
 	endpoints := [directionsCount][]int64{sources, targets}
 	for d, directionEndpoints := range endpoints {
@@ -23,11 +23,7 @@ func (graph *Graph) ShortestPathManyToMany(sources, targets []int64) ([][]float6
 	return graph.shortestPathManyToMany(endpoints)
 }
 
-func (graph *Graph) initShortestPathManyToMany(endpointCounts [directionsCount]int) (
-	queryDist [directionsCount][][]float64,
-	processed [directionsCount][][]bool,
-	queues [directionsCount][]*vertexDistHeap,
-) {
+func (graph *Graph) initShortestPathManyToMany(endpointCounts [directionsCount]int) (queryDist [directionsCount][][]float64, processed [directionsCount][][]bool, queues [directionsCount][]*vertexDistHeap) {
 	for d := forward; d < directionsCount; d++ {
 		queryDist[d] = make([][]float64, endpointCounts[d])
 		processed[d] = make([][]bool, endpointCounts[d])
@@ -46,20 +42,15 @@ func (graph *Graph) initShortestPathManyToMany(endpointCounts [directionsCount]i
 			heap.Init(queues[d][endpointIdx])
 		}
 	}
-
 	return
 }
 
 func (graph *Graph) shortestPathManyToMany(endpoints [directionsCount][]int64) ([][]float64, [][][]int64) {
 	queryDist, processed, queues := graph.initShortestPathManyToMany([directionsCount]int{len(endpoints[forward]), len(endpoints[backward])})
-
 	for d := forward; d < directionsCount; d++ {
-
 		for endpointIdx, endpoint := range endpoints[d] {
 			processed[d][endpointIdx][endpoint] = true
-
 			queryDist[d][endpointIdx][endpoint] = 0
-
 			heapEndpoint := &vertexDist{
 				id:   endpoint,
 				dist: 0,
@@ -67,15 +58,10 @@ func (graph *Graph) shortestPathManyToMany(endpoints [directionsCount][]int64) (
 			heap.Push(queues[d][endpointIdx], heapEndpoint)
 		}
 	}
-
 	return graph.shortestPathManyToManyCore(queryDist, processed, queues)
 }
 
-func (graph *Graph) shortestPathManyToManyCore(
-	queryDist [directionsCount][][]float64,
-	processed [directionsCount][][]bool,
-	queues [directionsCount][]*vertexDistHeap,
-) ([][]float64, [][][]int64) {
+func (graph *Graph) shortestPathManyToManyCore(queryDist [directionsCount][][]float64, processed [directionsCount][][]bool, queues [directionsCount][]*vertexDistHeap) ([][]float64, [][][]int64) {
 	var prev [directionsCount][]map[int64]int64
 	for d := forward; d < directionsCount; d++ {
 		prev[d] = make([]map[int64]int64, len(queues[d]))
@@ -182,10 +168,10 @@ func (graph *Graph) directionalSearchManyToMany(
 //
 // If there are some errors then function returns '-1.0' as cost and nil as shortest path
 //
-// sources Source vertices alternatives
-// targets Target vertices alternatives
-func (graph *Graph) ShortestPathManyToManyWithAlternatives(sources, targets [][]VertexAlternative) ([][]float64, [][][]int64) {
-	endpoints := [directionsCount][][]VertexAlternative{sources, targets}
+// sourcesAlternatives - set of user's definied IDs of source vertices with additional penalty
+// targetsAlternatives - set of user's definied IDs of target vertices  with additional penalty
+func (graph *Graph) ShortestPathManyToManyWithAlternatives(sourcesAlternatives, targetsAlternatives [][]VertexAlternative) ([][]float64, [][][]int64) {
+	endpoints := [directionsCount][][]VertexAlternative{sourcesAlternatives, targetsAlternatives}
 	var endpointsInternal [directionsCount][][]vertexAlternativeInternal
 	for d, directionEndpoints := range endpoints {
 		endpointsInternal[d] = make([][]vertexAlternativeInternal, 0, len(directionEndpoints))
@@ -198,7 +184,6 @@ func (graph *Graph) ShortestPathManyToManyWithAlternatives(sources, targets [][]
 
 func (graph *Graph) shortestPathManyToManyWithAlternatives(endpoints [directionsCount][][]vertexAlternativeInternal) ([][]float64, [][][]int64) {
 	queryDist, processed, queues := graph.initShortestPathManyToMany([directionsCount]int{len(endpoints[0]), len(endpoints[1])})
-
 	for d := forward; d < directionsCount; d++ {
 		for endpointIdx, endpointAlternatives := range endpoints[d] {
 			for _, endpointAlternative := range endpointAlternatives {

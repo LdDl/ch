@@ -2,17 +2,17 @@ package ch
 
 // Vertex All information about vertex
 type Vertex struct {
-	vertexNum int64
-	Label     int64
-
+	distance         *Distance
 	inIncidentEdges  []*incidentEdge
 	outIncidentEdges []*incidentEdge
 
+	vertexNum int64
+	Label     int64
+
 	orderPos     int64
-	contracted   bool
-	distance     *Distance
 	delNeighbors int
 	importance   int
+	contracted   bool
 }
 
 // OrderPos Returns order position (in terms of contraction hierarchies) of vertex
