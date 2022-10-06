@@ -13,13 +13,13 @@ import (
 // shortcuts Found and stored shortcuts based on contraction hierarchies
 //
 type Graph struct {
+	shortcuts    map[int64]map[int64]*ShortcutPath
+	restrictions map[int64]map[int64]int64
 	mapping      map[int64]int64
+
 	Vertices     []*Vertex
 	edgesNum     int64
 	shortcutsNum int64
-
-	shortcuts    map[int64]map[int64]*ShortcutPath
-	restrictions map[int64]map[int64]int64
 
 	frozen  bool
 	verbose bool
