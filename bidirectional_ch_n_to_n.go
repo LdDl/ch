@@ -122,6 +122,9 @@ func (graph *Graph) directionalSearchManyToMany(
 	vertex := heap.Pop(q).(*vertexDist)
 	// if vertex.dist <= *estimate { // TODO: move to another place
 	localProcessed[vertex.id] = true
+	if graph.Reporter != nil {
+		graph.Reporter.VertexSettled(int(d), endpointIndex, vertex.id, q.Len())
+	}
 	// Edge relaxation in a forward propagation
 	var vertexList []*incidentEdge
 	if d == forward {
@@ -142,6 +145,9 @@ func (graph *Graph) directionalSearchManyToMany(
 					dist: alt,
 				}
 				heap.Push(q, node)
+				if graph.Reporter != nil {
+					graph.Reporter.EdgeRelaxed(int(d), endpointIndex, vertex.id, temp, true, q.Len())
+				}
 			}
 		}
 	}
@@ -157,6 +163,9 @@ func (graph *Graph) directionalSearchManyToMany(
 			if vertex.dist+reverseQueryDist[revEndpointIdx][vertex.id] < estimates[sourceEndpoint][targetEndpoint] {
 				middleIDs[sourceEndpoint][targetEndpoint] = vertex.id
 				estimates[sourceEndpoint][targetEndpoint] = vertex.dist + reverseQueryDist[revEndpointIdx][vertex.id]
+				if graph.Reporter != nil {
+					graph.Reporter.FoundBetterPath(int(d), sourceEndpoint, targetEndpoint, vertex.id, estimates[sourceEndpoint][targetEndpoint])
+				}
 			}
 		}
 	}

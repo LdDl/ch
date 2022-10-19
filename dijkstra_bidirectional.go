@@ -89,6 +89,9 @@ func (graph *Graph) shortestPathCore(queryDist [directionsCount][]float64, proce
 
 func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, localProcessed, reverseProcessed []bool, localQueryDist, reverseQueryDist []float64, prev map[int64]int64, estimate *float64, middleID *int64) {
 	vertex := heap.Pop(q).(*vertexDist)
+	if graph.Reporter != nil {
+		graph.Reporter.VertexSettled(int(d), 0, vertex.id, q.Len())
+	}
 	if vertex.dist <= *estimate {
 		localProcessed[vertex.id] = true
 		// Edge relaxation in a forward propagation
@@ -104,6 +107,11 @@ func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, localProce
 			if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
 				alt := localQueryDist[vertex.id] + cost
 				if localQueryDist[temp] > alt {
+					if graph.Reporter != nil {
+						if graph.Reporter != nil {
+							graph.Reporter.EdgeRelaxed(int(d), 0, vertex.id, temp, true, q.Len())
+						}
+					}
 					localQueryDist[temp] = alt
 					prev[temp] = vertex.id
 					node := &vertexDist{
@@ -119,6 +127,9 @@ func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, localProce
 		if vertex.dist+reverseQueryDist[vertex.id] < *estimate {
 			*middleID = vertex.id
 			*estimate = vertex.dist + reverseQueryDist[vertex.id]
+			if graph.Reporter != nil {
+				graph.Reporter.FoundBetterPath(int(d), 0, 0, vertex.id, *estimate)
+			}
 		}
 	}
 }

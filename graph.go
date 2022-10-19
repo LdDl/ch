@@ -11,7 +11,6 @@ import (
 // mapping Internal map for 1:1 relation of internal IDs to user's IDs
 // Vertices Slice of vertices of graph
 // shortcuts Found and stored shortcuts based on contraction hierarchies
-//
 type Graph struct {
 	shortcuts    map[int64]map[int64]*ShortcutPath
 	restrictions map[int64]map[int64]int64
@@ -23,6 +22,14 @@ type Graph struct {
 
 	frozen  bool
 	verbose bool
+
+	Reporter Reporter
+}
+
+type Reporter interface {
+	VertexSettled(direction, endpointIndex int, vertexID int64, heapSize int)
+	EdgeRelaxed(direction, endpointIndex int, vertexID, toVertexID int64, ch bool, heapSize int)
+	FoundBetterPath(direction, sourceEndpointIndex, targetEndpointIndex int, vertexID int64, estimate float64)
 }
 
 // NewGraph returns pointer to created Graph and does preallocations for processing purposes
@@ -42,7 +49,6 @@ func NewGraph() *Graph {
 // CreateVertex Creates new vertex and assign internal ID to it
 //
 // label User's definied ID of vertex
-//
 func (graph *Graph) CreateVertex(label int64) error {
 	if graph.frozen {
 		return ErrGraphIsFrozen
@@ -73,7 +79,6 @@ func (graph *Graph) CreateVertex(label int64) error {
 // from User's definied ID of first vertex of edge
 // to User's definied ID of last vertex of edge
 // weight User's definied weight of edge
-//
 func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 	if graph.frozen {
 		return ErrGraphIsFrozen
@@ -97,7 +102,6 @@ func (graph *Graph) addEdge(from, to int64, weight float64) {
 // to - User's definied ID of last vertex of shortcut
 // via - User's defined ID of vertex through which the shortcut exists
 // weight - User's definied weight of shortcut
-//
 func (graph *Graph) AddShortcut(from, to, via int64, weight float64) error {
 	if graph.frozen {
 		return ErrGraphIsFrozen
@@ -179,7 +183,6 @@ func (graph *Graph) GetEdgesNum() int64 {
 // from User's definied ID of source vertex
 // via User's definied ID of prohibited vertex (between source and target)
 // to User's definied ID of target vertex
-//
 func (graph *Graph) AddTurnRestriction(from, via, to int64) error {
 	if graph.frozen {
 		return ErrGraphIsFrozen
