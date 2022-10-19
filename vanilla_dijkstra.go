@@ -54,6 +54,9 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 	for Q.Len() != 0 {
 		// u ← Q.extract_min()
 		u := heap.Pop(Q).(*minHeapVertex)
+		if graph.Reporter != nil {
+			graph.Reporter.VertexSettled(0, 0, u.id, Q.Len())
+		}
 
 		// if u == target:
 		if u.id == target {
@@ -84,6 +87,9 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 				// Q.decrease_priority(v, alt)
 				// Q.decrease_priority(v, alt)
 				Q.add_with_priority(neighbor, alt)
+				if graph.Reporter != nil {
+					graph.Reporter.EdgeRelaxed(0, 0, u.id, neighbor, false, Q.Len())
+				}
 			}
 		}
 		// heap.Init(Q)
@@ -91,6 +97,9 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 
 	if distance[target] == Infinity {
 		return -1, []int64{}
+	}
+	if graph.Reporter != nil {
+		graph.Reporter.FoundBetterPath(0, 0, 0, -1, distance[target])
 	}
 	// path = []
 	var path []int64
