@@ -23,14 +23,14 @@ func (graph *Graph) ShortestPathManyToMany(sources, targets []int64) ([][]float6
 	return graph.shortestPathManyToMany(endpoints)
 }
 
-func (graph *Graph) initShortestPathManyToMany(endpointCounts [directionsCount]int) (queryDist [directionsCount][]verticesDistance, processed [directionsCount][]map[int64]struct{}, queues [directionsCount][]*vertexDistHeap) {
+func (graph *Graph) initShortestPathManyToMany(endpointCounts [directionsCount]int) (queryDist [directionsCount][]verticesDistance, processed [directionsCount][]map[int64]bool, queues [directionsCount][]*vertexDistHeap) {
 	for d := forward; d < directionsCount; d++ {
 		queryDist[d] = make([]verticesDistance, endpointCounts[d])
-		processed[d] = make([]map[int64]struct{}, endpointCounts[d])
+		processed[d] = make([]map[int64]bool, endpointCounts[d])
 		queues[d] = make([]*vertexDistHeap, endpointCounts[d])
 		for endpointIdx := 0; endpointIdx < endpointCounts[d]; endpointIdx++ {
 			queryDist[d][endpointIdx] = make(map[int64]float64)
-			processed[d][endpointIdx] = make(map[int64]struct{})
+			processed[d][endpointIdx] = make(map[int64]bool)
 
 			queues[d][endpointIdx] = &vertexDistHeap{}
 
@@ -44,7 +44,7 @@ func (graph *Graph) shortestPathManyToMany(endpoints [directionsCount][]int64) (
 	queryDist, processed, queues := graph.initShortestPathManyToMany([directionsCount]int{len(endpoints[forward]), len(endpoints[backward])})
 	for d := forward; d < directionsCount; d++ {
 		for endpointIdx, endpoint := range endpoints[d] {
-			processed[d][endpointIdx][endpoint] = struct{}{}
+			processed[d][endpointIdx][endpoint] = true
 			queryDist[d][endpointIdx].setVerticeDistance(endpoint, 0)
 			heapEndpoint := &vertexDist{
 				id:   endpoint,
@@ -56,7 +56,7 @@ func (graph *Graph) shortestPathManyToMany(endpoints [directionsCount][]int64) (
 	return graph.shortestPathManyToManyCore(queryDist, processed, queues)
 }
 
-func (graph *Graph) shortestPathManyToManyCore(queryDist [directionsCount][]verticesDistance, processed [directionsCount][]map[int64]struct{}, queues [directionsCount][]*vertexDistHeap) ([][]float64, [][][]int64) {
+func (graph *Graph) shortestPathManyToManyCore(queryDist [directionsCount][]verticesDistance, processed [directionsCount][]map[int64]bool, queues [directionsCount][]*vertexDistHeap) ([][]float64, [][][]int64) {
 	var prev [directionsCount][]map[int64]int64
 	for d := forward; d < directionsCount; d++ {
 		prev[d] = make([]map[int64]int64, len(queues[d]))
@@ -110,13 +110,13 @@ func (graph *Graph) shortestPathManyToManyCore(queryDist [directionsCount][]vert
 
 func (graph *Graph) directionalSearchManyToMany(
 	d direction, endpointIndex int, q *vertexDistHeap,
-	localProcessed map[int64]struct{}, reverseProcessed []map[int64]struct{},
+	localProcessed map[int64]bool, reverseProcessed []map[int64]bool,
 	localQueryDist verticesDistance, reverseQueryDist []verticesDistance,
 	prev map[int64]int64, estimates [][]float64, middleIDs [][]int64) {
 
 	vertex := heap.Pop(q).(*vertexDist)
 	// if vertex.dist <= *estimate { // TODO: move to another place
-	localProcessed[vertex.id] = struct{}{}
+	localProcessed[vertex.id] = true
 	if graph.Reporter != nil {
 		graph.Reporter.VertexSettled(int(d), endpointIndex, vertex.id, q.Len())
 	}
@@ -148,7 +148,7 @@ func (graph *Graph) directionalSearchManyToMany(
 	}
 	// }
 	for revEndpointIdx, revEndpointProcessed := range reverseProcessed {
-		if _, ok := revEndpointProcessed[vertex.id]; ok {
+		if revEndpointProcessed[vertex.id] {
 			var sourceEndpoint, targetEndpoint int
 			if d == forward {
 				sourceEndpoint, targetEndpoint = endpointIndex, revEndpointIdx
@@ -194,7 +194,7 @@ func (graph *Graph) shortestPathManyToManyWithAlternatives(endpoints [directions
 				if endpointAlternative.vertexNum == vertexNotFound {
 					continue
 				}
-				processed[d][endpointIdx][endpointAlternative.vertexNum] = struct{}{}
+				processed[d][endpointIdx][endpointAlternative.vertexNum] = true
 				queryDist[d][endpointIdx].setVerticeDistance(endpointAlternative.vertexNum, endpointAlternative.additionalDistance)
 				heapEndpoint := &vertexDist{
 					id:   endpointAlternative.vertexNum,
