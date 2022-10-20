@@ -29,7 +29,7 @@ func (graph *Graph) initShortestPathManyToMany(endpointCounts [directionsCount]i
 		processed[d] = make([]map[int64]bool, endpointCounts[d])
 		queues[d] = make([]*vertexDistHeap, endpointCounts[d])
 		for endpointIdx := 0; endpointIdx < endpointCounts[d]; endpointIdx++ {
-			queryDist[d][endpointIdx] = make(map[int64]float64, len(graph.Vertices))
+			queryDist[d][endpointIdx] = make(map[int64]float64)
 			processed[d][endpointIdx] = make(map[int64]bool)
 
 			queues[d][endpointIdx] = &vertexDistHeap{}
