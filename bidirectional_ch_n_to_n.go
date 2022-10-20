@@ -23,19 +23,14 @@ func (graph *Graph) ShortestPathManyToMany(sources, targets []int64) ([][]float6
 	return graph.shortestPathManyToMany(endpoints)
 }
 
-func (graph *Graph) initShortestPathManyToMany(endpointCounts [directionsCount]int) (queryDist [directionsCount][][]float64, processed [directionsCount][][]bool, queues [directionsCount][]*vertexDistHeap) {
+func (graph *Graph) initShortestPathManyToMany(endpointCounts [directionsCount]int) (queryDist [directionsCount][]verticesDistance, processed [directionsCount][]map[int64]bool, queues [directionsCount][]*vertexDistHeap) {
 	for d := forward; d < directionsCount; d++ {
-		queryDist[d] = make([][]float64, endpointCounts[d])
-		processed[d] = make([][]bool, endpointCounts[d])
+		queryDist[d] = make([]verticesDistance, endpointCounts[d])
+		processed[d] = make([]map[int64]bool, endpointCounts[d])
 		queues[d] = make([]*vertexDistHeap, endpointCounts[d])
 		for endpointIdx := 0; endpointIdx < endpointCounts[d]; endpointIdx++ {
-			queryDist[d][endpointIdx] = make([]float64, len(graph.Vertices))
-
-			for i := range queryDist[d][endpointIdx] {
-				queryDist[d][endpointIdx][i] = Infinity
-			}
-
-			processed[d][endpointIdx] = make([]bool, len(graph.Vertices))
+			queryDist[d][endpointIdx] = make(map[int64]float64)
+			processed[d][endpointIdx] = make(map[int64]bool)
 
 			queues[d][endpointIdx] = &vertexDistHeap{}
 
@@ -50,7 +45,7 @@ func (graph *Graph) shortestPathManyToMany(endpoints [directionsCount][]int64) (
 	for d := forward; d < directionsCount; d++ {
 		for endpointIdx, endpoint := range endpoints[d] {
 			processed[d][endpointIdx][endpoint] = true
-			queryDist[d][endpointIdx][endpoint] = 0
+			queryDist[d][endpointIdx].setVerticeDistance(endpoint, 0)
 			heapEndpoint := &vertexDist{
 				id:   endpoint,
 				dist: 0,
@@ -61,7 +56,7 @@ func (graph *Graph) shortestPathManyToMany(endpoints [directionsCount][]int64) (
 	return graph.shortestPathManyToManyCore(queryDist, processed, queues)
 }
 
-func (graph *Graph) shortestPathManyToManyCore(queryDist [directionsCount][][]float64, processed [directionsCount][][]bool, queues [directionsCount][]*vertexDistHeap) ([][]float64, [][][]int64) {
+func (graph *Graph) shortestPathManyToManyCore(queryDist [directionsCount][]verticesDistance, processed [directionsCount][]map[int64]bool, queues [directionsCount][]*vertexDistHeap) ([][]float64, [][][]int64) {
 	var prev [directionsCount][]map[int64]int64
 	for d := forward; d < directionsCount; d++ {
 		prev[d] = make([]map[int64]int64, len(queues[d]))
@@ -115,8 +110,8 @@ func (graph *Graph) shortestPathManyToManyCore(queryDist [directionsCount][][]fl
 
 func (graph *Graph) directionalSearchManyToMany(
 	d direction, endpointIndex int, q *vertexDistHeap,
-	localProcessed []bool, reverseProcessed [][]bool,
-	localQueryDist []float64, reverseQueryDist [][]float64,
+	localProcessed map[int64]bool, reverseProcessed []map[int64]bool,
+	localQueryDist verticesDistance, reverseQueryDist []verticesDistance,
 	prev map[int64]int64, estimates [][]float64, middleIDs [][]int64) {
 
 	vertex := heap.Pop(q).(*vertexDist)
@@ -136,9 +131,9 @@ func (graph *Graph) directionalSearchManyToMany(
 		temp := vertexList[i].vertexID
 		cost := vertexList[i].weight
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
-			alt := localQueryDist[vertex.id] + cost
-			if localQueryDist[temp] > alt {
-				localQueryDist[temp] = alt
+			alt := localQueryDist.getVerticeDistance(vertex.id) + cost
+			if localQueryDist.getVerticeDistance(temp) > alt {
+				localQueryDist.setVerticeDistance(temp, alt)
 				prev[temp] = vertex.id
 				node := &vertexDist{
 					id:   temp,
@@ -160,9 +155,9 @@ func (graph *Graph) directionalSearchManyToMany(
 			} else {
 				targetEndpoint, sourceEndpoint = endpointIndex, revEndpointIdx
 			}
-			if vertex.dist+reverseQueryDist[revEndpointIdx][vertex.id] < estimates[sourceEndpoint][targetEndpoint] {
+			if vertex.dist+reverseQueryDist[revEndpointIdx].getVerticeDistance(vertex.id) < estimates[sourceEndpoint][targetEndpoint] {
 				middleIDs[sourceEndpoint][targetEndpoint] = vertex.id
-				estimates[sourceEndpoint][targetEndpoint] = vertex.dist + reverseQueryDist[revEndpointIdx][vertex.id]
+				estimates[sourceEndpoint][targetEndpoint] = vertex.dist + reverseQueryDist[revEndpointIdx].getVerticeDistance(vertex.id)
 				if graph.Reporter != nil {
 					graph.Reporter.FoundBetterPath(int(d), sourceEndpoint, targetEndpoint, vertex.id, estimates[sourceEndpoint][targetEndpoint])
 				}
@@ -200,7 +195,7 @@ func (graph *Graph) shortestPathManyToManyWithAlternatives(endpoints [directions
 					continue
 				}
 				processed[d][endpointIdx][endpointAlternative.vertexNum] = true
-				queryDist[d][endpointIdx][endpointAlternative.vertexNum] = endpointAlternative.additionalDistance
+				queryDist[d][endpointIdx].setVerticeDistance(endpointAlternative.vertexNum, endpointAlternative.additionalDistance)
 				heapEndpoint := &vertexDist{
 					id:   endpointAlternative.vertexNum,
 					dist: endpointAlternative.additionalDistance,
@@ -210,4 +205,19 @@ func (graph *Graph) shortestPathManyToManyWithAlternatives(endpoints [directions
 		}
 	}
 	return graph.shortestPathManyToManyCore(queryDist, processed, queues)
+}
+
+type verticesDistance map[int64]float64
+
+func (vd verticesDistance) getVerticeDistance(verticeId int64) float64 {
+	dist, ok := vd[verticeId]
+	if !ok {
+		return Infinity
+	}
+
+	return dist
+}
+
+func (vd verticesDistance) setVerticeDistance(verticeId int64, distance float64) {
+	vd[verticeId] = distance
 }
