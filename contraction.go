@@ -39,8 +39,7 @@ func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
 //
 // inEdges Incoming edges from vertex
 // outEdges Outcoming edges from vertex
-//
-func (graph *Graph) markNeighbors(inEdges, outEdges []*incidentEdge) {
+func (graph *Graph) markNeighbors(inEdges, outEdges []incidentEdge) {
 	for i := range inEdges {
 		temp := inEdges[i]
 		graph.Vertices[temp.vertexID].delNeighbors++
@@ -54,7 +53,6 @@ func (graph *Graph) markNeighbors(inEdges, outEdges []*incidentEdge) {
 // contractNode
 //
 // vertex Vertex to be contracted
-//
 func (graph *Graph) contractNode(vertex *Vertex) {
 	// Consider all vertices with edges incoming TO current vertex as U
 	incomingEdges := vertex.inIncidentEdges
@@ -97,7 +95,6 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 //
 // vertex - Vertex for making possible shortcuts around
 // pmax - path cost restriction
-//
 func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
 	incomingEdges := vertex.inIncidentEdges
 	outcomingEdges := vertex.outIncidentEdges
@@ -107,8 +104,7 @@ func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
 	batchShortcuts := make([]*ShortcutPath, 0, len(incomingEdges)*len(outcomingEdges))
 
 	previousOrderPos := int64(vertex.orderPos - 1)
-	for i := range incomingEdges {
-		u := incomingEdges[i]
+	for _, u := range incomingEdges {
 		inVertex := u.vertexID
 		// Do not consider any vertex has been excluded earlier
 		if graph.Vertices[inVertex].contracted {
@@ -116,8 +112,7 @@ func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
 		}
 		inCost := u.weight
 		graph.shortestPathsWithMaxCost(inVertex, pmax, previousOrderPos) // Finds the shortest distances from the inVertex to all outVertices.
-		for j := range outcomingEdges {
-			w := outcomingEdges[j]
+		for _, w := range outcomingEdges {
 			outVertex := w.vertexID
 			outVertexPtr := graph.Vertices[outVertex]
 			// Do not consider any vertex has been excluded earlier
@@ -154,7 +149,6 @@ func (graph *Graph) insertShortcuts(shortcuts []*ShortcutPath) {
 // fromVertex - Library defined ID of target vertex where shortcut leads to
 // viaVertex - Library defined ID of vertex through which the shortcut exists
 // summaryCost - Travel path of a shortcut
-//
 func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64, summaryCost float64) {
 	if _, ok := graph.shortcuts[fromVertex]; !ok {
 		// If there is no such shortcut then add one.

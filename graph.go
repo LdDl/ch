@@ -92,8 +92,8 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 }
 
 func (graph *Graph) addEdge(from, to int64, weight float64) {
-	graph.Vertices[from].outIncidentEdges = append(graph.Vertices[from].outIncidentEdges, &incidentEdge{vertexID: to, weight: weight})
-	graph.Vertices[to].inIncidentEdges = append(graph.Vertices[to].inIncidentEdges, &incidentEdge{vertexID: from, weight: weight})
+	graph.Vertices[from].outIncidentEdges = append(graph.Vertices[from].outIncidentEdges, incidentEdge{vertexID: to, weight: weight})
+	graph.Vertices[to].inIncidentEdges = append(graph.Vertices[to].inIncidentEdges, incidentEdge{vertexID: from, weight: weight})
 }
 
 // AddShortcut Adds new shortcut between two vertices

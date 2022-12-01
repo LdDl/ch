@@ -2,9 +2,9 @@ package ch
 
 // Vertex All information about vertex
 type Vertex struct {
-	distance         *Distance
-	inIncidentEdges  []*incidentEdge
-	outIncidentEdges []*incidentEdge
+	distance         Distance
+	inIncidentEdges  []incidentEdge
+	outIncidentEdges []incidentEdge
 
 	vertexNum int64
 	Label     int64
@@ -86,8 +86,8 @@ type Distance struct {
 }
 
 // NewDistance Constructor for Distance
-func NewDistance() *Distance {
-	return &Distance{
+func NewDistance() Distance {
+	return Distance{
 		previousOrderPos: -1,
 		previousSourceID: -1,
 		distance:         Infinity,
@@ -98,7 +98,6 @@ func NewDistance() *Distance {
 //
 // labelExternal - User defined ID of vertex
 // If vertex is not found then returns (-1; false)
-//
 func (graph *Graph) FindVertex(labelExternal int64) (idx int64, ok bool) {
 	idx, ok = graph.mapping[labelExternal]
 	if !ok {
