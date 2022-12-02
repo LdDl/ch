@@ -121,7 +121,7 @@ func (graph *Graph) directionalSearchManyToMany(
 		graph.Reporter.VertexSettled(int(d), endpointIndex, vertex.id, q.Len())
 	}
 	// Edge relaxation in a forward propagation
-	var vertexList []*incidentEdge
+	var vertexList []incidentEdge
 	if d == forward {
 		vertexList = graph.Vertices[vertex.id].outIncidentEdges
 	} else {

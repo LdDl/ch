@@ -16,7 +16,7 @@ type Graph struct {
 	restrictions map[int64]map[int64]int64
 	mapping      map[int64]int64
 
-	Vertices     []*Vertex
+	Vertices     []Vertex
 	edgesNum     int64
 	shortcutsNum int64
 
@@ -36,7 +36,7 @@ type Reporter interface {
 func NewGraph() *Graph {
 	return &Graph{
 		mapping:      make(map[int64]int64),
-		Vertices:     make([]*Vertex, 0),
+		Vertices:     make([]Vertex, 0),
 		edgesNum:     0,
 		shortcutsNum: 0,
 		shortcuts:    make(map[int64]map[int64]*ShortcutPath),
@@ -53,7 +53,7 @@ func (graph *Graph) CreateVertex(label int64) error {
 	if graph.frozen {
 		return ErrGraphIsFrozen
 	}
-	v := &Vertex{
+	v := Vertex{
 		Label:        label,
 		delNeighbors: 0,
 		distance:     NewDistance(),
@@ -92,8 +92,8 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 }
 
 func (graph *Graph) addEdge(from, to int64, weight float64) {
-	graph.Vertices[from].outIncidentEdges = append(graph.Vertices[from].outIncidentEdges, &incidentEdge{vertexID: to, weight: weight})
-	graph.Vertices[to].inIncidentEdges = append(graph.Vertices[to].inIncidentEdges, &incidentEdge{vertexID: from, weight: weight})
+	graph.Vertices[from].outIncidentEdges = append(graph.Vertices[from].outIncidentEdges, incidentEdge{vertexID: to, weight: weight})
+	graph.Vertices[to].inIncidentEdges = append(graph.Vertices[to].inIncidentEdges, incidentEdge{vertexID: from, weight: weight})
 }
 
 // AddShortcut Adds new shortcut between two vertices
@@ -146,7 +146,7 @@ func (graph *Graph) computeImportance() *importanceHeap {
 	heap.Init(pqImportance)
 	for i := range graph.Vertices {
 		graph.Vertices[i].computeImportance()
-		heap.Push(pqImportance, graph.Vertices[i])
+		heap.Push(pqImportance, &graph.Vertices[i])
 	}
 	graph.Freeze()
 	return pqImportance
