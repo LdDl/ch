@@ -62,13 +62,13 @@ func (vertex *Vertex) computeImportance() {
 
 // bidirectedEdges Number of bidirected edges
 func (vertex *Vertex) bidirectedEdges() int {
-	hash := make(map[int64]bool)
+	hash := make(map[int64]struct{}, len(vertex.inIncidentEdges))
 	for _, e := range vertex.inIncidentEdges {
-		hash[e.vertexID] = true
+		hash[e.vertexID] = struct{}{}
 	}
 	ans := 0
-	for _, e := range vertex.outIncidentEdges {
-		if hash[e.vertexID] {
+	for i := range vertex.outIncidentEdges {
+		if _, ok := hash[vertex.outIncidentEdges[i].vertexID]; ok {
 			ans++
 		}
 	}
