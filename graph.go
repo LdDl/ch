@@ -95,13 +95,22 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 	return nil
 }
 
-func (graph *Graph) BatchCreateVertex(vertexLabels []int64) {
-	graph.Vertices = make([]Vertex, 0, len(vertexLabels))
-	graph.mapping = make(map[int64]int64, len(vertexLabels))
+func (graph *Graph) BatchCreateVertex(vertexLabels []int64) error {
+	if len(graph.Vertices) == 0 {
+		graph.Vertices = make([]Vertex, 0, len(vertexLabels))
+	}
+
+	if len(graph.mapping) == 0 {
+		graph.mapping = make(map[int64]int64, len(vertexLabels))
+	}
 
 	for _, label := range vertexLabels {
-		graph.CreateVertex(label)
+		if err := graph.CreateVertex(label); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func (graph *Graph) addEdge(from, to int64, weight float64) {
