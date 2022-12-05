@@ -53,24 +53,28 @@ func (graph *Graph) CreateVertex(label int64) error {
 	if graph.frozen {
 		return ErrGraphIsFrozen
 	}
+
 	v := Vertex{
-		Label:        label,
-		delNeighbors: 0,
-		distance:     NewDistance(),
-		contracted:   false,
+		Label: label,
+		distance: Distance{
+			previousOrderPos: -1,
+			previousSourceID: -1,
+			distance:         Infinity,
+		},
 	}
+
 	if graph.mapping == nil {
 		graph.mapping = make(map[int64]int64)
 	}
 	if graph.shortcuts == nil {
 		graph.shortcuts = make(map[int64]map[int64]*ShortcutPath)
 	}
-
 	if _, ok := graph.mapping[label]; !ok {
 		v.vertexNum = int64(len(graph.Vertices))
 		graph.mapping[label] = v.vertexNum
 		graph.Vertices = append(graph.Vertices, v)
 	}
+
 	return nil
 }
 
@@ -89,6 +93,15 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 
 	graph.addEdge(from, to, weight)
 	return nil
+}
+
+func (graph *Graph) BatchCreateVertex(vertexLabels []int64) {
+	graph.Vertices = make([]Vertex, 0, len(vertexLabels))
+	graph.mapping = make(map[int64]int64, len(vertexLabels))
+
+	for _, label := range vertexLabels {
+		graph.CreateVertex(label)
+	}
 }
 
 func (graph *Graph) addEdge(from, to int64, weight float64) {
