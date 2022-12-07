@@ -152,7 +152,7 @@ func (graph *Graph) insertShortcuts(batchShortcuts []ShortcutPath) {
 // viaVertex - Library defined ID of vertex through which the shortcut exists
 // summaryCost - Travel path of a shortcut
 func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64, summaryCost float64) {
-	if _, ok := graph.shortcuts[fromVertex]; !ok {
+	if graph.shortcuts[fromVertex] == nil {
 		// If there is no such shortcut then add one.
 		graph.shortcuts[fromVertex] = make(map[int64]*ShortcutPath)
 	}
