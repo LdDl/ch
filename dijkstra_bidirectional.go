@@ -202,7 +202,7 @@ func (graph *Graph) ComputePath(middleID int64, forwardPrev, backwardPrev map[in
 		}
 	}
 
-	var path []int64
+	var path = make([]int64, 0, l.Len())
 	for e := l.Front(); e != nil; e = e.Next() {
 		path = append(path, graph.Vertices[e.Value.(int64)].Label)
 	}
