@@ -12,7 +12,7 @@ import (
 // Vertices Slice of vertices of graph
 // shortcuts Found and stored shortcuts based on contraction hierarchies
 type Graph struct {
-	shortcuts    map[int64]map[int64]*ShortcutPath
+	shortcuts    []map[int64]*ShortcutPath
 	restrictions map[int64]map[int64]int64
 	mapping      map[int64]int64
 
@@ -39,7 +39,6 @@ func NewGraph() *Graph {
 		Vertices:     make([]Vertex, 0),
 		edgesNum:     0,
 		shortcutsNum: 0,
-		shortcuts:    make(map[int64]map[int64]*ShortcutPath),
 		restrictions: make(map[int64]map[int64]int64),
 		frozen:       false,
 		verbose:      false,
@@ -66,13 +65,12 @@ func (graph *Graph) CreateVertex(label int64) error {
 	if graph.mapping == nil {
 		graph.mapping = make(map[int64]int64)
 	}
-	if graph.shortcuts == nil {
-		graph.shortcuts = make(map[int64]map[int64]*ShortcutPath)
-	}
+
 	if _, ok := graph.mapping[label]; !ok {
 		v.vertexNum = int64(len(graph.Vertices))
 		graph.mapping[label] = v.vertexNum
 		graph.Vertices = append(graph.Vertices, v)
+		graph.shortcuts = append(graph.shortcuts, nil)
 	}
 
 	return nil
@@ -96,6 +94,10 @@ func (graph *Graph) AddEdge(from, to int64, weight float64) error {
 }
 
 func (graph *Graph) BatchCreateVertex(vertexLabels []int64) error {
+	if len(graph.shortcuts) == 0 {
+		graph.shortcuts = make([]map[int64]*ShortcutPath, 0, len(vertexLabels))
+	}
+
 	if len(graph.Vertices) == 0 {
 		graph.Vertices = make([]Vertex, 0, len(vertexLabels))
 	}
@@ -131,7 +133,7 @@ func (graph *Graph) AddShortcut(from, to, via int64, weight float64) error {
 	fromInternal := graph.mapping[from]
 	toInternal := graph.mapping[to]
 	viaInternal := graph.mapping[via]
-	if _, ok := graph.shortcuts[fromInternal]; !ok {
+	if graph.shortcuts[fromInternal] == nil {
 		graph.shortcuts[fromInternal] = make(map[int64]*ShortcutPath)
 		graph.shortcuts[fromInternal][toInternal] = &ShortcutPath{
 			From: fromInternal,

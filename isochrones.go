@@ -29,7 +29,7 @@ func (graph *Graph) Isochrones(source int64, maxCost float64) (map[int64]float64
 			vertexList := graph.Vertices[next.id].outIncidentEdges
 			for i := range vertexList {
 				neighbor := vertexList[i].vertexID
-				if v1, ok1 := graph.shortcuts[next.id]; ok1 {
+				if v1 := graph.shortcuts[next.id]; v1 != nil {
 					if _, ok2 := v1[neighbor]; ok2 {
 						// Ignore shortcut
 						continue

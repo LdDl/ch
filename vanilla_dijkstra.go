@@ -69,7 +69,7 @@ func (graph *Graph) VanillaShortestPath(source, target int64) (float64, []int64)
 		// for each neighbor v of u:
 		for v := range vertexList {
 			neighbor := vertexList[v].vertexID
-			if v1, ok1 := graph.shortcuts[u.id]; ok1 {
+			if v1 := graph.shortcuts[u.id]; v1 != nil {
 				if _, ok2 := v1[neighbor]; ok2 {
 					// Ignore shortcut
 					continue
