@@ -115,7 +115,7 @@ func (graph *Graph) directionalSearchManyToMany(d direction, endpointIndex int, 
 	// if vertex.dist <= *estimate { // TODO: move to another place
 	localProcessed[vertex.id] = true
 	// Edge relaxation in a forward propagation
-	var vertexList []*incidentEdge
+	var vertexList []incidentEdge
 	if d == forward {
 		vertexList = graph.Vertices[vertex.id].outIncidentEdges
 	} else {

@@ -9,7 +9,7 @@ const (
 func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, previousOrderPos int64) {
 	// Heap to store traveled distance
 	pqComparator := &distanceHeap{}
-	pqComparator.Push(graph.Vertices[source])
+	pqComparator.Push(&graph.Vertices[source])
 
 	// Instead of inializing distances to Infinity every single shortestPathsWithMaxCost(...) call we can do following
 	// Set dist[source] -> 0 (as usual)
@@ -34,7 +34,7 @@ func (graph *Graph) shortestPathsWithMaxCost(source int64, maxcost float64, prev
 		for i := range vertexList {
 			temp := vertexList[i].vertexID
 			cost := vertexList[i].weight
-			tempPtr := graph.Vertices[temp]
+			tempPtr := &graph.Vertices[temp]
 			// Do not consider any vertex has been excluded earlier
 			if tempPtr.contracted {
 				continue

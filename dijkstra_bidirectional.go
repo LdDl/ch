@@ -92,7 +92,7 @@ func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, localProce
 	if vertex.dist <= *estimate {
 		localProcessed[vertex.id] = true
 		// Edge relaxation in a forward propagation
-		var vertexList []*incidentEdge
+		var vertexList []incidentEdge
 		if d == forward {
 			vertexList = graph.Vertices[vertex.id].outIncidentEdges
 		} else {

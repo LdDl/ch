@@ -2,9 +2,9 @@ package ch
 
 // Vertex All information about vertex
 type Vertex struct {
-	distance         *Distance
-	inIncidentEdges  []*incidentEdge
-	outIncidentEdges []*incidentEdge
+	inIncidentEdges  []incidentEdge
+	outIncidentEdges []incidentEdge
+	distance         Distance
 
 	vertexNum int64
 	Label     int64
@@ -62,13 +62,13 @@ func (vertex *Vertex) computeImportance() {
 
 // bidirectedEdges Number of bidirected edges
 func (vertex *Vertex) bidirectedEdges() int {
-	hash := make(map[int64]bool)
+	hash := make(map[int64]struct{}, len(vertex.inIncidentEdges))
 	for _, e := range vertex.inIncidentEdges {
-		hash[e.vertexID] = true
+		hash[e.vertexID] = struct{}{}
 	}
 	ans := 0
-	for _, e := range vertex.outIncidentEdges {
-		if hash[e.vertexID] {
+	for i := range vertex.outIncidentEdges {
+		if _, ok := hash[vertex.outIncidentEdges[i].vertexID]; ok {
 			ans++
 		}
 	}
@@ -86,8 +86,8 @@ type Distance struct {
 }
 
 // NewDistance Constructor for Distance
-func NewDistance() *Distance {
-	return &Distance{
+func NewDistance() Distance {
+	return Distance{
 		previousOrderPos: -1,
 		previousSourceID: -1,
 		distance:         Infinity,
