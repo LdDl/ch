@@ -11,7 +11,7 @@ type incidentEdge struct {
 // incomingVertexID - Library defined ID of vertex
 // weight - Travel cost of incoming edge
 func (vertex *Vertex) addInIncidentEdge(incomingVertexID int64, weight float64) {
-	vertex.inIncidentEdges = append(vertex.inIncidentEdges, &incidentEdge{incomingVertexID, weight})
+	vertex.inIncidentEdges = append(vertex.inIncidentEdges, incidentEdge{incomingVertexID, weight})
 }
 
 // addOutIncidentEdge Adds incident edge's to pool of "outcoming" edges of given vertex.
@@ -19,7 +19,7 @@ func (vertex *Vertex) addInIncidentEdge(incomingVertexID int64, weight float64) 
 // outcomingVertexID - Library defined ID of vertex
 // weight - Travel cost of outcoming edge
 func (vertex *Vertex) addOutIncidentEdge(outcomingVertexID int64, weight float64) {
-	vertex.outIncidentEdges = append(vertex.outIncidentEdges, &incidentEdge{outcomingVertexID, weight})
+	vertex.outIncidentEdges = append(vertex.outIncidentEdges, incidentEdge{outcomingVertexID, weight})
 }
 
 // findInIncidentEdge Returns index of incoming incident edge by vertex ID

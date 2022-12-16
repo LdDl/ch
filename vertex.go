@@ -3,8 +3,8 @@ package ch
 // Vertex All information about vertex
 type Vertex struct {
 	distance         *Distance
-	inIncidentEdges  []*incidentEdge
-	outIncidentEdges []*incidentEdge
+	inIncidentEdges  []incidentEdge
+	outIncidentEdges []incidentEdge
 
 	vertexNum int64
 	Label     int64

@@ -40,7 +40,7 @@ func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
 // inEdges Incoming edges from vertex
 // outEdges Outcoming edges from vertex
 //
-func (graph *Graph) markNeighbors(inEdges, outEdges []*incidentEdge) {
+func (graph *Graph) markNeighbors(inEdges, outEdges []incidentEdge) {
 	for i := range inEdges {
 		temp := inEdges[i]
 		graph.Vertices[temp.vertexID].delNeighbors++
@@ -107,8 +107,7 @@ func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
 	batchShortcuts := make([]*ShortcutPath, 0, len(incomingEdges)*len(outcomingEdges))
 
 	previousOrderPos := int64(vertex.orderPos - 1)
-	for i := range incomingEdges {
-		u := incomingEdges[i]
+	for _, u := range incomingEdges {
 		inVertex := u.vertexID
 		// Do not consider any vertex has been excluded earlier
 		if graph.Vertices[inVertex].contracted {
@@ -116,8 +115,7 @@ func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
 		}
 		inCost := u.weight
 		graph.shortestPathsWithMaxCost(inVertex, pmax, previousOrderPos) // Finds the shortest distances from the inVertex to all outVertices.
-		for j := range outcomingEdges {
-			w := outcomingEdges[j]
+		for _, w := range outcomingEdges {
 			outVertex := w.vertexID
 			outVertexPtr := graph.Vertices[outVertex]
 			// Do not consider any vertex has been excluded earlier

@@ -15,4 +15,6 @@ debug-new.txt
 debug-old.txt
 new_m_n.txt
 old_m_n.txt
+new_no_ptr.txt
+old_ptr.txt
 /cmd
