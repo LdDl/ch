@@ -9,5 +9,5 @@ new.txt
 old.txt
 cmd/osm2ch/*.csv
 *.exe
-benchmarks/
+benchmarks/*.txt
 /cmd

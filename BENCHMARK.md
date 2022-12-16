@@ -52,14 +52,14 @@ ok  	github.com/LdDl/ch	68.262s
 
 If you want to make comparison between OneToMany in term of ShortestPathOneToMany() and OneToMany in term of looping:
 ```go
-go test -benchmem -run=^$ github.com/LdDl/ch -bench BenchmarkOldWayShortestPathOneToMany > old.txt
-go test -benchmem -run=^$ github.com/LdDl/ch -bench BenchmarkShortestPathOneToMany > new.txt
-sed -i 's/BenchmarkOldWayShortestPathOneToMany/BenchmarkShortestPathOneToMany/g' old.txt
+go test -benchmem -run=^$ github.com/LdDl/ch -bench BenchmarkOldWayShortestPathOneToMany > benchmarks/old.txt
+go test -benchmem -run=^$ github.com/LdDl/ch -bench BenchmarkShortestPathOneToMany > benchmarks/new.txt
+sed -i 's/BenchmarkOldWayShortestPathOneToMany/BenchmarkShortestPathOneToMany/g' benchmarks/old.txt
 ```
 and then use [benchcmp](https://godoc.org/golang.org/x/tools/cmd/benchcmp):
 ```bash
 go install golang.org/x/tools/cmd/benchcmp@latest
-benchcmp old.txt new.txt
+benchcmp benchmarks/old.txt benchmarks/new.txt
 ```
 
 Output should be something like this:
@@ -95,14 +95,14 @@ BenchmarkShortestPathOneToMany/CH_shortest_path/256/vertices-256-edges-97227-sho
 
 If you want to make comparison between OneToMany in term of ShortestPathOneToMany() and OneToMany in term of looping:
 ```go
-go test -benchmem -run=^$ github.com/LdDl/ch -bench BenchmarkOldWayShortestPathManyToMany > old_m_n.txt
-go test -benchmem -run=^$ github.com/LdDl/ch -bench BenchmarkShortestPathManyToMany > new_m_n.txt
-sed -i 's/BenchmarkOldWayShortestPathManyToMany/BenchmarkShortestPathManyToMany/g' old_m_n.txt
+go test -benchmem -run=^$ github.com/LdDl/ch -bench BenchmarkOldWayShortestPathManyToMany > benchmarks/old_m_n.txt
+go test -benchmem -run=^$ github.com/LdDl/ch -bench BenchmarkShortestPathManyToMany > benchmarks/new_m_n.txt
+sed -i 's/BenchmarkOldWayShortestPathManyToMany/BenchmarkShortestPathManyToMany/g' benchmarks/old_m_n.txt
 ```
 and then use [benchcmp](https://godoc.org/golang.org/x/tools/cmd/benchcmp):
 ```bash
 go install golang.org/x/tools/cmd/benchcmp@latest
-benchcmp old_m_n.txt new_m_n.txt
+benchcmp benchmarks/old_m_n.txt benchmarks/new_m_n.txt
 ```
 
 Output should be something like this:
