@@ -6,9 +6,36 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 )
+
+var (
+	ErrNotEnoughColumns = fmt.Errorf("not enough columns")
+)
+
+// CSVHeaderImportEdges is just an helper structure to evaluate CSV columns for edges file
+type CSVHeaderImportEdges struct {
+	SourceExternal int
+	TargetExternal int
+	Weight         int
+}
+
+// CSVHeaderImportVertices is just an helper structure to evaluate CSV columns for vertices file
+type CSVHeaderImportVertices struct {
+	ID         int
+	OrderPos   int
+	Importance int
+}
+
+// CSVHeaderImportShortcuts is just an helper structure to evaluate CSV columns for shortcuts file
+type CSVHeaderImportShortcuts struct {
+	SourceExternal int
+	TargetExternal int
+	ViaExternal    int
+	Weight         int
+}
 
 // ImportFromFile Imports graph (prepared by ExportToFile(fname string) function) from file of CSV-format
 // Header of CSV-file containing information about edges:
@@ -38,7 +65,11 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 
 	// Fill graph with edges informations
 	// Skip header of CSV-file
-	_, err = reader.Read()
+	edgesHeader, err := reader.Read()
+	if err != nil {
+		return nil, err
+	}
+	edgesColumns, err := prepareEdgesColumns(edgesHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -48,16 +79,16 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 		if err == io.EOF {
 			break
 		}
-		sourceExternal, err := strconv.ParseInt(record[0], 10, 64)
+		sourceExternal, err := strconv.ParseInt(record[edgesColumns.SourceExternal], 10, 64)
 		if err != nil {
 			return nil, err
 		}
-		targetExternal, err := strconv.ParseInt(record[1], 10, 64)
+		targetExternal, err := strconv.ParseInt(record[edgesColumns.TargetExternal], 10, 64)
 		if err != nil {
 			return nil, err
 		}
 
-		weight, err := strconv.ParseFloat(record[2], 64)
+		weight, err := strconv.ParseFloat(record[edgesColumns.Weight], 64)
 		if err != nil {
 			return nil, err
 		}
@@ -87,7 +118,11 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 	readerVertices.Comma = ';'
 
 	// Skip header of CSV-file
-	_, err = readerVertices.Read()
+	verticesHeader, err := readerVertices.Read()
+	if err != nil {
+		return nil, err
+	}
+	verticesColumns, err := prepareVerticesColumns(verticesHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -98,15 +133,15 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 			break
 		}
 
-		vertexExternal, err := strconv.ParseInt(record[0], 10, 64)
+		vertexExternal, err := strconv.ParseInt(record[verticesColumns.ID], 10, 64)
 		if err != nil {
 			return nil, err
 		}
-		vertexOrderPos, err := strconv.ParseInt(record[1], 10, 64)
+		vertexOrderPos, err := strconv.ParseInt(record[verticesColumns.OrderPos], 10, 64)
 		if err != nil {
 			return nil, err
 		}
-		vertexImportance, err := strconv.Atoi(record[2])
+		vertexImportance, err := strconv.Atoi(record[verticesColumns.Importance])
 		if err != nil {
 			return nil, err
 		}
@@ -127,8 +162,12 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 	defer fileShortcuts.Close()
 	readerShortcuts := csv.NewReader(fileShortcuts)
 	readerShortcuts.Comma = ';'
-	// Skip header of CSV-file
-	_, err = readerShortcuts.Read()
+	// Process header of CSV-file
+	shortcutsHeader, err := readerShortcuts.Read()
+	if err != nil {
+		return nil, err
+	}
+	shortcutsColumns, err := prepareShortcutsColumns(shortcutsHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -138,20 +177,20 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 		if err == io.EOF {
 			break
 		}
-		sourceExternal, err := strconv.ParseInt(record[0], 10, 64)
+		sourceExternal, err := strconv.ParseInt(record[shortcutsColumns.SourceExternal], 10, 64)
 		if err != nil {
 			return nil, err
 		}
-		targetExternal, err := strconv.ParseInt(record[1], 10, 64)
+		targetExternal, err := strconv.ParseInt(record[shortcutsColumns.TargetExternal], 10, 64)
 		if err != nil {
 			return nil, err
 		}
 
-		weight, err := strconv.ParseFloat(record[2], 64)
+		weight, err := strconv.ParseFloat(record[shortcutsColumns.Weight], 64)
 		if err != nil {
 			return nil, err
 		}
-		contractionExternal, err := strconv.ParseInt(record[3], 10, 64)
+		contractionExternal, err := strconv.ParseInt(record[shortcutsColumns.ViaExternal], 10, 64)
 		if err != nil {
 			return nil, err
 		}
@@ -169,48 +208,77 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 	return &graph, nil
 }
 
-// ImportRestrictionsFromFile Imports turn restrictions from file of CSV-format into graph
-//
-// Header of CSV-file:
-// from_vertex_id;via_vertex_id;to_vertex_id;
-// int;int;int
-//
-func (graph *Graph) ImportRestrictionsFromFile(fname string) error {
-	file, err := os.Open(fname)
-	if err != nil {
-		return err
+func prepareEdgesColumns(edgesHeader []string) (CSVHeaderImportEdges, error) {
+	ans := CSVHeaderImportEdges{
+		SourceExternal: -1,
+		TargetExternal: -1,
+		Weight:         -1,
 	}
-	reader := csv.NewReader(file)
-	reader.Comma = ';'
+	if len(edgesHeader) < 3 {
+		return ans, errors.Wrapf(ErrNotEnoughColumns, "Minimum 3 columns are needed. Provided: %d", len(edgesHeader))
+	}
+	for i, header := range edgesHeader {
+		switch strings.ToLower(header) {
+		case "from_vertex_id":
+			ans.SourceExternal = i
+		case "to_vertex_id":
+			ans.TargetExternal = i
+		case "weight":
+			ans.Weight = i
+		default:
+			// Nothing
+		}
+	}
+	return ans, nil
+}
 
-	// skip header
-	_, err = reader.Read()
-	if err != nil {
-		return err
+func prepareVerticesColumns(verticesHeader []string) (CSVHeaderImportVertices, error) {
+	ans := CSVHeaderImportVertices{
+		ID:         -1,
+		OrderPos:   -1,
+		Importance: -1,
 	}
-	// read lines
-	for {
-		record, err := reader.Read()
-		if err == io.EOF {
-			break
+	if len(verticesHeader) < 3 {
+		return ans, errors.Wrapf(ErrNotEnoughColumns, "Minimum 3 columns are needed. Provided: %d", len(verticesHeader))
+	}
+	for i, header := range verticesHeader {
+		switch strings.ToLower(header) {
+		case "vertex_id":
+			ans.ID = i
+		case "order_pos":
+			ans.OrderPos = i
+		case "importance":
+			ans.Importance = i
+		default:
+			// Nothing
 		}
-		sourceExternal, err := strconv.ParseInt(record[0], 10, 64)
-		if err != nil {
-			return err
-		}
-		viaExternal, err := strconv.ParseInt(record[1], 10, 64)
-		if err != nil {
-			return err
-		}
-		targetExternal, err := strconv.ParseInt(record[2], 10, 64)
-		if err != nil {
-			return err
-		}
+	}
+	return ans, nil
+}
 
-		err = graph.AddTurnRestriction(sourceExternal, viaExternal, targetExternal)
-		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("Can't add restriction between source_external_ID = '%d' and target_external_ID = '%d' via via_external_id = '%d'", sourceExternal, targetExternal, viaExternal))
+func prepareShortcutsColumns(verticesHeader []string) (CSVHeaderImportShortcuts, error) {
+	ans := CSVHeaderImportShortcuts{
+		SourceExternal: -1,
+		TargetExternal: -1,
+		ViaExternal:    -1,
+		Weight:         -1,
+	}
+	if len(verticesHeader) < 4 {
+		return ans, errors.Wrapf(ErrNotEnoughColumns, "Minimum 4 columns are needed. Provided: %d", len(verticesHeader))
+	}
+	for i, header := range verticesHeader {
+		switch strings.ToLower(header) {
+		case "from_vertex_id":
+			ans.SourceExternal = i
+		case "to_vertex_id":
+			ans.TargetExternal = i
+		case "via_vertex_id":
+			ans.ViaExternal = i
+		case "weight":
+			ans.Weight = i
+		default:
+			// Nothing
 		}
 	}
-	return nil
+	return ans, nil
 }
