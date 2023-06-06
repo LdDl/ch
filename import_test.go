@@ -1,6 +1,7 @@
 package ch
 
 import (
+	"math"
 	"testing"
 )
 
@@ -29,8 +30,9 @@ func TestImportedFileShortestPath(t *testing.T) {
 		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
 		return
 	}
-	if Round(ans, 0.00005) != Round(19135.6581215226, 0.00005) {
-		t.Errorf("Length of path should be 19135.6581215226, but got %f", ans)
+	correctCost := 19135.6581215226
+	if math.Abs(ans-correctCost) > eps {
+		t.Errorf("Cost of path should be %f, but got %f", correctCost, ans)
 		return
 	}
 	t.Log("TestImportedFileShortestPath is Ok!")

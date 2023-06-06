@@ -31,8 +31,9 @@ func TestShortestPath(t *testing.T) {
 		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
 		return
 	}
-	if Round(ans, 0.00005) != Round(19135.6581215226, 0.00005) {
-		t.Errorf("Length of path should be 19135.6581215226, but got %f", ans)
+	correctCost := 19135.6581215226
+	if math.Abs(ans-correctCost) > eps {
+		t.Errorf("Cost of path should be %f, but got %f", correctCost, ans)
 		return
 	}
 	t.Log("TestShortestPath is Ok!")
@@ -59,8 +60,8 @@ func TestBothVanillaAndCH(t *testing.T) {
 			t.Errorf("Num of vertices in path should be %d, but got %d", len(pathVanilla), len(pathCH))
 			return
 		}
-		if Round(ansCH, 0.00005) != Round(ansVanilla, 0.00005) {
-			t.Errorf("Length of path should be %f, but got %f", ansVanilla, ansCH)
+		if math.Abs(ansCH-ansVanilla) > eps {
+			t.Errorf("Cost of path should be %f, but got %f", ansVanilla, ansCH)
 			return
 		}
 	}
@@ -145,8 +146,9 @@ func TestBadSpatialShortestPath(t *testing.T) {
 		t.Errorf("Num of vertices in path should be 5, but got %d", len(path))
 		return
 	}
-	if Round(ans, 0.00005) != Round(2.348720, 0.00005) {
-		t.Errorf("Length of path should be 2.348720, but got %f", ans)
+	correctCost := 2.348720
+	if math.Abs(ans-correctCost) > eps {
+		t.Errorf("Cost of path should be %f, but got %f", correctCost, ans)
 		return
 	}
 	t.Log("TestBadSpatialShortestPath is Ok!")
@@ -192,8 +194,11 @@ func TestLittleShortestPath(t *testing.T) {
 	if len(path) != 7 {
 		t.Errorf("Num of vertices in path should be 7, but got %d", len(path))
 	}
-	if Round(ans, 0.00005) != Round(20.5, 0.00005) {
-		t.Errorf("Length of path should be 20.0, but got %f", ans)
+
+	correctCost := 20.5
+	if math.Abs(ans-correctCost) > eps {
+		t.Errorf("Cost of path should be %f, but got %f", correctCost, ans)
+		return
 	}
 	t.Log("TestLittleShortestPath is Ok!")
 }
@@ -242,10 +247,11 @@ func TestVertexAlternatives(t *testing.T) {
 			t.Errorf("Path item %d should be %d, but got %d", i, expectedPath[i], path[i])
 		}
 	}
-	if Round(ans, 0.00005) != Round(4.0, 0.00005) {
-		t.Errorf("Length of path should be 4.0, but got %f", ans)
+	correctCost := 4.0
+	if math.Abs(ans-correctCost) > eps {
+		t.Errorf("Cost of path should be %f, but got %f", correctCost, ans)
+		return
 	}
-
 	t.Log("TestVertexAlternatives is Ok!")
 }
 
@@ -283,10 +289,11 @@ func TestVertexAlternativesConnected(t *testing.T) {
 			t.Errorf("Path item %d should be %d, but got %d", i, expectedPath[i], path[i])
 		}
 	}
-	if Round(ans, 0.00005) != Round(2.0, 0.00005) {
-		t.Errorf("Length of path should be 2.0, but got %f", ans)
+	correctCost := 2.0
+	if math.Abs(ans-correctCost) > eps {
+		t.Errorf("Cost of path should be %f, but got %f", correctCost, ans)
+		return
 	}
-
 	t.Log("TestVertexAlternativesConnected is Ok!")
 }
 

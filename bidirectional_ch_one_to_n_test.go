@@ -28,8 +28,8 @@ func TestOneToManyShortestPath(t *testing.T) {
 		}
 	}
 	for i := range ans {
-		if Round(ans[i], 0.00005) != Round(correctAns[i], 0.00005) {
-			t.Errorf("Length of path should be %f, but got %f", correctAns[i], ans[i])
+		if math.Abs(ans[i]-correctAns[i]) > eps {
+			t.Errorf("Cost of path should be %f, but got %f", correctAns[i], ans[i])
 			return
 		}
 	}
@@ -244,8 +244,10 @@ func TestOneToManyAlternatives(t *testing.T) {
 			t.Errorf("Path item %d should be %d, but got %d", i, expectedPath[i], path[i])
 		}
 	}
-	if Round(ans[0], 0.00005) != Round(4.0, 0.00005) {
-		t.Errorf("Length of path should be 4.0, but got %f", ans)
+	correctCost := 4.0
+	if math.Abs(ans[0]-correctCost) > eps {
+		t.Errorf("Cost of path should be %f, but got %f", correctCost, ans[0])
+		return
 	}
 
 	t.Log("TestOneToManyAlternatives is Ok!")

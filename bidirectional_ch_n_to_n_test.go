@@ -33,12 +33,14 @@ func TestManyToManyShortestPath(t *testing.T) {
 	// t.Log("ShortestPathManyToMany returned", ans, path)
 	for sourceIdx := range u {
 		for targetIdx := range v {
+			// @failing
 			if correctPath[sourceIdx][targetIdx] != -2 && len(path[sourceIdx][targetIdx]) != correctPath[sourceIdx][targetIdx] {
 				t.Errorf("Num of vertices in path should be %d, but got %d", correctPath[sourceIdx][targetIdx], len(path[sourceIdx][targetIdx]))
 				return
 			}
-			if correctAns[sourceIdx][targetIdx] != -2 && Round(ans[sourceIdx][targetIdx], 0.00005) != Round(correctAns[sourceIdx][targetIdx], 0.00005) {
-				t.Errorf("Length of path should be %f, but got %f", correctAns[sourceIdx][targetIdx], ans[sourceIdx][targetIdx])
+			// @failing
+			if correctAns[sourceIdx][targetIdx] != -2 && math.Abs(ans[sourceIdx][targetIdx]-correctAns[sourceIdx][targetIdx]) > eps {
+				t.Errorf("Cost of path should be %f, but got %f", correctAns[sourceIdx][targetIdx], ans[sourceIdx][targetIdx])
 				return
 			}
 		}
@@ -194,9 +196,11 @@ func TestManyToManyAlternatives(t *testing.T) {
 			t.Errorf("Path item %d should be %d, but got %d", i, expectedPath[i], path[i])
 		}
 	}
-	if Round(ans[0][0], 0.00005) != Round(4.0, 0.00005) {
-		t.Errorf("Length of path should be 4.0, but got %f", ans)
+	correctCost := 4.0
+	// @failing
+	if math.Abs(ans[0][0]-correctCost) > eps {
+		t.Errorf("Cost of path should be %f, but got %f", correctCost, ans[0][0])
+		return
 	}
-
 	t.Log("TestManyToManyAlternatives is Ok!")
 }

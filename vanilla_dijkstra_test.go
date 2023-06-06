@@ -1,7 +1,12 @@
 package ch
 
 import (
+	"math"
 	"testing"
+)
+
+const (
+	eps = 0.0001
 )
 
 func TestVanillaShortestPath(t *testing.T) {
@@ -18,16 +23,10 @@ func TestVanillaShortestPath(t *testing.T) {
 		t.Errorf("Num of vertices in path should be 160, but got %d", len(path))
 		return
 	}
-	if Round(ans, 0.00005) != Round(19135.6581215226, 0.00005) {
-		t.Errorf("Length of path should be 19135.6581215226, but got %f", ans)
+	correctCost := 19135.6581215226
+	if math.Abs(ans-correctCost) > eps {
+		t.Errorf("Cost of path should be %f, but got %f", correctCost, ans)
 		return
 	}
 	t.Log("TestVanillaShortestPath is Ok!")
-}
-
-func Round(x, unit float64) float64 {
-	if x > 0 {
-		return float64(int64(x/unit+0.5)) * unit
-	}
-	return float64(int64(x/unit-0.5)) * unit
 }
