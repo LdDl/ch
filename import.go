@@ -13,6 +13,7 @@ import (
 
 var (
 	ErrNotEnoughColumns = fmt.Errorf("not enough columns")
+	ErrColumnNotFound   = fmt.Errorf("column not found")
 )
 
 // CSVHeaderImportEdges is just an helper structure to evaluate CSV columns for edges file
@@ -229,6 +230,15 @@ func prepareEdgesColumns(edgesHeader []string) (CSVHeaderImportEdges, error) {
 			// Nothing
 		}
 	}
+	if ans.SourceExternal < 0 {
+		return ans, errors.Wrap(ErrColumnNotFound, "Not found: 'from_vertex_id'")
+	}
+	if ans.TargetExternal < 0 {
+		return ans, errors.Wrap(ErrColumnNotFound, "Not found: 'to_vertex_id'")
+	}
+	if ans.Weight < 0 {
+		return ans, errors.Wrap(ErrColumnNotFound, "Not found: 'weight'")
+	}
 	return ans, nil
 }
 
@@ -252,6 +262,15 @@ func prepareVerticesColumns(verticesHeader []string) (CSVHeaderImportVertices, e
 		default:
 			// Nothing
 		}
+	}
+	if ans.ID < 0 {
+		return ans, errors.Wrap(ErrColumnNotFound, "Not found: 'vertex_id'")
+	}
+	if ans.OrderPos < 0 {
+		return ans, errors.Wrap(ErrColumnNotFound, "Not found: 'order_pos'")
+	}
+	if ans.Importance < 0 {
+		return ans, errors.Wrap(ErrColumnNotFound, "Not found: 'importance'")
 	}
 	return ans, nil
 }
@@ -279,6 +298,18 @@ func prepareShortcutsColumns(verticesHeader []string) (CSVHeaderImportShortcuts,
 		default:
 			// Nothing
 		}
+	}
+	if ans.SourceExternal < 0 {
+		return ans, errors.Wrap(ErrColumnNotFound, "Not found: 'from_vertex_id'")
+	}
+	if ans.TargetExternal < 0 {
+		return ans, errors.Wrap(ErrColumnNotFound, "Not found: 'to_vertex_id'")
+	}
+	if ans.ViaExternal < 0 {
+		return ans, errors.Wrap(ErrColumnNotFound, "Not found: 'via_vertex_id'")
+	}
+	if ans.Weight < 0 {
+		return ans, errors.Wrap(ErrColumnNotFound, "Not found: 'weight'")
 	}
 	return ans, nil
 }
