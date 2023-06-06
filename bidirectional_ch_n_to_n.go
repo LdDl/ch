@@ -30,9 +30,6 @@ func (graph *Graph) initShortestPathManyToMany(endpointCounts [directionsCount]i
 		queues[d] = make([]*vertexDistHeap, endpointCounts[d])
 		for endpointIdx := 0; endpointIdx < endpointCounts[d]; endpointIdx++ {
 			queryDist[d][endpointIdx] = make(map[int64]float64)
-			for i := range queryDist[d][endpointIdx] {
-				queryDist[d][endpointIdx][i] = Infinity
-			}
 			processed[d][endpointIdx] = make(map[int64]bool)
 			queues[d][endpointIdx] = &vertexDistHeap{}
 			heap.Init(queues[d][endpointIdx])
@@ -129,8 +126,12 @@ func (graph *Graph) directionalSearchManyToMany(d direction, endpointIndex int, 
 			if !ok {
 				localDist = Infinity
 			}
+			localDistTemp, ok := localQueryDist[temp]
+			if !ok {
+				localDistTemp = Infinity
+			}
 			alt := localDist + cost
-			if localQueryDist[temp] > alt {
+			if localDistTemp > alt {
 				localQueryDist[temp] = alt
 				prev[temp] = vertex.id
 				node := &vertexDist{
