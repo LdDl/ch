@@ -58,7 +58,7 @@ func TestVanillaTurnRestrictedShortestPath(t *testing.T) {
 		}
 	}
 
-	ans, path := graph.VanillaTurnRestrictedShortestPath(1, 5)
+	ans, path := graph.VanillaTurnRestrictedShortestPath(1, 5, nil)
 	rightPath := []int64{1, 2, 3, 4, 5}
 	if len(path) != 5 {
 		t.Errorf("Run 1: num of vertices in path should be 5, but got %d", len(path))
@@ -75,7 +75,7 @@ func TestVanillaTurnRestrictedShortestPath(t *testing.T) {
 		return
 	}
 
-	ans, path = graph.VanillaTurnRestrictedShortestPath(2, 7)
+	ans, path = graph.VanillaTurnRestrictedShortestPath(2, 7, nil)
 	rightPath = []int64{2, 3, 4, 5, 7}
 	if len(path) != 5 {
 		t.Errorf("Run 2: num of vertices in path should be 5, but got %d", len(path))
@@ -92,7 +92,7 @@ func TestVanillaTurnRestrictedShortestPath(t *testing.T) {
 		return
 	}
 
-	ans, path = graph.VanillaTurnRestrictedShortestPath(1, 7)
+	ans, path = graph.VanillaTurnRestrictedShortestPath(1, 7, nil)
 	rightPath = []int64{1, 2, 3, 4, 5, 7}
 	if len(path) != 6 {
 		t.Errorf("Run 3: num of vertices in path should be 6, but got %d", len(path))
