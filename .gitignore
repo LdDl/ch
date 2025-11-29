@@ -11,3 +11,5 @@ cmd/osm2ch/*.csv
 *.exe
 benchmarks/*.txt
 /cmd
+*.prof
+*.test

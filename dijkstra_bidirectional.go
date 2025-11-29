@@ -33,38 +33,46 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	return graph.shortestPath(endpoints)
 }
 
-func (graph *Graph) initShortestPath() (queryDist [directionsCount][]float64, processed [directionsCount][]bool, queues [directionsCount]*vertexDistHeap) {
-	for d := forward; d < directionsCount; d++ {
-		queryDist[d] = make([]float64, len(graph.Vertices))
-		for i := range queryDist[d] {
-			queryDist[d][i] = Infinity
+func (graph *Graph) initShortestPath() (queues [directionsCount]*vertexDistHeap) {
+	n := len(graph.Vertices)
+
+	// Increment query epoch to clears all previous distances
+	graph.queryEpoch++
+
+	// Lazy initialization of query buffers (only on first query)
+	if graph.queryDist[forward] == nil {
+		for d := forward; d < directionsCount; d++ {
+			graph.queryDist[d] = make([]float64, n)
+			graph.queryEpochs[d] = make([]int64, n)
+			graph.queryPrev[d] = make(map[int64]int64)
 		}
-		processed[d] = make([]bool, len(graph.Vertices))
+	}
+
+	// Clear prev maps by recreating them (reuses memory in Go's map implementation)
+	for d := forward; d < directionsCount; d++ {
+		graph.queryPrev[d] = make(map[int64]int64)
 		queues[d] = &vertexDistHeap{}
 		heap.Init(queues[d])
 	}
+
 	return
 }
 
 func (graph *Graph) shortestPath(endpoints [directionsCount]int64) (float64, []int64) {
-	queryDist, processed, queues := graph.initShortestPath()
+	queues := graph.initShortestPath()
 	for d := forward; d < directionsCount; d++ {
-		processed[d][endpoints[d]] = true
-		queryDist[d][endpoints[d]] = 0
+		graph.queryEpochs[d][endpoints[d]] = graph.queryEpoch
+		graph.queryDist[d][endpoints[d]] = 0
 		heapEndpoint := &vertexDist{
 			id:   endpoints[d],
 			dist: 0,
 		}
 		heap.Push(queues[d], heapEndpoint)
 	}
-	return graph.shortestPathCore(queryDist, processed, queues)
+	return graph.shortestPathCore(queues)
 }
 
-func (graph *Graph) shortestPathCore(queryDist [directionsCount][]float64, processed [directionsCount][]bool, queues [directionsCount]*vertexDistHeap) (float64, []int64) {
-	var prev [directionsCount]map[int64]int64
-	for d := forward; d < directionsCount; d++ {
-		prev[d] = make(map[int64]int64)
-	}
+func (graph *Graph) shortestPathCore(queues [directionsCount]*vertexDistHeap) (float64, []int64) {
 	estimate := Infinity
 	middleID := int64(-1)
 	for {
@@ -75,7 +83,7 @@ func (graph *Graph) shortestPathCore(queryDist [directionsCount][]float64, proce
 			}
 			queuesProcessed = true
 			reverseDirection := (d + 1) % directionsCount
-			graph.directionalSearch(d, queues[d], processed[d], processed[reverseDirection], queryDist[d], queryDist[reverseDirection], prev[d], &estimate, &middleID)
+			graph.directionalSearch(d, queues[d], reverseDirection, &estimate, &middleID)
 		}
 		if !queuesProcessed {
 			break
@@ -84,13 +92,13 @@ func (graph *Graph) shortestPathCore(queryDist [directionsCount][]float64, proce
 	if estimate == Infinity {
 		return -1.0, nil
 	}
-	return estimate, graph.ComputePath(middleID, prev[forward], prev[backward])
+	return estimate, graph.ComputePath(middleID, graph.queryPrev[forward], graph.queryPrev[backward])
 }
 
-func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, localProcessed, reverseProcessed []bool, localQueryDist, reverseQueryDist []float64, prev map[int64]int64, estimate *float64, middleID *int64) {
+func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, reverseDirection direction, estimate *float64, middleID *int64) {
 	vertex := heap.Pop(q).(*vertexDist)
 	if vertex.dist <= *estimate {
-		localProcessed[vertex.id] = true
+		graph.queryEpochs[d][vertex.id] = graph.queryEpoch
 		// Edge relaxation in a forward propagation
 		var vertexList []incidentEdge
 		if d == forward {
@@ -102,10 +110,12 @@ func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, localProce
 			temp := vertexList[i].vertexID
 			cost := vertexList[i].weight
 			if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
-				alt := localQueryDist[vertex.id] + cost
-				if localQueryDist[temp] > alt {
-					localQueryDist[temp] = alt
-					prev[temp] = vertex.id
+				alt := graph.queryDist[d][vertex.id] + cost
+				// Check if temp was visited this epoch, if not treat as Infinity
+				if graph.queryEpochs[d][temp] != graph.queryEpoch || graph.queryDist[d][temp] > alt {
+					graph.queryDist[d][temp] = alt
+					graph.queryEpochs[d][temp] = graph.queryEpoch
+					graph.queryPrev[d][temp] = vertex.id
 					node := &vertexDist{
 						id:   temp,
 						dist: alt,
@@ -115,10 +125,11 @@ func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, localProce
 			}
 		}
 	}
-	if reverseProcessed[vertex.id] {
-		if vertex.dist+reverseQueryDist[vertex.id] < *estimate {
+	// Check if reverse direction has processed this vertex
+	if graph.queryEpochs[reverseDirection][vertex.id] == graph.queryEpoch {
+		if vertex.dist+graph.queryDist[reverseDirection][vertex.id] < *estimate {
 			*middleID = vertex.id
-			*estimate = vertex.dist + reverseQueryDist[vertex.id]
+			*estimate = vertex.dist + graph.queryDist[reverseDirection][vertex.id]
 		}
 	}
 }
@@ -141,14 +152,14 @@ func (graph *Graph) ShortestPathWithAlternatives(sources, targets []VertexAltern
 }
 
 func (graph *Graph) shortestPathWithAlternatives(endpoints [directionsCount][]vertexAlternativeInternal) (float64, []int64) {
-	queryDist, processed, queues := graph.initShortestPath()
+	queues := graph.initShortestPath()
 	for d := forward; d < directionsCount; d++ {
 		for _, endpoint := range endpoints[d] {
 			if endpoint.vertexNum == vertexNotFound {
 				continue
 			}
-			processed[d][endpoint.vertexNum] = true
-			queryDist[d][endpoint.vertexNum] = endpoint.additionalDistance
+			graph.queryEpochs[d][endpoint.vertexNum] = graph.queryEpoch
+			graph.queryDist[d][endpoint.vertexNum] = endpoint.additionalDistance
 			heapEndpoint := &vertexDist{
 				id:   endpoint.vertexNum,
 				dist: endpoint.additionalDistance,
@@ -156,7 +167,7 @@ func (graph *Graph) shortestPathWithAlternatives(endpoints [directionsCount][]ve
 			heap.Push(queues[d], heapEndpoint)
 		}
 	}
-	return graph.shortestPathCore(queryDist, processed, queues)
+	return graph.shortestPathCore(queues)
 }
 
 // ComputePath Returns slice of IDs (user defined) of computed path
