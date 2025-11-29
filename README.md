@@ -67,7 +67,7 @@ And then you are good to go
 
 ## Usage
 
-* Shortest path
+* Shortest path (single-threaded)
 
     Please see this [test file](bidirectional_ch_test.go#L17)
 
@@ -80,6 +80,27 @@ And then you are good to go
     v := 452090 // Define target vertex
     ans, path := g.ShortestPath(u, v) // Get shortest path and it's cost between source and target vertex
     ```
+
+* Shortest path (thread-safe for concurrent use)
+
+    Please see this [test file](query_threadsafe_test.go#L11)
+
+    If you need to execute shortest path queries from multiple goroutines concurrently, use the `QueryPool` API:
+    ```go
+    g := Graph{} // Prepare variable for storing graph
+    graphFromCSV(&g, "data/pgrouting_osm.csv") // Import CSV-file file into programm
+    g.PrepareContractionHierarchies() // Compute contraction hierarchies
+
+    pool := g.NewQueryPool() // Create a query pool for concurrent access
+
+    // Now you can safely call from multiple goroutines:
+    ans, path := pool.ShortestPath(u, v)
+
+    // One-to-many queries are also supported:
+    costs, paths := pool.ShortestPathOneToMany(source, targets)
+    ```
+
+    **Important**: The default `Graph.ShortestPath()` method is NOT thread-safe. If you call it from multiple goroutines without synchronization, you may get incorrect results. Use `QueryPool` for concurrent scenarios.
 
 * Isochrones
 

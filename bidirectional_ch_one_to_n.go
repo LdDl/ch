@@ -46,6 +46,10 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 		graph.oneToManyEpoch++
 		epoch := graph.oneToManyEpoch
 
+		// Clear prev maps for each target to avoid stale path reconstruction
+		graph.oneToManyPrev[forward] = make(map[int64]int64)
+		graph.oneToManyPrev[backward] = make(map[int64]int64)
+
 		if source == target {
 			estimateAll = append(estimateAll, 0)
 			pathAll = append(pathAll, []int64{source})
@@ -154,6 +158,10 @@ func (graph *Graph) ShortestPathOneToManyWithAlternatives(sourceAlternatives []V
 		// Increment epoch for each target query
 		graph.oneToManyEpoch++
 		epoch := graph.oneToManyEpoch
+
+		// Clear prev maps for each target to avoid stale path reconstruction
+		graph.oneToManyPrev[forward] = make(map[int64]int64)
+		graph.oneToManyPrev[backward] = make(map[int64]int64)
 
 		targetAlternativesInternal := graph.vertexAlternativesToInternal(targetAlternatives)
 
