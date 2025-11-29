@@ -33,6 +33,12 @@ type Graph struct {
 	queryEpochs [directionsCount][]int64
 	// Previous vertex maps for path reconstruction
 	queryPrev [directionsCount]map[int64]int64
+
+	// OneToMany query state buffers (reused across queries)
+	oneToManyDist    [directionsCount][]float64
+	oneToManyEpochs  [directionsCount][]int64
+	oneToManyPrev    [directionsCount]map[int64]int64
+	oneToManyEpoch   int64
 }
 
 // NewGraph returns pointer to created Graph and does preallocations for processing purposes
