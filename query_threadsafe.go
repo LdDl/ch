@@ -18,6 +18,13 @@ type QueryState struct {
 	prev [directionsCount]map[int64]int64
 	// Priority queues for bidirectional search
 	queues [directionsCount]*vertexDistHeap
+
+	// ManyToMany query state buffers
+	// Outer slice indexed by endpoint, inner slice indexed by vertex
+	manyToManyDist   [directionsCount][][]float64
+	manyToManyEpochs [directionsCount][][]int64
+	manyToManyPrev   [directionsCount][]map[int64]int64
+	manyToManyEpoch  int64
 }
 
 // QueryPool provides thread-safe access to pooled QueryState objects.
@@ -406,4 +413,363 @@ func (qp *QueryPool) ShortestPathOneToManyWithAlternatives(sourceAlternatives []
 	}
 
 	return estimateAll, pathAll
+}
+
+// ShortestPathManyToMany computes shortest paths between multiple sources and targets (thread-safe).
+// This method can be safely called from multiple goroutines concurrently.
+//
+// sources - set of user's defined IDs of source vertices
+// targets - set of user's defined IDs of target vertices
+func (qp *QueryPool) ShortestPathManyToMany(sources, targets []int64) ([][]float64, [][][]int64) {
+	// Copy input slices to avoid modifying caller's data
+	sourcesCopy := make([]int64, len(sources))
+	targetsCopy := make([]int64, len(targets))
+	copy(sourcesCopy, sources)
+	copy(targetsCopy, targets)
+
+	endpoints := [directionsCount][]int64{sourcesCopy, targetsCopy}
+	for d, directionEndpoints := range endpoints {
+		for i, endpoint := range directionEndpoints {
+			var ok bool
+			if endpoints[d][i], ok = qp.graph.mapping[endpoint]; !ok {
+				endpoints[d][i] = -1
+			}
+		}
+	}
+
+	state := qp.acquireState()
+	defer qp.releaseState(state)
+
+	return qp.shortestPathManyToMany(state, endpoints)
+}
+
+// initManyToManyBuffers ensures buffers are allocated and properly sized for the query
+func (qp *QueryPool) initManyToManyBuffers(state *QueryState, numSources, numTargets int) {
+	n := len(qp.graph.Vertices)
+	endpointCounts := [directionsCount]int{numSources, numTargets}
+
+	for d := forward; d < directionsCount; d++ {
+		// Grow outer slices if needed
+		if len(state.manyToManyDist[d]) < endpointCounts[d] {
+			newDist := make([][]float64, endpointCounts[d])
+			newEpochs := make([][]int64, endpointCounts[d])
+			newPrev := make([]map[int64]int64, endpointCounts[d])
+			copy(newDist, state.manyToManyDist[d])
+			copy(newEpochs, state.manyToManyEpochs[d])
+			copy(newPrev, state.manyToManyPrev[d])
+			state.manyToManyDist[d] = newDist
+			state.manyToManyEpochs[d] = newEpochs
+			state.manyToManyPrev[d] = newPrev
+		}
+
+		// Ensure each endpoint has properly sized inner slices
+		for i := 0; i < endpointCounts[d]; i++ {
+			if len(state.manyToManyDist[d][i]) < n {
+				state.manyToManyDist[d][i] = make([]float64, n)
+				state.manyToManyEpochs[d][i] = make([]int64, n)
+			}
+			if state.manyToManyPrev[d][i] == nil {
+				state.manyToManyPrev[d][i] = make(map[int64]int64)
+			}
+		}
+	}
+}
+
+// getManyToManyDist returns distance for endpoint at given vertex, using epoch for lazy clearing
+func (qp *QueryPool) getManyToManyDist(state *QueryState, d direction, endpointIdx int, vertexID int64) float64 {
+	if state.manyToManyEpochs[d][endpointIdx][vertexID] != state.manyToManyEpoch {
+		return Infinity
+	}
+	return state.manyToManyDist[d][endpointIdx][vertexID]
+}
+
+// setManyToManyDist sets distance for endpoint at given vertex
+func (qp *QueryPool) setManyToManyDist(state *QueryState, d direction, endpointIdx int, vertexID int64, dist float64) {
+	state.manyToManyDist[d][endpointIdx][vertexID] = dist
+	state.manyToManyEpochs[d][endpointIdx][vertexID] = state.manyToManyEpoch
+}
+
+func (qp *QueryPool) shortestPathManyToMany(state *QueryState, endpoints [directionsCount][]int64) ([][]float64, [][][]int64) {
+	numSources := len(endpoints[forward])
+	numTargets := len(endpoints[backward])
+
+	// Increment epoch for lazy buffer clearing
+	state.manyToManyEpoch++
+	qp.initManyToManyBuffers(state, numSources, numTargets)
+
+	// Clear prev maps
+	for d := forward; d < directionsCount; d++ {
+		endpointCount := numSources
+		if d == backward {
+			endpointCount = numTargets
+		}
+		for i := 0; i < endpointCount; i++ {
+			for k := range state.manyToManyPrev[d][i] {
+				delete(state.manyToManyPrev[d][i], k)
+			}
+		}
+	}
+
+	// Initialize queues
+	queues := [directionsCount][]*vertexDistHeap{}
+	for d := forward; d < directionsCount; d++ {
+		endpointCount := numSources
+		if d == backward {
+			endpointCount = numTargets
+		}
+		queues[d] = make([]*vertexDistHeap, endpointCount)
+		for i := 0; i < endpointCount; i++ {
+			queues[d][i] = &vertexDistHeap{}
+			heap.Init(queues[d][i])
+		}
+	}
+
+	// Initialize sources and targets
+	for d := forward; d < directionsCount; d++ {
+		for endpointIdx, endpoint := range endpoints[d] {
+			if endpoint == -1 {
+				continue
+			}
+			qp.setManyToManyDist(state, d, endpointIdx, endpoint, 0)
+			heap.Push(queues[d][endpointIdx], &vertexDist{id: endpoint, dist: 0})
+		}
+	}
+
+	// Initialize estimates matrix
+	estimates := make([][]float64, numSources)
+	middleIDs := make([][]int64, numSources)
+	for i := 0; i < numSources; i++ {
+		estimates[i] = make([]float64, numTargets)
+		middleIDs[i] = make([]int64, numTargets)
+		for j := 0; j < numTargets; j++ {
+			estimates[i][j] = Infinity
+			middleIDs[i][j] = -1
+		}
+	}
+
+	// Main search loop
+	for {
+		queuesProcessed := false
+		for d := forward; d < directionsCount; d++ {
+			endpointCount := numSources
+			if d == backward {
+				endpointCount = numTargets
+			}
+			for endpointIdx := 0; endpointIdx < endpointCount; endpointIdx++ {
+				if queues[d][endpointIdx].Len() == 0 {
+					continue
+				}
+				queuesProcessed = true
+				qp.directionalSearchManyToMany(state, d, endpointIdx, queues, estimates, middleIDs, numSources, numTargets)
+			}
+		}
+		if !queuesProcessed {
+			break
+		}
+	}
+
+	// Build paths
+	paths := make([][][]int64, numSources)
+	for sourceIdx := 0; sourceIdx < numSources; sourceIdx++ {
+		paths[sourceIdx] = make([][]int64, numTargets)
+		for targetIdx := 0; targetIdx < numTargets; targetIdx++ {
+			if estimates[sourceIdx][targetIdx] == Infinity {
+				estimates[sourceIdx][targetIdx] = -1
+				continue
+			}
+			paths[sourceIdx][targetIdx] = qp.graph.ComputePath(
+				middleIDs[sourceIdx][targetIdx],
+				state.manyToManyPrev[forward][sourceIdx],
+				state.manyToManyPrev[backward][targetIdx],
+			)
+		}
+	}
+
+	return estimates, paths
+}
+
+func (qp *QueryPool) directionalSearchManyToMany(state *QueryState, d direction, endpointIdx int, queues [directionsCount][]*vertexDistHeap, estimates [][]float64, middleIDs [][]int64, numSources, numTargets int) {
+	q := queues[d][endpointIdx]
+	vertex := heap.Pop(q).(*vertexDist)
+
+	// Skip if we've already found a better path
+	currentDist := qp.getManyToManyDist(state, d, endpointIdx, vertex.id)
+	if vertex.dist > currentDist {
+		return
+	}
+
+	// Edge relaxation
+	var vertexList []incidentEdge
+	if d == forward {
+		vertexList = qp.graph.Vertices[vertex.id].outIncidentEdges
+	} else {
+		vertexList = qp.graph.Vertices[vertex.id].inIncidentEdges
+	}
+
+	for i := range vertexList {
+		temp := vertexList[i].vertexID
+		cost := vertexList[i].weight
+
+		// Only explore upward in CH
+		if qp.graph.Vertices[vertex.id].orderPos < qp.graph.Vertices[temp].orderPos {
+			alt := vertex.dist + cost
+			tempDist := qp.getManyToManyDist(state, d, endpointIdx, temp)
+			if alt < tempDist {
+				qp.setManyToManyDist(state, d, endpointIdx, temp, alt)
+				state.manyToManyPrev[d][endpointIdx][temp] = vertex.id
+				heap.Push(q, &vertexDist{id: temp, dist: alt})
+			}
+		}
+	}
+
+	// Check for meeting points with reverse direction
+	reverseEndpointCount := numTargets
+	if d == backward {
+		reverseEndpointCount = numSources
+	}
+
+	for revIdx := 0; revIdx < reverseEndpointCount; revIdx++ {
+		revDist := qp.getManyToManyDist(state, 1-d, revIdx, vertex.id)
+		if revDist == Infinity {
+			continue
+		}
+
+		var sourceIdx, targetIdx int
+		if d == forward {
+			sourceIdx, targetIdx = endpointIdx, revIdx
+		} else {
+			sourceIdx, targetIdx = revIdx, endpointIdx
+		}
+
+		newEstimate := vertex.dist + revDist
+		if newEstimate < estimates[sourceIdx][targetIdx] {
+			estimates[sourceIdx][targetIdx] = newEstimate
+			middleIDs[sourceIdx][targetIdx] = vertex.id
+		}
+	}
+}
+
+// ShortestPathManyToManyWithAlternatives computes shortest paths with alternatives (thread-safe).
+// This method can be safely called from multiple goroutines concurrently.
+//
+// sourcesAlternatives - set of user's defined IDs of source vertices with additional penalty
+// targetsAlternatives - set of user's defined IDs of target vertices with additional penalty
+func (qp *QueryPool) ShortestPathManyToManyWithAlternatives(sourcesAlternatives, targetsAlternatives [][]VertexAlternative) ([][]float64, [][][]int64) {
+	endpoints := [directionsCount][][]VertexAlternative{sourcesAlternatives, targetsAlternatives}
+	var endpointsInternal [directionsCount][][]vertexAlternativeInternal
+	for d, directionEndpoints := range endpoints {
+		endpointsInternal[d] = make([][]vertexAlternativeInternal, 0, len(directionEndpoints))
+		for _, alternatives := range directionEndpoints {
+			endpointsInternal[d] = append(endpointsInternal[d], qp.graph.vertexAlternativesToInternal(alternatives))
+		}
+	}
+
+	state := qp.acquireState()
+	defer qp.releaseState(state)
+
+	return qp.shortestPathManyToManyWithAlternatives(state, endpointsInternal)
+}
+
+func (qp *QueryPool) shortestPathManyToManyWithAlternatives(state *QueryState, endpoints [directionsCount][][]vertexAlternativeInternal) ([][]float64, [][][]int64) {
+	numSources := len(endpoints[forward])
+	numTargets := len(endpoints[backward])
+
+	// Increment epoch for lazy buffer clearing
+	state.manyToManyEpoch++
+	qp.initManyToManyBuffers(state, numSources, numTargets)
+
+	// Clear prev maps
+	for d := forward; d < directionsCount; d++ {
+		endpointCount := numSources
+		if d == backward {
+			endpointCount = numTargets
+		}
+		for i := 0; i < endpointCount; i++ {
+			for k := range state.manyToManyPrev[d][i] {
+				delete(state.manyToManyPrev[d][i], k)
+			}
+		}
+	}
+
+	// Initialize queues
+	queues := [directionsCount][]*vertexDistHeap{}
+	for d := forward; d < directionsCount; d++ {
+		endpointCount := numSources
+		if d == backward {
+			endpointCount = numTargets
+		}
+		queues[d] = make([]*vertexDistHeap, endpointCount)
+		for i := 0; i < endpointCount; i++ {
+			queues[d][i] = &vertexDistHeap{}
+			heap.Init(queues[d][i])
+		}
+	}
+
+	// Initialize with alternatives
+	for d := forward; d < directionsCount; d++ {
+		for endpointIdx, alternatives := range endpoints[d] {
+			for _, alt := range alternatives {
+				if alt.vertexNum == vertexNotFound {
+					continue
+				}
+				currentDist := qp.getManyToManyDist(state, d, endpointIdx, alt.vertexNum)
+				if alt.additionalDistance < currentDist {
+					qp.setManyToManyDist(state, d, endpointIdx, alt.vertexNum, alt.additionalDistance)
+					heap.Push(queues[d][endpointIdx], &vertexDist{id: alt.vertexNum, dist: alt.additionalDistance})
+				}
+			}
+		}
+	}
+
+	// Initialize estimates matrix
+	estimates := make([][]float64, numSources)
+	middleIDs := make([][]int64, numSources)
+	for i := 0; i < numSources; i++ {
+		estimates[i] = make([]float64, numTargets)
+		middleIDs[i] = make([]int64, numTargets)
+		for j := 0; j < numTargets; j++ {
+			estimates[i][j] = Infinity
+			middleIDs[i][j] = -1
+		}
+	}
+
+	// Main search loop
+	for {
+		queuesProcessed := false
+		for d := forward; d < directionsCount; d++ {
+			endpointCount := numSources
+			if d == backward {
+				endpointCount = numTargets
+			}
+			for endpointIdx := 0; endpointIdx < endpointCount; endpointIdx++ {
+				if queues[d][endpointIdx].Len() == 0 {
+					continue
+				}
+				queuesProcessed = true
+				qp.directionalSearchManyToMany(state, d, endpointIdx, queues, estimates, middleIDs, numSources, numTargets)
+			}
+		}
+		if !queuesProcessed {
+			break
+		}
+	}
+
+	// Build paths
+	paths := make([][][]int64, numSources)
+	for sourceIdx := 0; sourceIdx < numSources; sourceIdx++ {
+		paths[sourceIdx] = make([][]int64, numTargets)
+		for targetIdx := 0; targetIdx < numTargets; targetIdx++ {
+			if estimates[sourceIdx][targetIdx] == Infinity {
+				estimates[sourceIdx][targetIdx] = -1
+				continue
+			}
+			paths[sourceIdx][targetIdx] = qp.graph.ComputePath(
+				middleIDs[sourceIdx][targetIdx],
+				state.manyToManyPrev[forward][sourceIdx],
+				state.manyToManyPrev[backward][targetIdx],
+			)
+		}
+	}
+
+	return estimates, paths
 }

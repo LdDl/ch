@@ -213,3 +213,98 @@ func BenchmarkQueryPoolConcurrent(b *testing.B) {
 		}
 	})
 }
+
+func TestQueryPoolShortestPathManyToMany(t *testing.T) {
+	g := Graph{}
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Please wait until contraction hierarchy is prepared")
+	g.PrepareContractionHierarchies()
+	t.Log("TestQueryPoolShortestPathManyToMany is starting...")
+
+	pool := g.NewQueryPool()
+
+	sources := []int64{106600, 69618}
+	targets := []int64{5924, 81611, 69618}
+
+	// Get results from pool
+	costsPool, pathsPool := pool.ShortestPathManyToMany(sources, targets)
+	// Get results from graph directly
+	costsGraph, pathsGraph := g.ShortestPathManyToMany(sources, targets)
+
+	// Compare results
+	for i := range sources {
+		for j := range targets {
+			if math.Abs(costsPool[i][j]-costsGraph[i][j]) > eps {
+				t.Errorf("Cost mismatch for [%d][%d]: pool=%v, graph=%v", i, j, costsPool[i][j], costsGraph[i][j])
+			}
+			if len(pathsPool[i][j]) != len(pathsGraph[i][j]) {
+				t.Errorf("Path length mismatch for [%d][%d]: pool=%v, graph=%v", i, j, len(pathsPool[i][j]), len(pathsGraph[i][j]))
+			}
+		}
+	}
+	t.Log("TestQueryPoolShortestPathManyToMany is Ok!")
+}
+
+func TestQueryPoolConcurrentManyToMany(t *testing.T) {
+	g := Graph{}
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Please wait until contraction hierarchy is prepared")
+	g.PrepareContractionHierarchies()
+	t.Log("TestQueryPoolConcurrentManyToMany is starting...")
+
+	pool := g.NewQueryPool()
+
+	// Run many concurrent ManyToMany queries
+	numGoroutines := 10
+	numQueries := 50
+
+	var wg sync.WaitGroup
+	errors := make(chan string, numGoroutines*numQueries)
+
+	sources := []int64{106600, 69618}
+	targets := []int64{5924, 81611, 69618}
+
+	// Pre-compute expected results
+	expectedCosts, expectedPaths := g.ShortestPathManyToMany(sources, targets)
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j < numQueries; j++ {
+				costs, paths := pool.ShortestPathManyToMany(sources, targets)
+				for si := range sources {
+					for ti := range targets {
+						if math.Abs(costs[si][ti]-expectedCosts[si][ti]) > eps {
+							errors <- "cost mismatch"
+						}
+						if len(paths[si][ti]) != len(expectedPaths[si][ti]) {
+							errors <- "path mismatch"
+						}
+					}
+				}
+			}
+		}()
+	}
+
+	wg.Wait()
+	close(errors)
+
+	var errCount int
+	for range errors {
+		errCount++
+	}
+	if errCount > 0 {
+		t.Errorf("Concurrent ManyToMany queries produced %d errors", errCount)
+		return
+	}
+	t.Log("TestQueryPoolConcurrentManyToMany is Ok!")
+}
