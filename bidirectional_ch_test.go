@@ -395,3 +395,172 @@ func generateSyntheticGraph(verticesNum int) (*Graph, error) {
 	graph.PrepareContractionHierarchies()
 	return &graph, nil
 }
+
+// TestAllShortestPathMethods compares all shortest path methods to ensure they produce identical results.
+// It picks 10 random sources and 10 random targets, then compares:
+// - ShortestPath (NxM calls)
+// - ShortestPathOneToMany (N calls)
+// - ShortestPathManyToMany (1 call)
+// - VanillaShortestPath (NxM calls)
+func TestAllShortestPathMethods(t *testing.T) {
+	rand.Seed(1337)
+	g := Graph{}
+	err := graphFromCSV(&g, "./data/pgrouting_osm.csv")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("Please wait until contraction hierarchy is prepared")
+	g.PrepareContractionHierarchies()
+	t.Log("TestAllShortestPathMethods is starting...")
+
+	const numSources = 10
+	const numTargets = 10
+
+	sources := make([]int64, numSources)
+	targets := make([]int64, numTargets)
+	for i := 0; i < numSources; i++ {
+		sources[i] = g.Vertices[rand.Intn(len(g.Vertices))].Label
+	}
+	for i := 0; i < numTargets; i++ {
+		targets[i] = g.Vertices[rand.Intn(len(g.Vertices))].Label
+	}
+
+	t.Logf("Sources (%d): %v", numSources, sources)
+	t.Logf("Targets (%d): %v", numTargets, targets)
+
+	// 1. ShortestPath (NxM calls)
+	t.Log("Running ShortestPath (NxM calls)...")
+	costsSP := make([][]float64, numSources)
+	pathLensSP := make([][]int, numSources)
+	startSP := time.Now()
+	for i, src := range sources {
+		costsSP[i] = make([]float64, numTargets)
+		pathLensSP[i] = make([]int, numTargets)
+		for j, tgt := range targets {
+			cost, path := g.ShortestPath(src, tgt)
+			costsSP[i][j] = cost
+			pathLensSP[i][j] = len(path)
+		}
+	}
+	durationSP := time.Since(startSP)
+	t.Logf("ShortestPath (NxM = %d calls): %v", numSources*numTargets, durationSP)
+
+	// 2. ShortestPathOneToMany (N calls)
+	t.Log("Running ShortestPathOneToMany (N calls)...")
+	costsO2M := make([][]float64, numSources)
+	pathLensO2M := make([][]int, numSources)
+	startO2M := time.Now()
+	for i, src := range sources {
+		costs, paths := g.ShortestPathOneToMany(src, targets)
+		costsO2M[i] = costs
+		pathLensO2M[i] = make([]int, numTargets)
+		for j := range paths {
+			pathLensO2M[i][j] = len(paths[j])
+		}
+	}
+	durationO2M := time.Since(startO2M)
+	t.Logf("ShortestPathOneToMany (N = %d calls): %v", numSources, durationO2M)
+
+	// 3. ShortestPathManyToMany (1 call)
+	t.Log("Running ShortestPathManyToMany (1 call)...")
+	startM2M := time.Now()
+	costsM2M, pathsM2M := g.ShortestPathManyToMany(sources, targets)
+	durationM2M := time.Since(startM2M)
+	pathLensM2M := make([][]int, numSources)
+	for i := range pathsM2M {
+		pathLensM2M[i] = make([]int, numTargets)
+		for j := range pathsM2M[i] {
+			pathLensM2M[i][j] = len(pathsM2M[i][j])
+		}
+	}
+	t.Logf("ShortestPathManyToMany (1 call): %v", durationM2M)
+
+	// 4. VanillaShortestPath (NxM calls)
+	t.Log("Running VanillaShortestPath (NxM calls)...")
+	costsVanilla := make([][]float64, numSources)
+	pathLensVanilla := make([][]int, numSources)
+	startVanilla := time.Now()
+	for i, src := range sources {
+		costsVanilla[i] = make([]float64, numTargets)
+		pathLensVanilla[i] = make([]int, numTargets)
+		for j, tgt := range targets {
+			cost, path := g.VanillaShortestPath(src, tgt)
+			costsVanilla[i][j] = cost
+			pathLensVanilla[i][j] = len(path)
+		}
+	}
+	durationVanilla := time.Since(startVanilla)
+	t.Logf("VanillaShortestPath (NxM = %d calls): %v", numSources*numTargets, durationVanilla)
+
+	// Compare results
+	t.Log("Comparing results...")
+	allMatch := true
+
+	for i := 0; i < numSources; i++ {
+		for j := 0; j < numTargets; j++ {
+			src, tgt := sources[i], targets[j]
+
+			// Get all costs
+			costSP := costsSP[i][j]
+			costO2M := costsO2M[i][j]
+			costM2M := costsM2M[i][j]
+			costVanilla := costsVanilla[i][j]
+
+			// Compare costs (use Vanilla as ground truth)
+			if math.Abs(costSP-costVanilla) > eps {
+				t.Errorf("[%d][%d] src=%d tgt=%d: ShortestPath cost=%f != Vanilla cost=%f",
+					i, j, src, tgt, costSP, costVanilla)
+				allMatch = false
+			}
+			if math.Abs(costO2M-costVanilla) > eps {
+				t.Errorf("[%d][%d] src=%d tgt=%d: OneToMany cost=%f != Vanilla cost=%f",
+					i, j, src, tgt, costO2M, costVanilla)
+				allMatch = false
+			}
+			if math.Abs(costM2M-costVanilla) > eps {
+				t.Errorf("[%d][%d] src=%d tgt=%d: ManyToMany cost=%f != Vanilla cost=%f",
+					i, j, src, tgt, costM2M, costVanilla)
+				allMatch = false
+			}
+
+			// Compare path lengths
+			lenSP := pathLensSP[i][j]
+			lenO2M := pathLensO2M[i][j]
+			lenM2M := pathLensM2M[i][j]
+			lenVanilla := pathLensVanilla[i][j]
+
+			if lenSP != lenVanilla {
+				t.Errorf("[%d][%d] src=%d tgt=%d: ShortestPath pathLen=%d != Vanilla pathLen=%d",
+					i, j, src, tgt, lenSP, lenVanilla)
+				allMatch = false
+			}
+			if lenO2M != lenVanilla {
+				t.Errorf("[%d][%d] src=%d tgt=%d: OneToMany pathLen=%d != Vanilla pathLen=%d",
+					i, j, src, tgt, lenO2M, lenVanilla)
+				allMatch = false
+			}
+			if lenM2M != lenVanilla {
+				t.Errorf("[%d][%d] src=%d tgt=%d: ManyToMany pathLen=%d != Vanilla pathLen=%d",
+					i, j, src, tgt, lenM2M, lenVanilla)
+				allMatch = false
+			}
+		}
+	}
+
+	if allMatch {
+		t.Log("All methods produce identical results!")
+	}
+
+	// Summary
+	t.Log("=== TIMING SUMMARY ===")
+	t.Logf("VanillaShortestPath (NxM = %d): %v (baseline)", numSources*numTargets, durationVanilla)
+	t.Logf("ShortestPath        (NxM = %d): %v (%.1fx faster than Vanilla)",
+		numSources*numTargets, durationSP, float64(durationVanilla)/float64(durationSP))
+	t.Logf("ShortestPathOneToMany  (N = %d): %v (%.1fx faster than Vanilla)",
+		numSources, durationO2M, float64(durationVanilla)/float64(durationO2M))
+	t.Logf("ShortestPathManyToMany (1 call): %v (%.1fx faster than Vanilla)",
+		durationM2M, float64(durationVanilla)/float64(durationM2M))
+
+	t.Log("TestAllShortestPathMethods is Ok!")
+}
