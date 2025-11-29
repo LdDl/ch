@@ -35,23 +35,33 @@ type Graph struct {
 	queryPrev [directionsCount]map[int64]int64
 
 	// OneToMany query state buffers (reused across queries)
-	oneToManyDist    [directionsCount][]float64
-	oneToManyEpochs  [directionsCount][]int64
-	oneToManyPrev    [directionsCount]map[int64]int64
-	oneToManyEpoch   int64
+	oneToManyDist   [directionsCount][]float64
+	oneToManyEpochs [directionsCount][]int64
+	oneToManyPrev   [directionsCount]map[int64]int64
+	oneToManyEpoch  int64
+
+	// Recustomization support
+	// Index of shortcuts by their Via-vertex (for fast recustomization)
+	shortcutsByVia map[int64][]*ShortcutPath
+	// Vertices in contraction order (for processing shortcuts in correct order)
+	contractionOrder []int64
+	// Flag indicating CH has been prepared
+	chPrepared bool
 }
 
 // NewGraph returns pointer to created Graph and does preallocations for processing purposes
 func NewGraph() *Graph {
 	return &Graph{
-		mapping:      make(map[int64]int64),
-		Vertices:     make([]Vertex, 0),
-		edgesNum:     0,
-		shortcutsNum: 0,
-		shortcuts:    make(map[int64]map[int64]*ShortcutPath),
-		restrictions: make(map[int64]map[int64]int64),
-		frozen:       false,
-		verbose:      false,
+		mapping:        make(map[int64]int64),
+		Vertices:       make([]Vertex, 0),
+		edgesNum:       0,
+		shortcutsNum:   0,
+		shortcuts:      make(map[int64]map[int64]*ShortcutPath),
+		restrictions:   make(map[int64]map[int64]int64),
+		shortcutsByVia: make(map[int64][]*ShortcutPath),
+		frozen:         false,
+		verbose:        false,
+		chPrepared:     false,
 	}
 }
 
@@ -73,6 +83,9 @@ func (graph *Graph) CreateVertex(label int64) error {
 	}
 	if graph.shortcuts == nil {
 		graph.shortcuts = make(map[int64]map[int64]*ShortcutPath)
+	}
+	if graph.shortcutsByVia == nil {
+		graph.shortcutsByVia = make(map[int64][]*ShortcutPath)
 	}
 
 	if _, ok := graph.mapping[label]; !ok {
@@ -120,20 +133,18 @@ func (graph *Graph) AddShortcut(from, to, via int64, weight float64) error {
 	viaInternal := graph.mapping[via]
 	if _, ok := graph.shortcuts[fromInternal]; !ok {
 		graph.shortcuts[fromInternal] = make(map[int64]*ShortcutPath)
-		graph.shortcuts[fromInternal][toInternal] = &ShortcutPath{
-			From: fromInternal,
-			To:   toInternal,
-			Via:  viaInternal,
-			Cost: weight,
-		}
 	}
-	graph.shortcuts[fromInternal][toInternal] = &ShortcutPath{
+	shortcut := &ShortcutPath{
 		From: fromInternal,
 		To:   toInternal,
 		Via:  viaInternal,
 		Cost: weight,
 	}
+	graph.shortcuts[fromInternal][toInternal] = shortcut
 	graph.shortcutsNum++
+
+	// Track shortcut by Via vertex for recustomization
+	graph.shortcutsByVia[viaInternal] = append(graph.shortcutsByVia[viaInternal], shortcut)
 	return nil
 }
 

@@ -29,6 +29,7 @@ This package provides implemented next techniques and algorithms:
 * Dijkstra's algorithm
 * Contraction hierarchies
 * Bidirectional extension of Dijkstra's algorithm with contracted nodes
+* Dynamic edge weight updates (lightweight recustomization)
 
 ## Installation
 
@@ -116,8 +117,95 @@ And then you are good to go
 		return
     }
     ```
+
+* Dynamic edge weight updates (Recustomization)
+
+    Please see this [test file](recustomize_test.go)
+
+    This feature allows you to update edge weights without rebuilding the entire contraction hierarchy. Useful for:
+    - Traffic updates (congestion, accidents and other events)
+    - Time-dependent routing
+
+    ```go
+    g := Graph{}
+    graphFromCSV(&g, "data/pgrouting_osm.csv")
+    g.PrepareContractionHierarchies()
+
+    // Single update with immediate recustomization
+    err := g.UpdateEdgeWeight(fromVertex, toVertex, newWeight, true)
+
+    // Batch updates (more efficient for multiple changes)
+    g.UpdateEdgeWeight(edge1From, edge1To, weight1, false)
+    g.UpdateEdgeWeight(edge2From, edge2To, weight2, false)
+    g.UpdateEdgeWeight(edge3From, edge3To, weight3, false)
+    g.Recustomize() // Apply all changes at once
+    ```
+
+    **When to use single vs batch updates:**
+    | Scenario | Method | Why |
+    |----------|--------|-----|
+    | One edge changed | `UpdateEdgeWeight(..., true)` | Simple, immediate |
+    | Multiple edges changed | Batch + `Recustomize()` | Faster, single pass |
+    | Real-time traffic feed | Batch + periodic `Recustomize()` | Amortize cost |
+
+    **How it works:**
+
+    ```mermaid
+    flowchart TB
+    subgraph Preprocessing["Preprocessing (one-time)"]
+        P1[Build CH with importance ordering] --> P2[Store contractionOrder array]
+        P2 --> P3[Index shortcuts by Via vertex<br/>shortcutsByVia map]
+    end
+    
+    subgraph Update["UpdateEdgeWeight call"]
+        U1[Convert user labels to internal IDs] --> U2[Update edge weight in<br/>outIncidentEdges & inIncidentEdges]
+        U2 --> U3{needRecustom?}
+        U3 -->|Yes| R1
+        U3 -->|No| U4[Return - batch mode]
+    end
+    
+    subgraph Recustomize["Recustomize call"]
+        R1[For each vertex V in contractionOrder] --> R2[Get shortcuts via V<br/>from shortcutsByVia]
+        R2 --> R3[For each shortcut A => C via V]
+        R3 --> R4["newCost = cost(A => V) + cost(V => C)"]
+        R4 --> R5[Update shortcut.Cost]
+        R5 --> R6[Update incident edges]
+        R6 --> R3
+    end
+    
+    P3 --> U1
+    R6 -.->|next vertex| R1
+    ```
+
+    Processing in contraction order ensures that when updating shortcut `A => C via V`, the edges `A => V` and `V => C` (which might themselves be shortcuts) have already been updated.
+
+    **Note:** This is a lightweight recustomization inspired by [Customizable Contraction Hierarchies](https://arxiv.org/abs/1402.0402) (Dibbelt, Strasser, Wagner), but uses the existing importance-based ordering instead of nested dissection. It's simpler and requires no external dependencies, while still providing efficient metric updates.
+
+    In future may be added full CCH support with nested dissection ordering (need to investigate METIS or similar libraries for graph partitioning).
     
 ### If you want to import OSM (Open Street Map) file then follow instructions for [osm2ch](https://github.com/LdDl/osm2ch#osm2ch)
+
+### Custom import with pre-computed CH
+
+If you have your own import logic (e.g., reading additional data like GeoJSON coordinates alongside the graph), you need to call `FinalizeImport()` after loading all vertices, edges, and shortcuts:
+
+```go
+graph := ch.NewGraph()
+
+// Your custom import logic:
+// - CreateVertex() for each vertex
+// - AddEdge() for each edge
+// - SetOrderPos() and SetImportance() for each vertex
+// - AddShortcut() for each shortcut
+
+graph.FinalizeImport() // Required for recustomization support
+
+// Now graph is ready for queries and UpdateEdgeWeight/Recustomize
+```
+
+This is required because `FinalizeImport()` builds internal data structures (`contractionOrder`, `shortcutsByVia`) needed for [dynamic edge weight updates](#dynamic-edge-weight-updates-recustomization).
+
+If you use the built-in `ImportFromFile()` function, this is called automatically.
 
 ## Benchmark
 
@@ -138,6 +226,8 @@ Please see [ROADMAP.md](ROADMAP.md)
 [Bidirectional Dijkstra's algorithm's stop condition](http://www.cs.princeton.edu/courses/archive/spr06/cos423/Handouts/EPP%20shortest%20path%20algorithms.pdf)
 
 [Contraction hierarchies](https://en.wikipedia.org/wiki/Contraction_hierarchies)
+
+[Customizable Contraction Hierarchies](https://arxiv.org/abs/1402.0402) - Dibbelt, Strasser, Wagner (2014). The recustomization feature in this library is inspired by CCH concepts.
 
 [Video Lectures](https://ad-wiki.informatik.uni-freiburg.de/teaching/EfficientRoutePlanningSS2012)
 

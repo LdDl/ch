@@ -13,6 +13,9 @@ var (
 // Preprocess Computes contraction hierarchies and returns node ordering
 func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
 	extractionOrder := int64(0)
+	// Preallocate contractionOrder slice
+	graph.contractionOrder = make([]int64, 0, len(graph.Vertices))
+
 	for pqImportance.Len() != 0 {
 		// Lazy update heuristic:
 		// update Importance of vertex "on demand" as follows:
@@ -26,6 +29,10 @@ func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
 		}
 		vertex.orderPos = extractionOrder
 		graph.contractNode(vertex)
+
+		// Track contraction order for recustomization
+		graph.contractionOrder = append(graph.contractionOrder, vertex.vertexNum)
+
 		if graph.verbose {
 			if extractionOrder > 0 && pqImportance.Len()%1000 == 0 {
 				fmt.Printf("Contraction Order: %d / %d, Remain vertices in heap: %d. Currect shortcuts num: %d Initial edges num: %d Time: %v\n", extractionOrder, len(graph.Vertices), pqImportance.Len(), graph.shortcutsNum, graph.edgesNum, time.Now().Format(tmLayout))
@@ -33,13 +40,15 @@ func (graph *Graph) Preprocess(pqImportance *importanceHeap) {
 		}
 		extractionOrder++
 	}
+
+	// Mark CH as prepared
+	graph.chPrepared = true
 }
 
 // markNeighbors
 //
 // inEdges Incoming edges from vertex
 // outEdges Outcoming edges from vertex
-//
 func (graph *Graph) markNeighbors(inEdges, outEdges []incidentEdge) {
 	for i := range inEdges {
 		temp := inEdges[i]
@@ -54,7 +63,6 @@ func (graph *Graph) markNeighbors(inEdges, outEdges []incidentEdge) {
 // contractNode
 //
 // vertex Vertex to be contracted
-//
 func (graph *Graph) contractNode(vertex *Vertex) {
 	// Consider all vertices with edges incoming TO current vertex as U
 	incomingEdges := vertex.inIncidentEdges
@@ -97,7 +105,6 @@ func (graph *Graph) contractNode(vertex *Vertex) {
 //
 // vertex - Vertex for making possible shortcuts around
 // pmax - path cost restriction
-//
 func (graph *Graph) processIncidentEdges(vertex *Vertex, pmax float64) {
 	incomingEdges := vertex.inIncidentEdges
 	outcomingEdges := vertex.outIncidentEdges
@@ -152,7 +159,6 @@ func (graph *Graph) insertShortcuts(shortcuts []ShortcutPath) {
 // fromVertex - Library defined ID of target vertex where shortcut leads to
 // viaVertex - Library defined ID of vertex through which the shortcut exists
 // summaryCost - Travel path of a shortcut
-//
 func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64, summaryCost float64) {
 	if _, ok := graph.shortcuts[fromVertex]; !ok {
 		// If there is no such shortcut then add one.
@@ -160,15 +166,19 @@ func (graph *Graph) createOrUpdateShortcut(fromVertex, toVertex, viaVertex int64
 	}
 	if existing, ok := graph.shortcuts[fromVertex][toVertex]; !ok {
 		// Prepare shorcut pointer if there is no From-To-Via combo
-		graph.shortcuts[fromVertex][toVertex] = &ShortcutPath{
+		shortcut := &ShortcutPath{
 			From: fromVertex,
 			To:   toVertex,
 			Via:  viaVertex,
 			Cost: summaryCost,
 		}
+		graph.shortcuts[fromVertex][toVertex] = shortcut
 		graph.Vertices[fromVertex].addOutIncidentEdge(toVertex, summaryCost)
 		graph.Vertices[toVertex].addInIncidentEdge(fromVertex, summaryCost)
 		graph.shortcutsNum++
+
+		// Track shortcut by Via-vertex for recustomization
+		graph.shortcutsByVia[viaVertex] = append(graph.shortcutsByVia[viaVertex], shortcut)
 	} else {
 		// If shortcut already exists
 		if summaryCost < existing.Cost {
