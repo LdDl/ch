@@ -2,7 +2,6 @@ package ch
 
 import (
 	"container/heap"
-	"container/list"
 )
 
 type direction int
@@ -172,39 +171,63 @@ func (graph *Graph) shortestPathWithAlternatives(endpoints [directionsCount][]ve
 
 // ComputePath Returns slice of IDs (user defined) of computed path
 func (graph *Graph) ComputePath(middleID int64, forwardPrev, backwardPrev map[int64]int64) []int64 {
-	l := list.New()
-	l.PushBack(middleID)
+	// Build forward path (reversed, from middle to source)
+	forwardPath := make([]int64, 0, 16)
 	u := middleID
-	var ok bool
 	for {
-		if u, ok = forwardPrev[u]; ok {
-			l.PushFront(u)
-		} else {
+		prev, ok := forwardPrev[u]
+		if !ok {
 			break
 		}
+		forwardPath = append(forwardPath, prev)
+		u = prev
 	}
+
+	// Build backward path (from middle to target)
+	backwardPath := make([]int64, 0, 16)
 	u = middleID
 	for {
-		if u, ok = backwardPrev[u]; ok {
-			l.PushBack(u)
-		} else {
+		next, ok := backwardPrev[u]
+		if !ok {
 			break
 		}
+		backwardPath = append(backwardPath, next)
+		u = next
 	}
-	ok = true
-	for ok {
-		ok = false
-		for e := l.Front(); e.Next() != nil; e = e.Next() {
-			if contractedNode, ok2 := graph.shortcuts[e.Value.(int64)][e.Next().Value.(int64)]; ok2 {
-				ok = true
-				l.InsertAfter(contractedNode.Via, e)
+
+	// Combine: reverse(forwardPath) + middle + backwardPath
+	pathLen := len(forwardPath) + 1 + len(backwardPath)
+	path := make([]int64, 0, pathLen)
+
+	// Append reversed forward path
+	for i := len(forwardPath) - 1; i >= 0; i-- {
+		path = append(path, forwardPath[i])
+	}
+	path = append(path, middleID)
+	path = append(path, backwardPath...)
+
+	// Expand shortcuts iteratively
+	for {
+		expanded := false
+		newPath := make([]int64, 0, len(path)*2)
+		for i := 0; i < len(path); i++ {
+			newPath = append(newPath, path[i])
+			if i+1 < len(path) {
+				if shortcut, ok := graph.shortcuts[path[i]][path[i+1]]; ok {
+					newPath = append(newPath, shortcut.Via)
+					expanded = true
+				}
 			}
+		}
+		path = newPath
+		if !expanded {
+			break
 		}
 	}
 
-	var path = make([]int64, 0, l.Len())
-	for e := l.Front(); e != nil; e = e.Next() {
-		path = append(path, graph.Vertices[e.Value.(int64)].Label)
+	// Convert internal IDs to user labels
+	for i := range path {
+		path[i] = graph.Vertices[path[i]].Label
 	}
 
 	return path
