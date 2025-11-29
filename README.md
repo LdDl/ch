@@ -60,8 +60,8 @@ go build
 ```
 You will see next output:
 ```shell
-go: finding github.com/LdDl/ch v1.4.6
-go: downloading github.com/LdDl/ch v1.4.6
+go: finding github.com/LdDl/ch v1.8.0
+go: downloading github.com/LdDl/ch v1.8.0
 ```
 And then you are good to go 
 
