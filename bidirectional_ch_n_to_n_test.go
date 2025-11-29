@@ -118,7 +118,7 @@ func BenchmarkStaticCaseShortestPathManyToMany(b *testing.B) {
 
 	b.Run(fmt.Sprintf("%s/vertices-%d", "CH shortest path (many to many)", len(g.Vertices)), func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			u := []int64{106600}
+			u := []int64{106600, 106600, 69618}
 			v := []int64{5924, 81611, 69618, 68427, 68490}
 			ans, path := g.ShortestPathManyToMany(u, v)
 			_, _ = ans, path
@@ -139,11 +139,13 @@ func BenchmarkStaticCaseOldWayShortestPathManyToMany(b *testing.B) {
 
 	b.Run(fmt.Sprintf("%s/vertices-%d", "CH shortest path (many to many)", len(g.Vertices)), func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			u := int64(106600)
+			u := []int64{106600, 106600, 69618}
 			v := []int64{5924, 81611, 69618, 68427, 68490}
-			for vv := range v {
-				ans, path := g.ShortestPath(u, v[vv])
-				_, _ = ans, path
+			for uu := range u {
+				for vv := range v {
+					ans, path := g.ShortestPath(u[uu], v[vv])
+					_, _ = ans, path
+				}
 			}
 		}
 	})

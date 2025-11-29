@@ -40,6 +40,13 @@ type Graph struct {
 	oneToManyPrev   [directionsCount]map[int64]int64
 	oneToManyEpoch  int64
 
+	// ManyToMany query state buffers (reused across queries)
+	// Outer slice indexed by endpoint, inner slice indexed by vertex
+	manyToManyDist   [directionsCount][][]float64
+	manyToManyEpochs [directionsCount][][]int64
+	manyToManyPrev   [directionsCount][]map[int64]int64
+	manyToManyEpoch  int64
+
 	// Recustomization support
 	// Index of shortcuts by their Via-vertex (for fast recustomization)
 	shortcutsByVia map[int64][]*ShortcutPath
