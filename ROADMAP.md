@@ -15,6 +15,8 @@ New ideas, thought about needed features will be store in this file.
     * Separate benchmarks to BENCHMARK.md **Done**
     * Better CSV format or another format (JSON / binary). **W.I.P. Splitting single file to multiple**
     * Separate export functions
+    * Thread-safe QueryPool for concurrent shortest path queries **Done**
+    * Dynamic edge weight updates (lightweight recustomization) **Done** - allows updating edge weights without full CH rebuild. Inspired by [CCH](https://arxiv.org/abs/1402.0402)
 
 ### WIP
 * Parallel version as optional feature (See branch [optional-parallelism](https://github.com/LdDl/ch/tree/)). Status update: 22.08.2021
@@ -24,3 +26,4 @@ New ideas, thought about needed features will be store in this file.
 * Better heuristics for calculationg importance of each vertex.
 * Max-cost path finder.
 * N-best shortest pathes.
+* Full Customizable Contraction Hierarchies (CCH) with nested dissection ordering - would require METIS or similar graph partitioning (need to investigate pure Go options). Reference - https://arxiv.org/abs/1402.0402

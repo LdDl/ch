@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -206,7 +207,57 @@ func ImportFromFile(edgesFname, verticesFname, contractionsFname string) (*Graph
 			return nil, errors.Wrap(err, fmt.Sprintf("Can't add shortcut with source_internal_ID = '%d' and target_internal_ID = '%d' to internal map", sourceExternal, targetExternal))
 		}
 	}
+
+	// Finalize import: build contractionOrder, set chPrepared, freeze graph
+	graph.FinalizeImport()
+
 	return &graph, nil
+}
+
+// FinalizeImport should be called after manually importing a pre-computed CH graph.
+// It builds the contractionOrder from vertices' orderPos values, sets up recustomization
+// support structures, marks CH as prepared, and freezes the graph.
+//
+// Use this when you have your own import logic (e.g., reading additional data like
+// GeoJSON coordinates) instead of using ImportFromFile().
+//
+// Example:
+//
+//	graph := ch.NewGraph()
+//	// ... your custom import logic: CreateVertex, AddEdge, SetOrderPos, SetImportance, AddShortcut ...
+//	graph.FinalizeImport()
+//	// Now graph is ready for queries and recustomization
+func (graph *Graph) FinalizeImport() {
+	graph.buildContractionOrder()
+	graph.chPrepared = true
+	graph.Freeze()
+}
+
+// buildContractionOrder reconstructs contractionOrder slice from vertices' orderPos values.
+func (graph *Graph) buildContractionOrder() {
+	n := len(graph.Vertices)
+	graph.contractionOrder = make([]int64, n)
+
+	// Create slice of (vertexNum, orderPos) pairs and sort by orderPos
+	type vertexOrder struct {
+		vertexNum int64
+		orderPos  int64
+	}
+	vertices := make([]vertexOrder, n)
+	for i := range graph.Vertices {
+		vertices[i] = vertexOrder{
+			vertexNum: graph.Vertices[i].vertexNum,
+			orderPos:  graph.Vertices[i].orderPos,
+		}
+	}
+	sort.Slice(vertices, func(i, j int) bool {
+		return vertices[i].orderPos < vertices[j].orderPos
+	})
+
+	// Build contractionOrder in correct order
+	for i, v := range vertices {
+		graph.contractionOrder[i] = v.vertexNum
+	}
 }
 
 func prepareEdgesColumns(edgesHeader []string) (CSVHeaderImportEdges, error) {
