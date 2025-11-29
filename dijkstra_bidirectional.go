@@ -2,7 +2,6 @@ package ch
 
 import (
 	"container/heap"
-	"container/list"
 )
 
 type direction int
@@ -33,38 +32,46 @@ func (graph *Graph) ShortestPath(source, target int64) (float64, []int64) {
 	return graph.shortestPath(endpoints)
 }
 
-func (graph *Graph) initShortestPath() (queryDist [directionsCount][]float64, processed [directionsCount][]bool, queues [directionsCount]*vertexDistHeap) {
-	for d := forward; d < directionsCount; d++ {
-		queryDist[d] = make([]float64, len(graph.Vertices))
-		for i := range queryDist[d] {
-			queryDist[d][i] = Infinity
+func (graph *Graph) initShortestPath() (queues [directionsCount]*vertexDistHeap) {
+	n := len(graph.Vertices)
+
+	// Increment query epoch to clears all previous distances
+	graph.queryEpoch++
+
+	// Lazy initialization of query buffers (only on first query)
+	if graph.queryDist[forward] == nil {
+		for d := forward; d < directionsCount; d++ {
+			graph.queryDist[d] = make([]float64, n)
+			graph.queryEpochs[d] = make([]int64, n)
+			graph.queryPrev[d] = make(map[int64]int64)
 		}
-		processed[d] = make([]bool, len(graph.Vertices))
+	}
+
+	// Clear prev maps by recreating them (reuses memory in Go's map implementation)
+	for d := forward; d < directionsCount; d++ {
+		graph.queryPrev[d] = make(map[int64]int64)
 		queues[d] = &vertexDistHeap{}
 		heap.Init(queues[d])
 	}
+
 	return
 }
 
 func (graph *Graph) shortestPath(endpoints [directionsCount]int64) (float64, []int64) {
-	queryDist, processed, queues := graph.initShortestPath()
+	queues := graph.initShortestPath()
 	for d := forward; d < directionsCount; d++ {
-		processed[d][endpoints[d]] = true
-		queryDist[d][endpoints[d]] = 0
+		graph.queryEpochs[d][endpoints[d]] = graph.queryEpoch
+		graph.queryDist[d][endpoints[d]] = 0
 		heapEndpoint := &vertexDist{
 			id:   endpoints[d],
 			dist: 0,
 		}
 		heap.Push(queues[d], heapEndpoint)
 	}
-	return graph.shortestPathCore(queryDist, processed, queues)
+	return graph.shortestPathCore(queues)
 }
 
-func (graph *Graph) shortestPathCore(queryDist [directionsCount][]float64, processed [directionsCount][]bool, queues [directionsCount]*vertexDistHeap) (float64, []int64) {
-	var prev [directionsCount]map[int64]int64
-	for d := forward; d < directionsCount; d++ {
-		prev[d] = make(map[int64]int64)
-	}
+func (graph *Graph) shortestPathCore(queues [directionsCount]*vertexDistHeap) (float64, []int64) {
 	estimate := Infinity
 	middleID := int64(-1)
 	for {
@@ -75,7 +82,7 @@ func (graph *Graph) shortestPathCore(queryDist [directionsCount][]float64, proce
 			}
 			queuesProcessed = true
 			reverseDirection := (d + 1) % directionsCount
-			graph.directionalSearch(d, queues[d], processed[d], processed[reverseDirection], queryDist[d], queryDist[reverseDirection], prev[d], &estimate, &middleID)
+			graph.directionalSearch(d, queues[d], reverseDirection, &estimate, &middleID)
 		}
 		if !queuesProcessed {
 			break
@@ -84,13 +91,13 @@ func (graph *Graph) shortestPathCore(queryDist [directionsCount][]float64, proce
 	if estimate == Infinity {
 		return -1.0, nil
 	}
-	return estimate, graph.ComputePath(middleID, prev[forward], prev[backward])
+	return estimate, graph.ComputePath(middleID, graph.queryPrev[forward], graph.queryPrev[backward])
 }
 
-func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, localProcessed, reverseProcessed []bool, localQueryDist, reverseQueryDist []float64, prev map[int64]int64, estimate *float64, middleID *int64) {
+func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, reverseDirection direction, estimate *float64, middleID *int64) {
 	vertex := heap.Pop(q).(*vertexDist)
 	if vertex.dist <= *estimate {
-		localProcessed[vertex.id] = true
+		graph.queryEpochs[d][vertex.id] = graph.queryEpoch
 		// Edge relaxation in a forward propagation
 		var vertexList []incidentEdge
 		if d == forward {
@@ -102,10 +109,12 @@ func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, localProce
 			temp := vertexList[i].vertexID
 			cost := vertexList[i].weight
 			if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
-				alt := localQueryDist[vertex.id] + cost
-				if localQueryDist[temp] > alt {
-					localQueryDist[temp] = alt
-					prev[temp] = vertex.id
+				alt := graph.queryDist[d][vertex.id] + cost
+				// Check if temp was visited this epoch, if not treat as Infinity
+				if graph.queryEpochs[d][temp] != graph.queryEpoch || graph.queryDist[d][temp] > alt {
+					graph.queryDist[d][temp] = alt
+					graph.queryEpochs[d][temp] = graph.queryEpoch
+					graph.queryPrev[d][temp] = vertex.id
 					node := &vertexDist{
 						id:   temp,
 						dist: alt,
@@ -115,10 +124,11 @@ func (graph *Graph) directionalSearch(d direction, q *vertexDistHeap, localProce
 			}
 		}
 	}
-	if reverseProcessed[vertex.id] {
-		if vertex.dist+reverseQueryDist[vertex.id] < *estimate {
+	// Check if reverse direction has processed this vertex
+	if graph.queryEpochs[reverseDirection][vertex.id] == graph.queryEpoch {
+		if vertex.dist+graph.queryDist[reverseDirection][vertex.id] < *estimate {
 			*middleID = vertex.id
-			*estimate = vertex.dist + reverseQueryDist[vertex.id]
+			*estimate = vertex.dist + graph.queryDist[reverseDirection][vertex.id]
 		}
 	}
 }
@@ -141,14 +151,14 @@ func (graph *Graph) ShortestPathWithAlternatives(sources, targets []VertexAltern
 }
 
 func (graph *Graph) shortestPathWithAlternatives(endpoints [directionsCount][]vertexAlternativeInternal) (float64, []int64) {
-	queryDist, processed, queues := graph.initShortestPath()
+	queues := graph.initShortestPath()
 	for d := forward; d < directionsCount; d++ {
 		for _, endpoint := range endpoints[d] {
 			if endpoint.vertexNum == vertexNotFound {
 				continue
 			}
-			processed[d][endpoint.vertexNum] = true
-			queryDist[d][endpoint.vertexNum] = endpoint.additionalDistance
+			graph.queryEpochs[d][endpoint.vertexNum] = graph.queryEpoch
+			graph.queryDist[d][endpoint.vertexNum] = endpoint.additionalDistance
 			heapEndpoint := &vertexDist{
 				id:   endpoint.vertexNum,
 				dist: endpoint.additionalDistance,
@@ -156,44 +166,68 @@ func (graph *Graph) shortestPathWithAlternatives(endpoints [directionsCount][]ve
 			heap.Push(queues[d], heapEndpoint)
 		}
 	}
-	return graph.shortestPathCore(queryDist, processed, queues)
+	return graph.shortestPathCore(queues)
 }
 
 // ComputePath Returns slice of IDs (user defined) of computed path
 func (graph *Graph) ComputePath(middleID int64, forwardPrev, backwardPrev map[int64]int64) []int64 {
-	l := list.New()
-	l.PushBack(middleID)
+	// Build forward path (reversed, from middle to source)
+	forwardPath := make([]int64, 0, 16)
 	u := middleID
-	var ok bool
 	for {
-		if u, ok = forwardPrev[u]; ok {
-			l.PushFront(u)
-		} else {
+		prev, ok := forwardPrev[u]
+		if !ok {
 			break
 		}
+		forwardPath = append(forwardPath, prev)
+		u = prev
 	}
+
+	// Build backward path (from middle to target)
+	backwardPath := make([]int64, 0, 16)
 	u = middleID
 	for {
-		if u, ok = backwardPrev[u]; ok {
-			l.PushBack(u)
-		} else {
+		next, ok := backwardPrev[u]
+		if !ok {
 			break
 		}
+		backwardPath = append(backwardPath, next)
+		u = next
 	}
-	ok = true
-	for ok {
-		ok = false
-		for e := l.Front(); e.Next() != nil; e = e.Next() {
-			if contractedNode, ok2 := graph.shortcuts[e.Value.(int64)][e.Next().Value.(int64)]; ok2 {
-				ok = true
-				l.InsertAfter(contractedNode.Via, e)
+
+	// Combine: reverse(forwardPath) + middle + backwardPath
+	pathLen := len(forwardPath) + 1 + len(backwardPath)
+	path := make([]int64, 0, pathLen)
+
+	// Append reversed forward path
+	for i := len(forwardPath) - 1; i >= 0; i-- {
+		path = append(path, forwardPath[i])
+	}
+	path = append(path, middleID)
+	path = append(path, backwardPath...)
+
+	// Expand shortcuts iteratively
+	for {
+		expanded := false
+		newPath := make([]int64, 0, len(path)*2)
+		for i := 0; i < len(path); i++ {
+			newPath = append(newPath, path[i])
+			if i+1 < len(path) {
+				if shortcut, ok := graph.shortcuts[path[i]][path[i+1]]; ok {
+					newPath = append(newPath, shortcut.Via)
+					expanded = true
+				}
 			}
+		}
+		path = newPath
+		if !expanded {
+			break
 		}
 	}
 
-	var path = make([]int64, 0, l.Len())
-	for e := l.Front(); e != nil; e = e.Next() {
-		path = append(path, graph.Vertices[e.Value.(int64)].Label)
+	// Convert internal IDs to user labels
+	for i := range path {
+		path[i] = graph.Vertices[path[i]].Label
 	}
 
 	return path

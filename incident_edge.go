@@ -7,19 +7,21 @@ type incidentEdge struct {
 }
 
 // addInIncidentEdge Adds incident edge's to pool of "incoming" edges of given vertex.
-// Just an alias to append() function
+// Just an alias to append() function with invalidation of bidirected cache
 // incomingVertexID - Library defined ID of vertex
 // weight - Travel cost of incoming edge
 func (vertex *Vertex) addInIncidentEdge(incomingVertexID int64, weight float64) {
 	vertex.inIncidentEdges = append(vertex.inIncidentEdges, incidentEdge{incomingVertexID, weight})
+	vertex.bidirectedCached = false
 }
 
 // addOutIncidentEdge Adds incident edge's to pool of "outcoming" edges of given vertex.
-// Just an alias to append() function
+// Just an alias to append() function with invalidation of bidirected cache
 // outcomingVertexID - Library defined ID of vertex
 // weight - Travel cost of outcoming edge
 func (vertex *Vertex) addOutIncidentEdge(outcomingVertexID int64, weight float64) {
 	vertex.outIncidentEdges = append(vertex.outIncidentEdges, incidentEdge{outcomingVertexID, weight})
+	vertex.bidirectedCached = false
 }
 
 // findInIncidentEdge Returns index of incoming incident edge by vertex ID

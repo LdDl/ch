@@ -4,20 +4,22 @@ import (
 	"container/heap"
 )
 
-func (graph *Graph) initShortestPathOneToMany() (estimateAll []float64, pathAll [][]int64, prev map[int64]int64, prevReverse map[int64]int64, queryDist, revQueryDist []float64, forwProcessed, revProcessed []int64) {
-	estimateAll = []float64{}
-	pathAll = [][]int64{}
+func (graph *Graph) initShortestPathOneToMany() {
+	n := len(graph.Vertices)
 
-	prev = make(map[int64]int64)
-	prevReverse = make(map[int64]int64)
+	// Lazy initialization of query buffers (only on first query)
+	if graph.oneToManyDist[forward] == nil {
+		for d := forward; d < directionsCount; d++ {
+			graph.oneToManyDist[d] = make([]float64, n)
+			graph.oneToManyEpochs[d] = make([]int64, n)
+			graph.oneToManyPrev[d] = make(map[int64]int64)
+		}
+	}
 
-	queryDist = make([]float64, len(graph.Vertices))
-	revQueryDist = make([]float64, len(graph.Vertices))
-
-	forwProcessed = make([]int64, len(graph.Vertices))
-	revProcessed = make([]int64, len(graph.Vertices))
-
-	return
+	// Clear prev maps by recreating them
+	for d := forward; d < directionsCount; d++ {
+		graph.oneToManyPrev[d] = make(map[int64]int64)
+	}
 }
 
 // ShortestPathOneToMany computes and returns shortest paths and theirs's costs (extended Dijkstra's algorithm) between single source and multiple targets
@@ -27,7 +29,10 @@ func (graph *Graph) initShortestPathOneToMany() (estimateAll []float64, pathAll 
 // source - user's definied ID of source vertex
 // targets - set of user's definied IDs of target vertices
 func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]float64, [][]int64) {
-	estimateAll, pathAll, prev, prevReverse, queryDist, revQueryDist, forwProcessed, revProcessed := graph.initShortestPathOneToMany()
+	graph.initShortestPathOneToMany()
+
+	estimateAll := make([]float64, 0, len(targets))
+	pathAll := make([][]int64, 0, len(targets))
 
 	var ok bool
 	if source, ok = graph.mapping[source]; !ok {
@@ -36,8 +41,15 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 		return estimateAll, pathAll
 	}
 
-	for idx, target := range targets {
-		nextQueue := int64(idx) + 1
+	for _, target := range targets {
+		// Increment epoch for each target query
+		graph.oneToManyEpoch++
+		epoch := graph.oneToManyEpoch
+
+		// Clear prev maps for each target to avoid stale path reconstruction
+		graph.oneToManyPrev[forward] = make(map[int64]int64)
+		graph.oneToManyPrev[backward] = make(map[int64]int64)
+
 		if source == target {
 			estimateAll = append(estimateAll, 0)
 			pathAll = append(pathAll, []int64{source})
@@ -50,11 +62,11 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 			continue
 		}
 
-		forwProcessed[source] = nextQueue
-		revProcessed[target] = nextQueue
+		graph.oneToManyEpochs[forward][source] = epoch
+		graph.oneToManyEpochs[backward][target] = epoch
 
-		queryDist[source] = 0
-		revQueryDist[target] = 0
+		graph.oneToManyDist[forward][source] = 0
+		graph.oneToManyDist[backward][target] = 0
 
 		forwQ := &vertexDistHeap{}
 		backwQ := &vertexDistHeap{}
@@ -74,7 +86,7 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 		heap.Push(forwQ, heapSource)
 		heap.Push(backwQ, heapTarget)
 
-		estimate, path := graph.shortestPathOneToManyCore(nextQueue, prev, prevReverse, queryDist, revQueryDist, forwProcessed, revProcessed, forwQ, backwQ)
+		estimate, path := graph.shortestPathOneToManyCore(epoch, forwQ, backwQ)
 
 		estimateAll = append(estimateAll, estimate)
 		pathAll = append(pathAll, path)
@@ -83,7 +95,7 @@ func (graph *Graph) ShortestPathOneToMany(source int64, targets []int64) ([]floa
 	return estimateAll, pathAll
 }
 
-func (graph *Graph) shortestPathOneToManyCore(nextQueue int64, prev map[int64]int64, prevReverse map[int64]int64, queryDist, revQueryDist []float64, forwProcessed, revProcessed []int64, forwQ *vertexDistHeap, backwQ *vertexDistHeap) (float64, []int64) {
+func (graph *Graph) shortestPathOneToManyCore(epoch int64, forwQ *vertexDistHeap, backwQ *vertexDistHeap) (float64, []int64) {
 	estimate := Infinity
 
 	var middleID int64
@@ -92,13 +104,13 @@ func (graph *Graph) shortestPathOneToManyCore(nextQueue int64, prev map[int64]in
 		if forwQ.Len() != 0 {
 			vertex1 := heap.Pop(forwQ).(*vertexDist)
 			if vertex1.dist <= estimate {
-				forwProcessed[vertex1.id] = nextQueue
-				graph.relaxEdgesBiForwardOneToMany(vertex1, forwQ, prev, queryDist, nextQueue, forwProcessed)
+				graph.oneToManyEpochs[forward][vertex1.id] = epoch
+				graph.relaxEdgesBiForwardOneToMany(vertex1, forwQ, epoch)
 			}
-			if revProcessed[vertex1.id] == nextQueue {
-				if vertex1.dist+revQueryDist[vertex1.id] < estimate {
+			if graph.oneToManyEpochs[backward][vertex1.id] == epoch {
+				if vertex1.dist+graph.oneToManyDist[backward][vertex1.id] < estimate {
 					middleID = vertex1.id
-					estimate = vertex1.dist + revQueryDist[vertex1.id]
+					estimate = vertex1.dist + graph.oneToManyDist[backward][vertex1.id]
 				}
 			}
 		}
@@ -106,14 +118,14 @@ func (graph *Graph) shortestPathOneToManyCore(nextQueue int64, prev map[int64]in
 		if backwQ.Len() != 0 {
 			vertex2 := heap.Pop(backwQ).(*vertexDist)
 			if vertex2.dist <= estimate {
-				revProcessed[vertex2.id] = nextQueue
-				graph.relaxEdgesBiBackwardOneToMany(vertex2, backwQ, prevReverse, revQueryDist, nextQueue, revProcessed)
+				graph.oneToManyEpochs[backward][vertex2.id] = epoch
+				graph.relaxEdgesBiBackwardOneToMany(vertex2, backwQ, epoch)
 			}
 
-			if forwProcessed[vertex2.id] == nextQueue {
-				if vertex2.dist+queryDist[vertex2.id] < estimate {
+			if graph.oneToManyEpochs[forward][vertex2.id] == epoch {
+				if vertex2.dist+graph.oneToManyDist[forward][vertex2.id] < estimate {
 					middleID = vertex2.id
-					estimate = vertex2.dist + queryDist[vertex2.id]
+					estimate = vertex2.dist + graph.oneToManyDist[forward][vertex2.id]
 				}
 			}
 		}
@@ -123,7 +135,7 @@ func (graph *Graph) shortestPathOneToManyCore(nextQueue int64, prev map[int64]in
 		return -1, nil
 	}
 
-	return estimate, graph.ComputePath(middleID, prev, prevReverse)
+	return estimate, graph.ComputePath(middleID, graph.oneToManyPrev[forward], graph.oneToManyPrev[backward])
 }
 
 // ShortestPathOneToManyWithAlternatives Computes and returns shortest path and it's cost (extended Dijkstra's algorithm) between single source and multiple targets
@@ -135,12 +147,21 @@ func (graph *Graph) shortestPathOneToManyCore(nextQueue int64, prev map[int64]in
 // sourceAlternatives - user's definied ID of source vertex with additional penalty
 // targetsAlternatives - set of user's definied IDs of target vertices  with additional penalty
 func (graph *Graph) ShortestPathOneToManyWithAlternatives(sourceAlternatives []VertexAlternative, targetsAlternatives [][]VertexAlternative) ([]float64, [][]int64) {
-	estimateAll, pathAll, prev, prevReverse, queryDist, revQueryDist, forwProcessed, revProcessed := graph.initShortestPathOneToMany()
+	graph.initShortestPathOneToMany()
+
+	estimateAll := make([]float64, 0, len(targetsAlternatives))
+	pathAll := make([][]int64, 0, len(targetsAlternatives))
 
 	sourceAlternativesInternal := graph.vertexAlternativesToInternal(sourceAlternatives)
 
-	for idx, targetAlternatives := range targetsAlternatives {
-		nextQueue := int64(idx) + 1
+	for _, targetAlternatives := range targetsAlternatives {
+		// Increment epoch for each target query
+		graph.oneToManyEpoch++
+		epoch := graph.oneToManyEpoch
+
+		// Clear prev maps for each target to avoid stale path reconstruction
+		graph.oneToManyPrev[forward] = make(map[int64]int64)
+		graph.oneToManyPrev[backward] = make(map[int64]int64)
 
 		targetAlternativesInternal := graph.vertexAlternativesToInternal(targetAlternatives)
 
@@ -154,8 +175,8 @@ func (graph *Graph) ShortestPathOneToManyWithAlternatives(sourceAlternatives []V
 			if sourceAlternative.vertexNum == vertexNotFound {
 				continue
 			}
-			forwProcessed[sourceAlternative.vertexNum] = nextQueue
-			queryDist[sourceAlternative.vertexNum] = sourceAlternative.additionalDistance
+			graph.oneToManyEpochs[forward][sourceAlternative.vertexNum] = epoch
+			graph.oneToManyDist[forward][sourceAlternative.vertexNum] = sourceAlternative.additionalDistance
 
 			heapSource := &vertexDist{
 				id:   sourceAlternative.vertexNum,
@@ -167,8 +188,8 @@ func (graph *Graph) ShortestPathOneToManyWithAlternatives(sourceAlternatives []V
 			if targetAlternative.vertexNum == vertexNotFound {
 				continue
 			}
-			revProcessed[targetAlternative.vertexNum] = nextQueue
-			revQueryDist[targetAlternative.vertexNum] = targetAlternative.additionalDistance
+			graph.oneToManyEpochs[backward][targetAlternative.vertexNum] = epoch
+			graph.oneToManyDist[backward][targetAlternative.vertexNum] = targetAlternative.additionalDistance
 
 			heapTarget := &vertexDist{
 				id:   targetAlternative.vertexNum,
@@ -177,7 +198,7 @@ func (graph *Graph) ShortestPathOneToManyWithAlternatives(sourceAlternatives []V
 			heap.Push(backwQ, heapTarget)
 		}
 
-		estimate, path := graph.shortestPathOneToManyCore(nextQueue, prev, prevReverse, queryDist, revQueryDist, forwProcessed, revProcessed, forwQ, backwQ)
+		estimate, path := graph.shortestPathOneToManyCore(epoch, forwQ, backwQ)
 
 		estimateAll = append(estimateAll, estimate)
 		pathAll = append(pathAll, path)
@@ -186,17 +207,17 @@ func (graph *Graph) ShortestPathOneToManyWithAlternatives(sourceAlternatives []V
 	return estimateAll, pathAll
 }
 
-func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *vertexDist, forwQ *vertexDistHeap, prev map[int64]int64, queryDist []float64, cid int64, forwProcessed []int64) {
+func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *vertexDist, forwQ *vertexDistHeap, epoch int64) {
 	vertexList := graph.Vertices[vertex.id].outIncidentEdges
 	for i := range vertexList {
 		temp := vertexList[i].vertexID
 		cost := vertexList[i].weight
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
-			alt := queryDist[vertex.id] + cost
-			if forwProcessed[temp] != cid || queryDist[temp] > alt {
-				queryDist[temp] = alt
-				prev[temp] = vertex.id
-				forwProcessed[temp] = cid
+			alt := graph.oneToManyDist[forward][vertex.id] + cost
+			if graph.oneToManyEpochs[forward][temp] != epoch || graph.oneToManyDist[forward][temp] > alt {
+				graph.oneToManyDist[forward][temp] = alt
+				graph.oneToManyPrev[forward][temp] = vertex.id
+				graph.oneToManyEpochs[forward][temp] = epoch
 				node := &vertexDist{
 					id:   temp,
 					dist: alt,
@@ -207,17 +228,17 @@ func (graph *Graph) relaxEdgesBiForwardOneToMany(vertex *vertexDist, forwQ *vert
 	}
 }
 
-func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *vertexDist, backwQ *vertexDistHeap, prev map[int64]int64, revQueryDist []float64, cid int64, revProcessed []int64) {
+func (graph *Graph) relaxEdgesBiBackwardOneToMany(vertex *vertexDist, backwQ *vertexDistHeap, epoch int64) {
 	vertexList := graph.Vertices[vertex.id].inIncidentEdges
 	for i := range vertexList {
 		temp := vertexList[i].vertexID
 		cost := vertexList[i].weight
 		if graph.Vertices[vertex.id].orderPos < graph.Vertices[temp].orderPos {
-			alt := revQueryDist[vertex.id] + cost
-			if revProcessed[temp] != cid || revQueryDist[temp] > alt {
-				revQueryDist[temp] = alt
-				prev[temp] = vertex.id
-				revProcessed[temp] = cid
+			alt := graph.oneToManyDist[backward][vertex.id] + cost
+			if graph.oneToManyEpochs[backward][temp] != epoch || graph.oneToManyDist[backward][temp] > alt {
+				graph.oneToManyDist[backward][temp] = alt
+				graph.oneToManyPrev[backward][temp] = vertex.id
+				graph.oneToManyEpochs[backward][temp] = epoch
 				node := &vertexDist{
 					id:   temp,
 					dist: alt,

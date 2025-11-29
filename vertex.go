@@ -13,6 +13,10 @@ type Vertex struct {
 	delNeighbors int
 	importance   int
 	contracted   bool
+	// Cached count of bidirected edges
+	bidirectedCount int
+	// Whether bidirectedCount is valid
+	bidirectedCached bool
 }
 
 // OrderPos Returns order position (in terms of contraction hierarchies) of vertex
@@ -60,19 +64,25 @@ func (vertex *Vertex) computeImportance() {
 	vertex.importance = edgeDiff + incidentEdgesNum + vertex.delNeighbors - vertex.bidirectedEdges()
 }
 
-// bidirectedEdges Number of bidirected edges
+// bidirectedEdges Number of bidirected edges (cached)
 func (vertex *Vertex) bidirectedEdges() int {
+	if vertex.bidirectedCached {
+		return vertex.bidirectedCount
+	}
+	// Compute and cache
 	hash := make(map[int64]struct{}, len(vertex.inIncidentEdges))
 	for _, e := range vertex.inIncidentEdges {
 		hash[e.vertexID] = struct{}{}
 	}
-	ans := 0
+	count := 0
 	for i := range vertex.outIncidentEdges {
 		if _, ok := hash[vertex.outIncidentEdges[i].vertexID]; ok {
-			ans++
+			count++
 		}
 	}
-	return ans
+	vertex.bidirectedCount = count
+	vertex.bidirectedCached = true
+	return count
 }
 
 // Distance Information about contraction between source vertex and contraction vertex
@@ -98,7 +108,6 @@ func NewDistance() Distance {
 //
 // labelExternal - User defined ID of vertex
 // If vertex is not found then returns (-1; false)
-//
 func (graph *Graph) FindVertex(labelExternal int64) (idx int64, ok bool) {
 	idx, ok = graph.mapping[labelExternal]
 	if !ok {
