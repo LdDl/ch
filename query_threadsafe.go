@@ -5,6 +5,99 @@ import (
 	"sync"
 )
 
+type queryHeap []vertexDist
+
+func (h queryHeap) Len() int {
+	return len(h)
+}
+
+// Use the same strict comparison and swaps as container/heap, including equal priorities.
+func (h *queryHeap) push(value vertexDist) {
+	*h = append(*h, value)
+	j := len(*h) - 1
+	for {
+		i := (j - 1) / 2
+		if i == j || !((*h)[j].dist < (*h)[i].dist) {
+			break
+		}
+		(*h)[i], (*h)[j] = (*h)[j], (*h)[i]
+		j = i
+	}
+}
+
+func (h *queryHeap) pop() vertexDist {
+	n := len(*h) - 1
+	(*h)[0], (*h)[n] = (*h)[n], (*h)[0]
+	i := 0
+	for {
+		left := 2*i + 1
+		if left >= n || left < 0 {
+			break
+		}
+		j := left
+		if right := left + 1; right < n && (*h)[right].dist < (*h)[left].dist {
+			j = right
+		}
+		if !((*h)[j].dist < (*h)[i].dist) {
+			break
+		}
+		(*h)[i], (*h)[j] = (*h)[j], (*h)[i]
+		i = j
+	}
+	value := (*h)[n]
+	*h = (*h)[:n]
+	return value
+}
+
+type queryArc struct {
+	from int64
+	to   int64
+}
+
+// Scratch belongs to the acquired query state; the returned path owns its storage.
+func (qp *QueryPool) computeQueryPath(state *QueryState, middle int64) []int64 {
+	chain := state.pathChain[:0]
+	chain = append(chain, middle)
+	for at := middle; ; {
+		before := state.previous[forward][at]
+		if before < 0 {
+			break
+		}
+		chain = append(chain, before)
+		at = before
+	}
+	for i, j := 0, len(chain)-1; i < j; i, j = i+1, j-1 {
+		chain[i], chain[j] = chain[j], chain[i]
+	}
+	for at := middle; ; {
+		after := state.previous[backward][at]
+		if after < 0 {
+			break
+		}
+		chain = append(chain, after)
+		at = after
+	}
+	state.pathChain = chain
+	path := state.pathOutput[:0]
+	path = append(path, qp.graph.Vertices[chain[0]].Label)
+	stack := state.pathStack[:0]
+	for i := 1; i < len(chain); i++ {
+		stack = append(stack, queryArc{chain[i-1], chain[i]})
+		for len(stack) != 0 {
+			arc := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			if shortcut, ok := qp.graph.shortcuts[arc.from][arc.to]; ok {
+				stack = append(stack, queryArc{shortcut.Via, arc.to}, queryArc{arc.from, shortcut.Via})
+			} else {
+				path = append(path, qp.graph.Vertices[arc.to].Label)
+			}
+		}
+	}
+	state.pathStack = stack
+	state.pathOutput = path
+	return append([]int64(nil), path...)
+}
+
 // QueryState holds all the buffers needed for a single shortest path query.
 // This is used by the thread-safe query methods to avoid sharing state between goroutines.
 type QueryState struct {
@@ -14,10 +107,16 @@ type QueryState struct {
 	dist [directionsCount][]float64
 	// Epoch markers (if != epoch, distance is Infinity)
 	epochs [directionsCount][]int64
-	// Previous vertex maps for path reconstruction
+	// Predecessor maps for one-to-many queries
 	prev [directionsCount]map[int64]int64
 	// Priority queues for bidirectional search
-	queues [directionsCount]*vertexDistHeap
+	queues         [directionsCount]queryHeap
+	pathChain      []int64
+	pathStack      []queryArc
+	pathOutput     []int64
+	stopAtEstimate bool
+	// Dense predecessors are valid for the current distance epoch.
+	previous [directionsCount][]int64
 
 	// ManyToMany query state buffers
 	// Outer slice indexed by endpoint, inner slice indexed by vertex
@@ -30,15 +129,26 @@ type QueryState struct {
 // QueryPool provides thread-safe access to pooled QueryState objects.
 // Use this when you need to call shortest path queries from multiple goroutines.
 type QueryPool struct {
-	pool  sync.Pool
-	graph *Graph
+	pool        sync.Pool
+	graph       *Graph
+	nonnegative bool
 }
 
 // NewQueryPool creates a new QueryPool for concurrent query execution.
 // The pool lazily initializes QueryState objects as needed.
+// Keep the prepared graph unchanged while using the pool; recreate the pool after graph updates.
 func (graph *Graph) NewQueryPool() *QueryPool {
+	nonnegative := true
+	for i := range graph.Vertices {
+		for _, edge := range graph.Vertices[i].outIncidentEdges {
+			if !(edge.weight >= 0) {
+				nonnegative = false
+			}
+		}
+	}
 	return &QueryPool{
-		graph: graph,
+		graph:       graph,
+		nonnegative: nonnegative,
 		pool: sync.Pool{
 			New: func() interface{} {
 				return &QueryState{}
@@ -56,20 +166,23 @@ func (qp *QueryPool) acquireState() *QueryState {
 	if state.dist[forward] == nil || len(state.dist[forward]) != n {
 		for d := forward; d < directionsCount; d++ {
 			state.dist[d] = make([]float64, n)
+			state.previous[d] = make([]int64, n)
 			state.epochs[d] = make([]int64, n)
 			state.prev[d] = make(map[int64]int64)
-			state.queues[d] = &vertexDistHeap{}
+			state.queues[d] = nil
 		}
 	}
 
 	// Increment epoch to invalidate previous distances
 	state.epoch++
+	state.stopAtEstimate = qp.nonnegative
 
 	// Clear prev maps
 	for d := forward; d < directionsCount; d++ {
-		state.prev[d] = make(map[int64]int64)
-		state.queues[d] = &vertexDistHeap{}
-		heap.Init(state.queues[d])
+		for vertex := range state.prev[d] {
+			delete(state.prev[d], vertex)
+		}
+		state.queues[d] = state.queues[d][:0]
 	}
 
 	return state
@@ -108,11 +221,12 @@ func (qp *QueryPool) shortestPath(state *QueryState, endpoints [directionsCount]
 	for d := forward; d < directionsCount; d++ {
 		state.epochs[d][endpoints[d]] = state.epoch
 		state.dist[d][endpoints[d]] = 0
-		heapEndpoint := &vertexDist{
+		state.previous[d][endpoints[d]] = -1
+		heapEndpoint := vertexDist{
 			id:   endpoints[d],
 			dist: 0,
 		}
-		heap.Push(state.queues[d], heapEndpoint)
+		state.queues[d].push(heapEndpoint)
 	}
 	return qp.shortestPathCore(state)
 }
@@ -127,6 +241,11 @@ func (qp *QueryPool) shortestPathCore(state *QueryState) (float64, []int64) {
 			if state.queues[d].Len() == 0 {
 				continue
 			}
+			// A strictly worse minimum cannot relax or improve a meeting on nonnegative paths.
+			if state.stopAtEstimate && state.queues[d][0].dist > estimate {
+				state.queues[d] = state.queues[d][:0]
+				continue
+			}
 			queuesProcessed = true
 			reverseDirection := (d + 1) % directionsCount
 			qp.directionalSearch(state, d, reverseDirection, &estimate, &middleID)
@@ -139,11 +258,11 @@ func (qp *QueryPool) shortestPathCore(state *QueryState) (float64, []int64) {
 	if estimate == Infinity {
 		return -1.0, nil
 	}
-	return estimate, qp.graph.ComputePath(middleID, state.prev[forward], state.prev[backward])
+	return estimate, qp.computeQueryPath(state, middleID)
 }
 
 func (qp *QueryPool) directionalSearch(state *QueryState, d direction, reverseDirection direction, estimate *float64, middleID *int64) {
-	vertex := heap.Pop(state.queues[d]).(*vertexDist)
+	vertex := state.queues[d].pop()
 	if vertex.dist <= *estimate {
 		state.epochs[d][vertex.id] = state.epoch
 		// Edge relaxation
@@ -161,12 +280,12 @@ func (qp *QueryPool) directionalSearch(state *QueryState, d direction, reverseDi
 				if state.epochs[d][temp] != state.epoch || state.dist[d][temp] > alt {
 					state.dist[d][temp] = alt
 					state.epochs[d][temp] = state.epoch
-					state.prev[d][temp] = vertex.id
-					node := &vertexDist{
+					state.previous[d][temp] = vertex.id
+					node := vertexDist{
 						id:   temp,
 						dist: alt,
 					}
-					heap.Push(state.queues[d], node)
+					state.queues[d].push(node)
 				}
 			}
 		}
@@ -201,16 +320,20 @@ func (qp *QueryPool) ShortestPathWithAlternatives(sources, targets []VertexAlter
 func (qp *QueryPool) shortestPathWithAlternatives(state *QueryState, endpoints [directionsCount][]vertexAlternativeInternal) (float64, []int64) {
 	for d := forward; d < directionsCount; d++ {
 		for _, endpoint := range endpoints[d] {
+			if !(endpoint.additionalDistance >= 0) {
+				state.stopAtEstimate = false
+			}
 			if endpoint.vertexNum == vertexNotFound {
 				continue
 			}
 			state.epochs[d][endpoint.vertexNum] = state.epoch
 			state.dist[d][endpoint.vertexNum] = endpoint.additionalDistance
-			heapEndpoint := &vertexDist{
+			state.previous[d][endpoint.vertexNum] = -1
+			heapEndpoint := vertexDist{
 				id:   endpoint.vertexNum,
 				dist: endpoint.additionalDistance,
 			}
-			heap.Push(state.queues[d], heapEndpoint)
+			state.queues[d].push(heapEndpoint)
 		}
 	}
 	return qp.shortestPathCore(state)
